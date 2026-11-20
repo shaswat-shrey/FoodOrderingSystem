@@ -15,7 +15,7 @@
 | Project name | FoodOrderSystem — Online Food Ordering and Delivery Platform (working name; product brand name TBD — see OD-01) |
 | Document title | Software Requirements Specification (SRS) |
 | Document identifier | FOS-SRS-001 |
-| Document version | 0.9.0 |
+| Document version | 0.10.0 |
 | Document status | **APPROVED — Baseline for implementation** |
 | Date of creation | 2026-11-20 |
 | Author | Engineering (prepared with Claude Code acting as architecture partner) |
@@ -41,6 +41,7 @@
 | 0.7.0 | 2026-11-20 | Engineering | Owner-approved Phase 7 changes ("Accept all three"): D-10 FR-ORDER-001 order number `YYMMDD-XXXXXX` (13 characters, per FR-ORDER-003); D-11 ADR-010 / SYSTEM-ARCHITECTURE §3 outbox relay runs in the worker; D-12 BR-ORDER-011/012 fee capped at the amount paid excluding tip (COD cancelled without a fee). | Project owner, 2026-11-20 |
 | 0.8.0 | 2026-11-21 | Engineering | Owner-approved Phase 8 changes ("Accept all three"): D-13 FR-FILE-003 derivatives may be generated during upload (JOB-FILE-001 optional); D-14 FR-REST-001 step 5 owner membership created with the application, effective on approval; D-15 FR-RANL-002 metrics computed from orders, hourly pre-aggregation (JOB-ANL-001) a performance option. | Project owner, 2026-11-21 |
 | 0.9.0 | 2026-11-21 | Engineering | Phase 9 changes decided under the owner's standing instruction to proceed without further approvals ("no need to ask me for further approval"): D-16 API-DP-022 `GET /partner/zones` lists active zones for the preferred-zone choice (FR-DP-001); D-17 BR-REVIEW-006 partners see average, count, star distribution and tag counts; written comments only once they have ≥ 5 ratings ⚙, without rating, date or order. | Project owner (standing instruction), 2026-11-21 |
+| 0.10.0 | 2026-11-21 | Engineering | Phase 10 changes decided under the owner's standing instruction: D-18 FR-RT-021 partner liveness comes from location fixes only (heartbeat acknowledged, not counted); D-19 §13.1 principle 4 clients drop events with a lower aggregate version (equal versions allowed; duplicates removed by eventId). | Project owner (standing instruction), 2026-11-21 |
 
 Versioning rule: MAJOR = approved baseline change that alters scope; MINOR = requirements added/changed; PATCH = editorial fixes. Every change to a requirement ID's text is recorded here and in the Traceability Matrix change log (§27).
 

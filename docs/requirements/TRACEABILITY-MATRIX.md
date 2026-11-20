@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.9.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application) and §22.1h (delivery application, tracking, reviews).
+> Part of FOS-SRS-001 v0.10.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews) and §22.1i (real-time).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -276,9 +276,29 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 | FR-DISP-001…009, BR-DEL-001…005, 007, 014, 017, API-DPDEL-001…003 | Dispatch timing, ranked sequential offers, rounds, escalation, no-partner deadline, exactly-once acceptance, reject/expire/withdraw, bicycle limits | Implemented (manual assignment and API-DPDEL-012 Phase 11) |
 | FR-DEL-001…005, 010, 020…035, 037, BR-DEL-008, 009, 013, API-DPDEL-004…011, 013, API-RORD-009 | Offer card, active delivery, geofenced arrivals, pickup and handover code, OTP/photo proof, COD collection, delivered, unreachable, unassign, history, heartbeat release | Implemented (offer push Phase 10; FR-DEL-036 SOS CORE) |
 | FR-EARN-001, 002, 005…007, BR-EARN-001, 002, 005…007, API-EARN-001…003, 005…012 | Trip pay, tips, cancellation compensation, summaries, statement, cash in hand, payout estimate and history, performance, ratings, bank change after re-auth | Implemented (incentives FR-EARN-003 CORE; adjustments, deposits and payout batches Phase 11; partner ratings view per BR-REVIEW-006 v0.9.0, D-17) |
-| FR-CORD-004…006, FR-TRK-001…005, BR-DEL-012, API-TRK-001/002 | Tracking snapshot and poll, location only from assignment to delivery, stale flag, delivery code, last-known location with database fallback | Implemented (socket fan-out FR-TRK-006, ETA pushes FR-TRK-007 and stale alerts Phase 10; route polyline needs a routing provider) |
+| FR-CORD-004…006, FR-TRK-001…005, BR-DEL-012, API-TRK-001/002 | Tracking snapshot and poll, location only from assignment to delivery, stale flag, delivery code, last-known location with database fallback | Implemented (fan-out, ETA pushes and stale alerts in Phase 10, §22.1i; route polyline needs a routing provider) |
 | FR-REV-001, 002, 004…006, BR-REVIEW-001…006, API-REV-001…005 | Ratings after delivery within 7 days, one per target, tags, photos, text cleaning, edit 48 h, delete, reports hiding after 3, aggregates via outbox | Implemented (FR-REV-003 item thumbs and FR-REV-007 prompt are CORE) |
 | FR-RREV-001…003, BR-REVIEW-005, API-RREV-001…004 | Restaurant reviews by outlet with filters, one response editable 24 h, reports | Implemented |
+
+## 22.1i Real-time implemented in Phase 10
+
+Code: `apps/api/src/platform/realtime/{socket-server,publisher}.ts`, `apps/api/src/modules/realtime`, hooks in `modules/{dispatch,partners,notifications}`, `apps/worker/src/main.ts`, `packages/api-client/src/{realtime,realtime-react}.ts`, `apps/restaurant-web/src/lib/live.ts`, `apps/delivery-web/src/lib/{live,location}.ts`. Tests: `apps/api/src/platform/realtime/socket-server.test.ts`, `apps/api/test/realtime.integration.test.ts`, `packages/api-client/src/realtime.test.ts`.
+
+Status is **Implemented** with tests passing locally; rows move to *Verified* once CI has run them (§27.2).
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| FR-RT-001…005, 007 | Namespaces per app, handshake token, refresh, revocation, personal/partner/branch-status rooms, ≤ 5 sockets per session, connection rate limit | Implemented (Phase 4 auth plus Phase 10 rooms) |
+| FR-RT-006 | Redis adapter; pushes published on `rt:events` and emitted locally by every API instance | Implemented |
+| FR-RT-010…014, FR-RT-026 | Server-side room policy, identical FORBIDDEN for missing and foreign resources, probing disconnect and log, room changes on assignment/release, allowed client events only, Zod validation, per-socket limits | Implemented |
+| FR-RT-020…025 | Client reconnect with backoff and jitter, re-subscribe, refetch on reconnect, best-effort pushes with polling fallback, version and duplicate filtering | Implemented (D-18, D-19) |
+| FR-RT-027, 028 | Gateway metrics and latency targets | Planned (Phase 13 load and observability work) |
+| EVT-ORD-001…004, EVT-PAY-001, EVT-REF-001, EVT-DLV-001…003, EVT-NTF-001 | Customer projections | Implemented (customer screens use them in Phase 12) |
+| EVT-REST-001…008 | Restaurant projections (priced queue, kitchen view without prices) | Implemented (EVT-REST-009 metrics and 010 menu availability in Phase 12) |
+| EVT-DP-001…005, 010…012, 014, 015 | Partner projections | Implemented (EVT-DP-006 manual assignment Phase 11; EVT-DP-013 instruction changes come with FR-ORDER-031) |
+| EVT-ADM-001, 002, 004…008 | Ops feed, approvals, partner stale, support, restaurant activity | Implemented without the 1 s batching (Phase 11 with the admin console); EVT-ADM-003 partner positions Phase 11 |
+| EVT-C-001…006 | Client events | Implemented (heartbeat acknowledged only, D-18) |
+| FR-TRK-001…007, FR-CORD-004 | Location over the socket or REST, throttled fan-out (3 s), ETA recompute (≤ 60 s, Δ ≥ 2 min), stale after 60 s and ops alert after 5 min | Implemented |
 
 ## 22.2 Non-functional requirements
 
@@ -320,3 +340,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-21 | 0.8.0 | D-13…D-15 approved: FR-FILE-003 derivative timing, FR-REST-001 owner membership, FR-RANL-002 pre-aggregation optional. |
 | 2026-11-21 | 0.8.1 | Phase 9: added §22.1h with partner onboarding, availability, dispatch, trip stages, earnings, tracking and reviews; D-16 and D-17 then open. |
 | 2026-11-21 | 0.9.0 | D-16 and D-17 decided under the owner's standing instruction: API-DP-022 zone list; BR-REVIEW-006 comment threshold. |
+| 2026-11-21 | 0.10.0 | Phase 10: added §22.1i (real-time); D-18 (FR-RT-021 liveness) and D-19 (§13.1 version rule) decided under the owner's standing instruction. |

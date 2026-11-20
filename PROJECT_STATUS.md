@@ -6,9 +6,9 @@ _Last updated: 2026-11-21_
 
 | Item              | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 10 — Real-time: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Next phase        | Phase 11 — Admin                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| SRS version       | FOS-SRS-001 v0.9.0 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Current phase     | **Phase 11 — Admin: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Next phase        | Phase 12 — Frontend integration                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| SRS version       | FOS-SRS-001 v0.10.0 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app); delivery partner onboarding, availability, dispatch, trip stages with geofences and proof, COD, earnings, cash, payouts view and bank changes (API and delivery web app); customer tracking; reviews and ratings |
 
 ## Phases
@@ -24,11 +24,27 @@ _Last updated: 2026-11-21_
 | 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 approved)               |
 | 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 approved)               |
 | 9 Delivery application        | ✅ Complete 2026-11-21 (D-16, D-17 decided)               |
-| 10 Real-time                  | Not started                                               |
+| 10 Real-time                  | ✅ Complete 2026-11-21 (D-18, D-19 decided)               |
 | 11 Admin                      | Not started                                               |
 | 12 Frontend integration       | Not started                                               |
 | 13 Testing & hardening        | Not started                                               |
 | 14 Finalization               | Not started                                               |
+
+## Phase 10 deliverables
+
+| Area               | Delivered                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gateway            | Resource subscriptions decided by a server-side room policy (customer orders, branch order queue and kitchen, assigned delivery, ops and zone rooms, admin order view), identical FORBIDDEN for missing and foreign resources, probing disconnects, ≤ 5 sockets per session, per-socket limits, Zod-validated client events, room changes pushed on assignment and release                                                                                                                                    |
+| Delivery of events | The worker's outbox consumers publish per-audience projections on Redis (`rt:events`); every API instance emits to its own sockets, so pushes always follow commits and work across instances                                                                                                                                                                                                                                                                                                                 |
+| Projections        | Customer (order created, status, cancelled, ETA, payments, refunds, partner assigned/unassigned, delivery stages, tracking, notifications), restaurant (new order in priced and kitchen views, updates, cancellations, reminders, partner assigned/arrived, picked up, branch status), partner (offer created/expired/withdrawn, assignment confirmed/revoked, order ready/cancelled/prep delayed, status, earnings), admin (order activity, approvals, support tickets, stale partners, restaurant activity) |
+| Tracking           | Partner location over the socket (REST batches as fallback) feeds a 3 s-throttled fan-out to the order room, ETA recomputed at most every minute and pushed when it moves by ≥ 2 min, "location updating" after 60 s and an ops alert after 5 min                                                                                                                                                                                                                                                             |
+| Clients            | Shared socket client following the session (token refresh, sign-out), backoff with jitter, re-subscription and refetch after reconnect, duplicate and stale-version filtering, React hooks; the restaurant queue and kitchen and the partner app refresh from pushes and poll only as a fallback (15 s while disconnected)                                                                                                                                                                                    |
+
+## Verification notes (Phase 10)
+
+- ✅ 530 tests pass repo-wide: the API's 405 include 11 new realtime tests (gateway rooms, pushed delivery, room control, partner client events, room policy against the database, projections for orders and a live delivery, throttled tracking, stale detection, offer expiry); api-client adds 2 socket client tests.
+- ✅ Live check against the real API and Redis (port 4100, worker running): a bad token was refused, a partner's subscription to someone else's delivery was refused, and an event published on `rt:events` reached the partner's socket through its automatic room; no server errors.
+- ⚠️ Gateway metrics and latency measurement (FR-RT-027/028) come with the Phase 13 load work; the ops feed is not yet batched per second.
 
 ## Phase 9 deliverables
 
@@ -209,6 +225,7 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 Resolved:
 
+- D-18 and D-19 resolved 2026-11-21 under the owner's standing instruction (SRS v0.10.0): partner liveness comes from location fixes only (FR-RT-021); clients drop events with a lower aggregate version, equal versions allowed (§13.1).
 - D-16 and D-17 resolved 2026-11-21 under the owner's standing instruction to proceed without further approvals (SRS v0.9.0): `GET /partner/zones` is API-DP-022; partners see written rating comments only once they have ≥ 5 ratings (BR-REVIEW-006).
 - D-13…D-15 resolved 2026-11-21 by owner decision (“Accept all three”, SRS v0.8.0): image derivatives made during upload (FR-FILE-003); owner membership created with the application, effective on approval (FR-REST-001); analytics computed from orders, hourly roll-up optional (FR-RANL-002). While applying D-13 the original of a public image was found to be publicly served, against FR-FILE-003; originals now stay in the private bucket (owner via signed link) and only WebP sizes are public.
 - D-10…D-12 resolved 2026-11-20 by owner decision (“Accept all three”, SRS v0.7.0): order numbers `YYMMDD-XXXXXX` (FR-ORDER-001); the outbox relay runs in the worker (ADR-010, SYSTEM-ARCHITECTURE §3); customer cancellation fees are capped at the amount paid excluding tip, so COD orders cancel without a fee (BR-ORDER-011/012).
@@ -230,6 +247,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 | orders (creation, transitions, timers, cancellations, settlement, invoices, issues), support, notifications, outbox relay | Implemented (Phase 7)     |
 | files, merchant (onboarding, profile, outlets, menu, staff, analytics), restaurant order handling                         | Implemented (Phase 8)     |
 | partners (onboarding, availability, presence, earnings, finance), dispatch (offers, stages, tracking), reviews            | Implemented (Phase 9)     |
+| realtime (room policy, projections, live tracking), socket gateway rooms and client events                                | Implemented (Phase 10)    |
 | admin                                                                                                                     | Designed; not implemented |
 
 ## APIs
@@ -258,6 +276,14 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 ## Known bugs
 
 - None known.
+
+## Technical decisions (Phase 10)
+
+- Pushes travel on a Redis channel that every API instance listens to and emits locally, instead of a Socket.IO emitter package: one fewer dependency, and the worker (where the outbox relay runs) never needs a socket server.
+- Projections are built per audience in one place from outbox events, reusing the outbox event id as the push id so a retried relay batch is de-duplicated by clients.
+- Changes that don't go through the outbox (offer expiry and withdrawal, auto-offline, in-app notifications, location) push through small hooks after the change is committed.
+- Socket event handlers are registered before the async room setup, so a client's first `subscribe` right after connecting is never lost.
+- Clients keep polling as a fallback and slow it down while connected, so a dead socket degrades to Phase 9 behaviour rather than to stale screens.
 
 ## Technical decisions (Phase 9)
 
@@ -334,6 +360,10 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 10
+
+- `socket.io-client` added to `@fos/api-client` (already in the lockfile through the API). The API (4100) and worker were started for the live check and stopped; one OTP sign-in for the seeded partner +919000000402. A temporary check script was run from `apps/api` and deleted.
+
 ## Machine changes made during Phase 9
 
 - No new packages. `.claude/launch.json` (git-ignored) gained a `delivery-web` entry; the API (port 4100), worker and delivery app were started for the browser check and stopped afterwards. Port 4000 was not touched.
@@ -373,7 +403,8 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## Next steps
 
-1. Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
+1. Phase 11 (admin) — in progress; then Phase 12 (frontend integration), 13 (testing and hardening), 14 (finalization).
+2. (Earlier plan) Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
 
 ## TODO
 
@@ -387,6 +418,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - [x] Phase 9
 - [x] Decide D-16, D-17 (standing instruction, 2026-11-21)
 - [ ] Walk a full trip in the browser during restaurant hours
+- [x] Phase 10
 - [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)

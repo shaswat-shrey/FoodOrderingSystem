@@ -1,13 +1,13 @@
 # SRS Section 13 — Real-Time Requirements
 
-> Part of FOS-SRS-001 v0.9.0 (APPROVED 2026-11-20). Architecture: `docs/architecture/SYSTEM-ARCHITECTURE.md` §8, ADR-010.
+> Part of FOS-SRS-001 v0.10.0 (APPROVED 2026-11-20). Architecture: `docs/architecture/SYSTEM-ARCHITECTURE.md` §8, ADR-010.
 
 ## 13.1 Principles
 
 1. **REST is authoritative; sockets are notifications.** Every real-time event corresponds to state already committed in PostgreSQL. Clients must be able to reconstruct state from REST at any time (reconnect, missed events).
 2. **Server-authorized rooms only.** Clients never choose arbitrary room names; they request subscription to a *resource* (`order`, `branch`, `delivery`) and the server decides which room to join after authorization.
 3. **Events are emitted after commit** via the transactional outbox relay (never inside a DB transaction).
-4. **At-least-once, idempotent consumers.** Each event carries `eventId` (UUIDv7) and `version` (aggregate version); clients drop events with a version ≤ the last applied version for that aggregate.
+4. **At-least-once, idempotent consumers.** Each event carries `eventId` (UUIDv7) and `version` (aggregate version); clients drop events with a version lower than the last applied version for that aggregate (several events may share one version, e.g. `order.status_changed` and `order.cancelled`; duplicates are removed by `eventId`) (v0.10.0, D-19).
 
 ## 13.2 Connection, namespaces and authentication
 
@@ -141,7 +141,7 @@
 | ID | Requirement | Pri | Rel |
 |---|---|---|---|
 | FR-RT-020 | **Reconnection.** Clients shall reconnect with exponential backoff (1 s → 30 s max, jitter), re-send subscriptions, and refetch authoritative snapshots for subscribed resources (TanStack Query invalidation). | P0 | MVP |
-| FR-RT-021 | **Disconnection on server side.** On socket disconnect the server shall clean up room memberships; for partners, a disconnect does not by itself change availability — liveness is based on location/heartbeat timeouts (FR-DP-014). | P0 | MVP |
+| FR-RT-021 | **Disconnection on server side.** On socket disconnect the server shall clean up room memberships; for partners, a disconnect does not by itself change availability — liveness is based on location-fix timeouts (FR-DP-014); `partner:heartbeat` is acknowledged but does not count as liveness, because it carries no position (v0.10.0, D-18). | P0 | MVP |
 | FR-RT-022 | **Event retries.** Server→client delivery is best-effort (no per-client queue). Critical events whose loss is user-impacting are also delivered through another channel: new restaurant orders (push + polling fallback every 15 s on the order queue while the socket is disconnected), partner offers (push), customer status (push/SMS per template). | P0 | MVP |
 | FR-RT-023 | **Stale data.** Each event carries `aggregate.version`; clients ignore older versions; snapshots fetched after reconnect replace local state. | P0 | MVP |
 | FR-RT-024 | **Ordering.** Events for the same aggregate are emitted in commit order by the outbox relay (ordered by outbox sequence per aggregate); cross-aggregate ordering is not guaranteed. | P0 | MVP |
