@@ -40,6 +40,19 @@ export const SETTING_DEFINITIONS = {
   },
   /** BR-ORDER-001: checkout session lifetime. */
   'checkout.sessionTtlSeconds': { schema: z.number().int().min(60).max(3600), default: 600 },
+  /** BR-ORDER-003 / JOB-ORD-001 */
+  'order.paymentTtlSeconds': { schema: z.number().int().min(60).max(3600), default: 900 },
+  /** BR-ORDER-004 / JOB-ORD-002 */
+  'order.acceptTimeoutSeconds': { schema: z.number().int().min(60).max(1800), default: 300 },
+  'order.acceptReminderSeconds': { schema: z.number().int().min(30).max(1800), default: 120 },
+  /** JOB-ORD-003: ACCEPTED → PREPARING automatically after this long (0 disables). */
+  'order.autoPreparingSeconds': { schema: z.number().int().min(0).max(1800), default: 60 },
+  /** BR-ORDER-011 */
+  'cancellation.freeWindowAfterAcceptSeconds': {
+    schema: z.number().int().min(0).max(600),
+    default: 60,
+  },
+  'cancellation.acceptedFeeBps': { schema: z.number().int().min(0).max(10_000), default: 5000 },
   /** BR-PAY-002 */
   'cod.maxOrderAmount': { schema: z.number().int().min(0).max(10_000_000), default: 150_000 },
   /** BR-CART-002 */

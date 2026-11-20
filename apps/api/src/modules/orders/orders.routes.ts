@@ -1,0 +1,62 @@
+import type { Response } from 'express';
+import { Router } from 'express';
+import type { PrismaClient } from '@fos/db';
+import { z } from 'zod';
+import * as schema from '@fos/validation';
+import { sendOk } from '../../platform/http/envelope';
+import { handle } from '../../platform/http/handler';
+import { requireClientApp } from '../../platform/http/middleware/client-app';
+import { idempotent } from '../../platform/http/middleware/idempotency';
+import { rateLimit } from '../../platform/http/middleware/rate-limit';
+import type { RateLimiter } from '../../platform/rate-limit';
+import { authenticate, requireApp, type AuthMiddlewareDeps } from '../auth';
+import type { OrderCreationService } from './order-creation.service';
+
+export interface OrdersRouterDeps extends AuthMiddlewareDeps {
+  prisma: PrismaClient;
+  orderCreation: OrderCreationService;
+  limiter: RateLimiter;
+}
+
+const confirmBody = z
+  .object({ expectedPayable: z.number().int().min(0).max(100_000_000) })
+  .strict();
+
+/** Customer order endpoints. Mounted at /api/v1 before other routers, so middleware is path-scoped. */
+export function ordersRouter(deps: OrdersRouterDeps): Router {
+  const router = Router();
+  const paths = ['/checkout/sessions/:sessionId/confirm'];
+  router.use(paths, requireClientApp(), authenticate(deps), requireApp('CUSTOMER'));
+  router.use(
+    paths,
+    rateLimit(deps.limiter, {
+      name: 'rl:write:user',
+      limit: 60,
+      windowSeconds: 60,
+      key: (_req, res) => res.locals.auth!.userId,
+    }),
+  );
+  const userId = (res: Response) => res.locals.auth!.userId;
+
+  /** API-CHK-004 (FR-CHK-002, FR-ORDER-001/002). */
+  router.post(
+    '/checkout/sessions/:sessionId/confirm',
+    idempotent(deps.prisma),
+    handle(
+      { params: schema.checkoutSessionParams, body: confirmBody },
+      async ({ params, body, res }) => {
+        const result = await deps.orderCreation.confirm(
+          userId(res),
+          params.sessionId,
+          body.expectedPayable,
+        );
+        sendOk(res, result, {
+          status: 201,
+          message:
+            result.order.status === 'PLACED' ? 'Order placed' : 'Order created — complete payment',
+        });
+      },
+    ),
+  );
+  return router;
+}

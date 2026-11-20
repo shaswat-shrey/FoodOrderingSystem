@@ -25,7 +25,7 @@ export interface CheckoutOptions {
 }
 
 /** What a session stores beside the quote (FR-CHK-001 step 3). */
-interface SessionSnapshot {
+export interface SessionSnapshot {
   quote: Quote;
   branchId: string;
   delivery: { distanceKm: number; eta: { minMinutes: number; maxMinutes: number } } | null;
@@ -36,6 +36,7 @@ interface SessionSnapshot {
 /** Issue codes that map straight to their own error (others become CART_INVALID). */
 const DIRECT = new Set([
   'CART_EMPTY',
+  'ITEM_UNAVAILABLE', // E02: with the affected line ids in details
   'BRANCH_NOT_ACCEPTING_ORDERS',
   'ADDRESS_NOT_SERVICEABLE',
   'ORDER_BELOW_MINIMUM',
@@ -101,7 +102,7 @@ export class CheckoutService {
     ];
   }
 
-  private async quoteFor(userId: string, opts: CheckoutOptions) {
+  async quoteFor(userId: string, opts: CheckoutOptions) {
     if (opts.paymentMethod === 'COD' && opts.useWallet) {
       throw new AppError('COD_NOT_AVAILABLE', {
         message: "Wallet credits can't be combined with cash on delivery.",
@@ -223,7 +224,7 @@ export class CheckoutService {
     return this.view(session);
   }
 
-  private async owned(userId: string, sessionId: string): Promise<CheckoutSession> {
+  async owned(userId: string, sessionId: string): Promise<CheckoutSession> {
     const session = await this.prisma.checkoutSession.findFirst({
       where: { id: sessionId, userId },
     });
@@ -296,6 +297,20 @@ export class CheckoutService {
         message: 'Checkout changed in another tab. Please refresh.',
       });
     return this.get(userId, sessionId);
+  }
+
+  /** Re-runs every check and the quote for an existing session (FR-CHK-002 step 2). */
+  async revalidate(userId: string, session: CheckoutSession) {
+    return this.quoteFor(userId, {
+      addressId: session.addressId,
+      paymentMethod: session.paymentMethod,
+      useWallet: session.useWallet,
+      tipAmount: session.tipAmount,
+      deliveryInstructions: session.deliveryInstructions ?? undefined,
+      contactless: session.contactless,
+      contactName: session.contactName ?? undefined,
+      contactPhone: session.contactPhone ?? undefined,
+    });
   }
 
   private view(session: CheckoutSession) {

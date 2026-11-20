@@ -13,6 +13,7 @@ import { CartService, CheckoutService, QuoteBuilder } from './modules/checkout';
 import { DiscoveryService } from './modules/discovery';
 import { LedgerService, WalletService } from './modules/ledger';
 import { OffersService } from './modules/offers';
+import { OrderCreationService, OrderTimers, OrderTransitions } from './modules/orders';
 import {
   createPaymentProvider,
   PaymentsService,
@@ -126,6 +127,21 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  const orderTransitions = new OrderTransitions(clock);
+  const orderTimers = new OrderTimers(jobs, settings, logger);
+  const orderCreation = new OrderCreationService(
+    prisma,
+    checkout,
+    offers,
+    wallet,
+    payments,
+    paymentProvider,
+    pricingConfig,
+    orderTimers,
+    env.AUTH_HMAC_SECRET,
+    clock,
+    logger,
+  );
   return {
     env,
     prisma,
@@ -162,6 +178,9 @@ export function createContainer(input: ContainerInput) {
     paymentProvider,
     refunds,
     payments,
+    orderTransitions,
+    orderTimers,
+    orderCreation,
     appOrigins: appOrigins(env),
   };
 }

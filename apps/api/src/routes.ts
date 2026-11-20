@@ -7,6 +7,7 @@ import { addressesRouter, favoritesRouter } from './modules/customers';
 import { discoveryRouter } from './modules/discovery';
 import { walletRouter } from './modules/ledger';
 import { cartCouponRouter, couponsRouter } from './modules/offers';
+import { ordersRouter } from './modules/orders';
 import { mountPaymentWebhooks, paymentsRouter } from './modules/payments';
 import type { Express } from 'express';
 import { searchHistoryRouter, searchRouter } from './modules/search';
@@ -40,6 +41,7 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use('/cart/coupon', cartCouponRouter(container));
   api.use('/cart', cartRouter(container));
   api.use('/coupons', couponsRouter(container));
+  api.use(ordersRouter(container));
   api.use('/checkout/sessions', checkoutRouter(container));
   api.use('/payments/methods', paymentMethodsRouter(container));
   api.use(paymentsRouter(container));
