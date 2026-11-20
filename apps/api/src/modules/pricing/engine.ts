@@ -68,6 +68,8 @@ export interface CouponInput {
   funding: Funding;
   restaurantShareBps: number;
   stackableWithPromotion: boolean;
+  /** BR-COUPON-002: minimum subtotal after item discounts and the promotion. */
+  minSubtotalAmount?: number;
 }
 
 export interface PricingInput {
@@ -113,6 +115,8 @@ export interface Quote {
   discounts: DiscountLine[];
   /** Why the coupon was not applied on top of a promotion, if so (BR-COUPON-005). */
   couponNotice: string | null;
+  /** How much more the customer must add for the coupon's minimum, when short (paise). */
+  couponShortfall: number | null;
   packagingFee: number;
   deliveryFee: number;
   deliveryFeeWaived: number;
@@ -243,6 +247,16 @@ export function computeQuote(input: PricingInput): Quote {
       coupon = undefined;
     }
   }
+  // Minimum spend is measured after the promotion that is actually applied.
+  let couponShortfall: number | null = null;
+  if (coupon) {
+    const base = itemsSubtotal - (promo?.amount ?? 0);
+    const min = coupon.c.minSubtotalAmount ?? 0;
+    if (base < min) {
+      couponShortfall = min - base;
+      coupon = undefined;
+    }
+  }
   if (coupon && coupon.value === 0) coupon = undefined;
 
   const foodDiscount = (promo?.amount ?? 0) + (coupon?.amount ?? 0);
@@ -344,6 +358,7 @@ export function computeQuote(input: PricingInput): Quote {
     itemDiscountTotal,
     discounts,
     couponNotice,
+    couponShortfall,
     packagingFee,
     deliveryFee,
     deliveryFeeWaived: waived,

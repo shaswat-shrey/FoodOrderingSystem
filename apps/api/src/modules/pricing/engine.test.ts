@@ -233,6 +233,20 @@ describe('pricing engine (FR-PRICE-001, BR-PRICE-001…012)', () => {
     expect(bogo.discounts[0]!.amount).toBe(21_000); // one of two units of line b
   });
 
+  it('applies a coupon minimum after the promotion and reports the shortfall (BR-COUPON-002)', () => {
+    const minCoupon = coupon({
+      value: 5_000,
+      minSubtotalAmount: 70_000,
+      stackableWithPromotion: true,
+    });
+    expect(computeQuote(input({ coupon: minCoupon })).couponShortfall).toBeNull(); // 74 900 ≥ 70 000
+    const withPromo = computeQuote(
+      input({ coupon: minCoupon, promotions: [promo({ type: 'FLAT_OFF', value: 9_000 })] }),
+    );
+    expect(withPromo.couponShortfall).toBe(4_100); // 74 900 − 9 000 = 65 900
+    expect(withPromo.discounts.map((d) => d.source)).toEqual(['PROMOTION']);
+  });
+
   it('splits shared funding by the restaurant share', () => {
     const q = computeQuote(
       input({ coupon: coupon({ value: 10_000, funding: 'SHARED', restaurantShareBps: 3000 }) }),

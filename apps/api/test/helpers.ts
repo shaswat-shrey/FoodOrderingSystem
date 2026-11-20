@@ -208,3 +208,74 @@ export async function branchId(
   });
   return branch.id;
 }
+
+/**
+ * Inserts a minimal order (with its cart, address and checkout session) for
+ * tests of payments, coupons and the ledger before order creation exists
+ * (Phase 7). Amounts are paise.
+ */
+export async function createFixtureOrder(
+  ctx: TestContext,
+  input: {
+    userId: string;
+    branchId: string;
+    status?: 'PAYMENT_PENDING' | 'PLACED' | 'DELIVERED' | 'CANCELLED' | 'FAILED';
+    paymentMethod?: 'ONLINE' | 'COD' | 'WALLET';
+    payableAmount?: number;
+    walletAppliedAmount?: number;
+  },
+): Promise<{ orderId: string; number: string; sessionId: string }> {
+  const { uuidv7 } = await import('@fos/shared');
+  const branch = await ctx.prisma.branch.findUniqueOrThrow({ where: { id: input.branchId } });
+  const fees = await ctx.prisma.feeSchedule.findFirstOrThrow({
+    orderBy: { effectiveFrom: 'desc' },
+  });
+  const payable = input.payableAmount ?? 50_000;
+  const wallet = input.walletAppliedAmount ?? 0;
+  const cart = await ctx.prisma.cart.create({
+    data: { userId: input.userId, branchId: branch.id, status: 'CONVERTED' },
+  });
+  const addressId = uuidv7();
+  await ctx.prisma.$executeRaw`
+    INSERT INTO customer_addresses (id, user_id, label, line1, area, city, state, pincode, location, contact_name, contact_phone, updated_at, deleted_at)
+    VALUES (${addressId}::uuid, ${input.userId}::uuid, 'OTHER', 'Fixture', 'Koramangala', 'Bengaluru', 'Karnataka', '560095',
+      ST_SetSRID(ST_MakePoint(77.6245, 12.9352), 4326)::geography, 'Fixture', '+919000000999', now(), now())`;
+  const session = await ctx.prisma.checkoutSession.create({
+    data: {
+      userId: input.userId,
+      cartId: cart.id,
+      cartHash: 'f'.repeat(64),
+      addressId,
+      paymentMethod: input.paymentMethod ?? 'ONLINE',
+      quote: {},
+      payableAmount: payable,
+      feeScheduleId: fees.id,
+      status: 'CONFIRMED',
+      expiresAt: new Date(Date.now() + 600_000),
+    },
+  });
+  const number = `T${String(Date.now()).slice(-9)}${Math.floor(Math.random() * 1000)}`.slice(0, 16);
+  const status = input.status ?? 'PAYMENT_PENDING';
+  const order = await ctx.prisma.order.create({
+    data: {
+      number,
+      userId: input.userId,
+      restaurantId: branch.restaurantId,
+      branchId: branch.id,
+      checkoutSessionId: session.id,
+      status,
+      ...(status === 'FAILED' ? { failureReason: 'PAYMENT_EXPIRED' as const } : {}),
+      paymentMethod: input.paymentMethod ?? 'ONLINE',
+      itemsSubtotalAmount: payable + wallet,
+      totalAmount: payable + wallet,
+      walletAppliedAmount: wallet,
+      payableAmount: payable,
+      feeScheduleId: fees.id,
+      commissionRateBps: 2000,
+      contactName: 'Fixture',
+      contactPhone: '+919000000999',
+      ...(status === 'DELIVERED' ? { deliveredAt: new Date() } : {}),
+    },
+  });
+  return { orderId: order.id, number, sessionId: session.id };
+}

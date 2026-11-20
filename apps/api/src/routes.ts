@@ -5,6 +5,7 @@ import { catalogRouter, geoRouter } from './modules/catalog';
 import { cartRouter } from './modules/checkout';
 import { addressesRouter, favoritesRouter } from './modules/customers';
 import { discoveryRouter } from './modules/discovery';
+import { cartCouponRouter, couponsRouter } from './modules/offers';
 import { searchHistoryRouter, searchRouter } from './modules/search';
 import { usersRouter } from './modules/users';
 
@@ -26,6 +27,8 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use('/geo', geoRouter(container));
   api.use('/discovery', discoveryRouter(container));
   api.use('/search', searchRouter(container));
+  api.use('/cart/coupon', cartCouponRouter(container));
   api.use('/cart', cartRouter(container));
+  api.use('/coupons', couponsRouter(container));
   api.use(catalogRouter(container));
 }

@@ -559,6 +559,12 @@ export class CartService {
     });
     if (quote.couponNotice)
       warnings.push({ code: 'COUPON_NOT_COMBINED', message: quote.couponNotice });
+    if (quote.couponShortfall !== null && couponView) {
+      blocking.push({
+        code: 'COUPON_NOT_APPLICABLE',
+        message: `Add ₹${(quote.couponShortfall / 100).toFixed(2)} more to use ${couponView.code}.`,
+      });
+    }
 
     // FR-PRICE-003/004 (BR-PRICE-010/011)
     if (priced.length > 0 && quote.itemsSubtotal < branch.minOrderAmount) {
