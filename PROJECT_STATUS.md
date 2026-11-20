@@ -4,12 +4,12 @@ _Last updated: 2026-11-20_
 
 ## Summary
 
-| Item              | Status                                                                                                                           |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 5 — Core customer backend: complete; Phase 6 awaiting go-ahead**                                                         |
-| Next phase        | Phase 6 — Cart, pricing, checkout, payments                                                                                      |
-| SRS version       | FOS-SRS-001 v0.5.0 (APPROVED 2026-11-20; v0.5.0 adds owner-approved D-7, D-8)                                                    |
-| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search and favourites |
+| Item              | Status                                                                                                                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase     | **Phase 6 — Cart, pricing, checkout, payments: complete; Phase 7 awaiting go-ahead**                                                                                                      |
+| Next phase        | Phase 7 — Order management                                                                                                                                                                |
+| SRS version       | FOS-SRS-001 v0.5.1 (APPROVED 2026-11-20; v0.5.1 is an editorial update)                                                                                                                   |
+| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout quotes, wallet and online payments |
 
 ## Phases
 
@@ -20,7 +20,7 @@ _Last updated: 2026-11-20_
 | 3 Database                    | ✅ Complete 2026-11-20 (SRS changes D-1…D-3 approved)     |
 | 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                 |
 | 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                |
-| 6 Cart, pricing, checkout     | Not started                                               |
+| 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 awaits decision)              |
 | 7 Order management            | Not started                                               |
 | 8 Restaurant application      | Not started                                               |
 | 9 Delivery application        | Not started                                               |
@@ -29,6 +29,30 @@ _Last updated: 2026-11-20_
 | 12 Frontend integration       | Not started                                               |
 | 13 Testing & hardening        | Not started                                               |
 | 14 Finalization               | Not started                                               |
+
+## Phase 6 deliverables
+
+Backend only (screens in Phase 12). Placing the order (API-CHK-004) and the order transitions that react to payments are Phase 7; everything up to a priced, validated checkout and a verified payment is here.
+
+| Area            | Delivered                                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pricing         | Pure, deterministic engine for BR-PRICE-001…012: line prices with variants and options, item discounts, best automatic promotion, coupon (with minimum after the promotion), packaging caps, slab delivery fee and free-delivery waiver (base fee only), surge cap, small-order and platform fees, per-component GST half-up, tip, wallet, funding split. Effective-dated tax and commission config |
+| Cart            | Add/edit/remove with full validation (variant, customisation groups min/max, option and item availability, stock), identical-line merging, one restaurant per cart with explicit replace, 30-line/50-unit/20-per-line limits, revalidation flags (price changed, unavailable, removed), pricing preview for an address or location, guest-cart merge, instructions, 7-day expiry job                |
+| Offers          | Automatic promotions (percent, flat, free delivery, BOGO; item and branch scope), coupon eligibility (window, zone, restaurant, segment incl. new users, payment method, global and per-user limits counting reservations), listing with "Add ₹X more" reasons, terms, validate-without-applying, reservation under a row lock with redeem/release                                                  |
+| Checkout        | Sessions with full quote, address snapshot, config versions, cart hash and 10-minute expiry; re-quote on change with optimistic versions; COD eligibility (cap, restaurant, blocked customers), no wallet with COD, wallet-only and wallet-plus-online, contactless only when prepaid; payment-method availability                                                                                  |
+| Ledger & wallet | Double-entry ledger with idempotent postings and locked balances, nightly integrity check; wallet credit lots, hold/debit/release, history with paging                                                                                                                                                                                                                                              |
+| Payments        | Provider interface with a mock (scripted outcomes, real signatures) and a Razorpay adapter; initiation with provider-order reuse and 5-attempt limit; signature + provider-fetch verification; raw-body webhooks stored once and processed by the worker; status precedence; amount-mismatch and late-capture refunds with ops alerts; stuck-payment polling; outbox events for Phase 7             |
+| Refunds         | Records bounded by the captured amount under lock, worker submission with backoff and ops hand-off, confirmation by webhook or poll, ledger by cost bearer, wallet refunds                                                                                                                                                                                                                          |
+| Platform        | Idempotency-Key middleware (replay, conflicting reuse, concurrent duplicates), transactional outbox writer, deduplicated ops alerts, job queue abstraction, raw-body route hook                                                                                                                                                                                                                     |
+
+## Verification notes (Phase 6)
+
+- ✅ 373 tests pass repo-wide; the API’s 265 include 56 new Phase 6 integration tests and 38 new unit tests (pricing tables plus a 500-case seeded property test of invariants, payment precedence, signatures, Razorpay adapter with a stubbed network).
+- ✅ Ledger integrity (`verify()` = no mismatches) is asserted after capture, refund and wallet flows; the order liability returns to zero after a full refund.
+- ✅ Smoke boot of the real server: unsigned webhook → 401, public catalog and coupon terms open to guests, cart requires sign-in.
+- Bugs found and fixed while building: the payments router (mounted at the API root) authenticated every later request, hiding the public catalog — middleware is now scoped and `routes.ts` documents the rule; `sum()` over `bigint` returned a Decimal and broke the ledger check; supertest JSON-encodes Buffers (test harness only — webhook tests send strings); test fixtures dated "now" conflicted with the 13:00 test clock.
+- ⚠️ The Razorpay adapter is tested against a stubbed network only; it has not been run against Razorpay's test mode (needs test keys).
+- ⚠️ CI still hasn't run (nothing pushed), so §22.1a–e rows are _Implemented_, not _Verified_.
 
 ## Phase 5 deliverables
 
@@ -106,29 +130,32 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-- None open.
-- D-7 and D-8 resolved 2026-11-20 by owner decision (“Accept both”, SRS v0.5.0):
-  - **D-7:** branches serve their own zone only in MVP; linked neighbouring zones are CORE (zone-links table and admin screen).
-  - **D-8:** FR-ADDR-006 checks India's bounding box.
-- Earlier: D-1…D-3 (v0.3.0) and D-4…D-6 (v0.4.0) resolved by owner decision; v0.3.1 and v0.4.1 were editorial.
+Open — awaiting owner decision (SRS §27.3):
 
-Not discrepancies (planned later): offers in listings and the restaurant page (Phase 6); reviews and rating summary, bestsellers and popularity from real orders, trending dishes (Phase 7); avatar uploads and item/restaurant images (file storage, Phase 8); manual-close auto-reopen (Phase 8 branch operations); trending-search aggregation job, item schedules, data export, linked zones, OAuth, account recovery and TOTP (CORE).
+| ID  | Requirement                                                                                            | Observed                                                                                                                                                                                           | Proposal                                                                              |
+| --- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| D-9 | SRS §15 `cart_items` columns; FR-CART-002 / BR-CART-005 (flag `PRICE_CHANGED`, never silently reprice) | The specified table has no record of the price a customer saw, so a price change can't be detected. Migration `20261120190000_cart_item_price_seen` adds nullable `unit_amount_seen` (paise, ≥ 0). | **Change requirement:** add `unit_amount_seen` to the `cart_items` definition in §15. |
+
+Resolved by owner decision on 2026-11-20: D-1…D-3 (v0.3.0), D-4…D-6 (v0.4.0), D-7…D-8 (v0.5.0). Editorial only: v0.3.1, v0.4.1 and v0.5.1 added codes already specified elsewhere to the §19.2 table.
+
+Not discrepancies (planned later): order creation, order timers and cancellation, payment expiry/cancel, COD payment records, automatic refunds per the cancellation matrix and split-payment refund allocation (Phase 7); reviews, popularity and trending from orders (Phase 7); images and avatar uploads, manual-close auto-reopen (Phase 8); dispatch load factor in checkout ETAs (Phase 9); reconciliation reports, refund approvals, promo-credit expiry, settings editing and per-zone payment methods (Phase 11); linked zones, item schedules, data export, OAuth, account recovery and TOTP (CORE).
 
 ## Modules
 
-| Module                                                                | Status                    |
-| --------------------------------------------------------------------- | ------------------------- |
-| Platform (HTTP, logging, config, health, Redis, socket gateway shell) | Implemented (Phase 2)     |
-| Database schema, migrations, seed for all MVP + CORE domains          | Implemented (Phase 3)     |
-| auth, iam, audit, notifications (dev sinks), users (`/me`)            | Implemented (Phase 4)     |
-| geo, catalog, customers, discovery, search, config                    | Implemented (Phase 5)     |
-| Socket authentication and revocation                                  | Implemented (Phase 4)     |
-| Other domain modules (cart … admin)                                   | Designed; not implemented |
+| Module                                                                          | Status                    |
+| ------------------------------------------------------------------------------- | ------------------------- |
+| Platform (HTTP, logging, config, health, Redis, socket gateway shell)           | Implemented (Phase 2)     |
+| Database schema, migrations, seed for all MVP + CORE domains                    | Implemented (Phase 3)     |
+| auth, iam, audit, notifications (dev sinks), users (`/me`)                      | Implemented (Phase 4)     |
+| geo, catalog, customers, discovery, search, config                              | Implemented (Phase 5)     |
+| Socket authentication and revocation                                            | Implemented (Phase 4)     |
+| pricing, checkout (cart, sessions), offers, ledger (wallet), payments (refunds) | Implemented (Phase 6)     |
+| Other domain modules (orders … admin)                                           | Designed; not implemented |
 
 ## APIs
 
-- Implemented (77 of 494): API-SYS-001/002; API-AUTH-001…016, 021…023; API-USER-001…003, 006…011, 013, 014; API-GEO-001…005; API-ADDR-001…006; API-REST-001…005; API-MENU-001…007; API-DISC-001…006, 008…011; API-SRCH-001…006; API-FAV-001…006.
-- Planned: 417 remaining in `docs/requirements/API-SPECIFICATION.md` (Phase 5 left for later: API-USER-004/005 avatar, API-USER-012 export, API-REST-006 offers, API-REST-007/008 and API-MENU-008 reviews, API-DISC-007 offers).
+- Implemented (105 of 494): Phase 5's 77 plus API-CART-001…012, API-COUP-001…003, API-CHK-001…003, API-PAY-001…004, 006, 007, API-WAL-001/002, API-REF-001/002. A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout with the mock provider.
+- Planned: 389 remaining in `docs/requirements/API-SPECIFICATION.md` (Phase 6 left for Phase 7: API-CHK-004 confirm, API-PAY-005 cancel).
 
 ## UI pages
 
@@ -146,10 +173,21 @@ Not discrepancies (planned later): offers in listings and the restaurant page (P
 | `20261120000400_payment_attempts_guard`     | Payment attempt facts immutable, status may progress (SRS v0.3.0, D-1)     |
 | `20261120151832_auth_enum_values`           | OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT` (Phase 4)      |
 | `20261120180000_phone_change_revoke_reason` | Session revoke reason `PHONE_CHANGED` (Phase 5, FR-CUST-004)               |
+| `20261120190000_cart_item_price_seen`       | `cart_items.unit_amount_seen` for PRICE_CHANGED flags (Phase 6, D-9)       |
 
 ## Known bugs
 
 - None known.
+
+## Technical decisions (Phase 6)
+
+- Checkout stops at a priced session; payments are tested against fixture orders. Order creation, and the order transitions that consume `payment.*` outbox events, belong with the order state machine (Phase 7) so that logic exists once.
+- Pricing is one pure function (`computeQuote`) fed by a `QuoteBuilder` that gathers configuration; the cart preview, checkout and (in Phase 7) order confirmation all use it, so a preview can never disagree with the charge.
+- A coupon's minimum spend is checked inside the engine, after the promotion actually applied, because only the engine knows that amount.
+- Ledger balances are stored on each account's normal side so the existing `balance >= 0` wallet checks are correct (sign convention in SCHEMA-NOTES §6b).
+- Webhooks are verified over the raw body, stored once and processed by the worker; a sweeper re-processes events if queueing failed, and an hourly poll resolves payments whose webhooks never came.
+- A capture with the wrong amount, or for an order that already failed, is recorded (the money did arrive) and refunded automatically; it never advances an order.
+- The mock payment provider is refused in production; production requires Razorpay keys, so a missing secret stops boot instead of failing at the first payment.
 
 ## Technical decisions (Phase 5)
 
@@ -179,6 +217,10 @@ Not discrepancies (planned later): offers in listings and the restaurant page (P
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 6
+
+- None. The smoke boot again used port 4100 (port 4000 belongs to another local project) and was stopped.
+
 ## Machine changes made during Phase 5
 
 - None. (Port 4000 was in use by another local project during the smoke test, so the API ran on port 4100 briefly and was stopped; the other process was not touched.)
@@ -199,15 +241,16 @@ Not discrepancies (planned later): offers in listings and the restaurant page (P
 
 ## Next steps
 
-1. Owner go-ahead for Phase 6 (cart, pricing engine, coupons, checkout, idempotency, payments with the mock provider, wallet and ledger core).
+1. Owner decision on D-9.
+2. Owner go-ahead for Phase 7 (order creation transaction, state machine and transitions, outbox relay, timers, cancellations, refunds end to end, order history and invoices, notifications).
 
 ## TODO
 
-- [x] Decide D-1…D-6
-- [x] Phase 4: auth & security
-- [x] Phase 5: core customer backend
-- [x] Decide D-7, D-8 (accepted 2026-11-20)
+- [x] Decide D-1…D-8
+- [x] Phases 4–6
+- [ ] Decide D-9
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
-- [ ] Push to GitHub so CI runs (moves §22.1a–d rows to _Verified_)
+- [ ] Push to GitHub so CI runs (moves §22.1a–e rows to _Verified_)
+- [ ] Exercise the Razorpay adapter in Razorpay test mode (needs test keys)
 - [ ] Dedicated test for idle/absolute session expiry (FR-AUTH-023)
 - [ ] Phase 7–8 writers must bump `branches.menu_version` on menu, availability and stock changes (SCHEMA-NOTES §6a)

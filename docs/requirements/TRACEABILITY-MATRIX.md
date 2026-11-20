@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.5.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication) and §22.1d (customer backend).
+> Part of FOS-SRS-001 v0.5.1 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend) and §22.1e (cart, pricing, checkout, payments).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -175,6 +175,37 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 | FR-CFG-001, 004 | Typed settings with defaults, 5-second cache | Implemented (settings editing arrives with the admin app, Phase 11) |
 | NFR-PERF-003 | Listing p95 ≤ 500 ms | Not yet measured (k6 in Phase 13); local requests take about 5–20 ms on seed data |
 
+## 22.1e Cart, pricing, checkout and payments implemented in Phase 6
+
+Code: `apps/api/src/modules/{pricing,checkout,offers,ledger,payments}`, `apps/api/src/platform/{outbox,ops-alerts,jobs}.ts`, `apps/api/src/platform/http/middleware/idempotency.ts`, `apps/worker/src/processors.ts`. Tests: `apps/api/src/modules/{pricing,payments}/*.test.ts` (including a seeded property test of pricing invariants), `apps/api/test/{cart,offers,ledger,checkout,payments}.integration.test.ts`, `apps/worker/src/worker.test.ts`.
+
+Status is **Implemented** with tests passing locally; rows move to *Verified* once CI has run them (§27.2). Order creation (API-CHK-004, FR-ORDER-001) and the order transitions that consume payment events are Phase 7.
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| FR-PRICE-001…004, BR-PRICE-001…012 | Pure pricing engine: lines, item discounts, best promotion, coupon, packaging caps, slab delivery fee and free-delivery waiver, surge cap, small-order and platform fees, per-component taxes, tip, wallet; funding split; min/max order | Implemented |
+| FR-PRICE-005 | Price-change re-confirmation at order confirmation | Planned (Phase 7, with API-CHK-004) |
+| FR-CFG-002 | Effective-dated fee, tax and commission configuration | Implemented (reads; editing in Phase 11) |
+| FR-CART-001…013, BR-CART-001…006 | Cart with full line validation, merging, branch conflicts, limits, revalidation flags, preview, guest merge, instructions, 7-day expiry job | Implemented — PRICE_CHANGED needs `cart_items.unit_amount_seen` (**D-9**) |
+| FR-COUP-001…003, 005; BR-COUPON-001…005, 007, 008 | Coupon listing with reasons, terms, validation, application, promotions vs coupons, new-user rule, expiry re-check | Implemented (device-fingerprint heuristics in BR-COUPON-007 are CORE) |
+| FR-COUP-004, BR-COUPON-006 | Reservation under a row lock, redeem, release | Implemented (called from order flows in Phase 7) |
+| FR-CHK-001, 003, 005…007, BR-ORDER-001, BR-PAY-002, BR-PAY-007, BR-DEL-009 (contactless prepaid) | Checkout sessions with quote, address snapshot, config versions, cart hash, TTL, re-quote, COD eligibility, wallet rules | Implemented |
+| FR-CHK-004 | ETA at checkout | Implemented without the dispatch load factor (Phase 9) |
+| FR-CHK-002, FR-ORDER-001, API-CHK-004, API-PAY-005 | Confirm checkout / create order / abandon payment | Planned (Phase 7) |
+| FR-ORDER-002 (a) | Idempotency-Key storage and replay (24 h), concurrent duplicates | Implemented (applied to payment endpoints now; order confirmation in Phase 7) |
+| FR-PAY-001…005, 007…009, 014, 015; BR-PAY-003…006 | Provider adapter (mock + Razorpay), initiation with reuse and attempt limit, signature + provider verification, raw-body webhooks with dedupe and async processing, amount integrity, status precedence, secret rotation, masked instruments | Implemented |
+| FR-PAY-006, 016 | Payment expiry and cancellation | Planned (Phase 7 order timers and cancellation) |
+| FR-PAY-010 | Capture of payments stuck in AUTHORIZED | Partial — the hourly poll resolves them from the provider; an explicit capture call is not made (Razorpay auto-capture is required on the account) |
+| FR-PAY-011 | COD payment records | Planned (Phase 7 order creation; Phase 9 collection) |
+| FR-PAY-012, BR-WALLET-001, 003 | Wallet hold, debit (earliest-expiring credits first), release; never negative | Implemented |
+| BR-WALLET-002 | Credit expiry | Partial — lots carry expiry dates; the expiry job arrives with promotional credits (Phase 11) |
+| FR-PAY-013, FR-RECON-003 | Double-entry ledger, idempotent postings, nightly integrity check | Implemented |
+| FR-RECON-004 | Stuck payment resolution | Implemented (hourly) |
+| FR-RECON-001, 002 | Daily reconciliation against provider reports | Planned (Phase 11) |
+| FR-REFUND-001, 003, 005, 006, 009 | Refund records, bound by captured amount under lock, provider submission with backoff and ops hand-off, webhook and poll confirmation, ledger by cost bearer | Implemented (skeleton used by Phase 7) |
+| FR-REFUND-002, 004, 007, 008 | Automatic refunds per cancellation matrix, split-payment allocation, COD refunds, approval limits | Planned (Phase 7 / 11) |
+| FR-CPAY-004, 005 | Payment, refund and wallet history | Implemented (API) |
+
 ## 22.2 Non-functional requirements
 
 | Requirement IDs | Verification method | Test / evidence | Status |
@@ -207,3 +238,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-20 | 0.4.0 | D-4…D-6 approved: BR-AUTH-001 fully implemented; FR-AUTH-002/003/042 and API-AUTH-003/004/023 text updated. |
 | 2026-11-20 | 0.4.1 | Phase 5: added §22.1d with the core customer backend. |
 | 2026-11-20 | 0.5.0 | D-7 and D-8 approved: BR-GEO-001 (b) and FR-ADDR-006 text updated; §22.1d notes adjusted. |
+| 2026-11-20 | 0.5.1 | Phase 6: added §22.1e with cart, pricing, coupons, checkout, ledger, wallet and payments. |

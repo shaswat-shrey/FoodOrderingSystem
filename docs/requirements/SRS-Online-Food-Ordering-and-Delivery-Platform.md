@@ -15,7 +15,7 @@
 | Project name | FoodOrderSystem — Online Food Ordering and Delivery Platform (working name; product brand name TBD — see OD-01) |
 | Document title | Software Requirements Specification (SRS) |
 | Document identifier | FOS-SRS-001 |
-| Document version | 0.5.0 |
+| Document version | 0.5.1 |
 | Document status | **APPROVED — Baseline for implementation** |
 | Date of creation | 2026-11-20 |
 | Author | Engineering (prepared with Claude Code acting as architecture partner) |
@@ -36,6 +36,7 @@
 | 0.4.0 | 2026-11-20 | Engineering | Owner-approved Phase 4 changes ("Accept all three"): (D-4) BR-AUTH-001 implemented with the NCSC 100k list (no text change); (D-5) `AUTH_TERMS_REQUIRED` and `ACCOUNT_PENDING_DELETION` added to §19.2, FR-AUTH-002/003 and API-AUTH-003/004; (D-6) API-AUTH-023 and FR-AUTH-042 now specify a one-time reactivation token from sign-in instead of a deactivated-user session. | Project owner, 2026-11-20 |
 | 0.4.1 | 2026-11-20 | Engineering | Editorial (Phase 5): §19.2 lists `ADDRESS_INVALID` (already specified by FR-ADDR-006); §14 header and §22.1d record the Phase 5 endpoints. No requirement changed; proposed changes D-7 and D-8 await approval in `PROJECT_STATUS.md`. | — |
 | 0.5.0 | 2026-11-20 | Engineering | Owner-approved Phase 5 changes ("Accept both"): (D-7) BR-GEO-001 (b) is same-zone only in MVP; linked neighbouring zones move to CORE; (D-8) FR-ADDR-006 checks India's bounding box instead of its border polygon. | Project owner, 2026-11-20 |
+| 0.5.1 | 2026-11-20 | Engineering | Editorial (Phase 6): §19.2 lists `ITEM_NOT_IN_BRANCH` (already specified by FR-CART-001); §14 header and §22.1e record the Phase 6 endpoints. No requirement changed; proposed change D-9 awaits approval in `PROJECT_STATUS.md`. | — |
 
 Versioning rule: MAJOR = approved baseline change that alters scope; MINOR = requirements added/changed; PATCH = editorial fixes. Every change to a requirement ID's text is recorded here and in the Traceability Matrix change log (§27).
 

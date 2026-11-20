@@ -112,6 +112,10 @@ curl -s -H 'X-Client-App: CUSTOMER' 'http://localhost:4000/api/v1/discovery/rest
 
 In production `GEO_PROVIDER` defaults to `none` until a provider is chosen: address search then reports that it is unavailable and customers drop a pin on the map.
 
+### Payments during development
+
+`PAYMENT_PROVIDER=mock` (the default outside production) uses an in-memory provider that signs callbacks and webhooks exactly like Razorpay. Instead of a hosted checkout page, the customer app calls `POST /api/v1/payments/{paymentId}/mock-checkout` with `{"scenario":"success"}` (or `fail`, `authorize_only`, `amount_mismatch`); it returns the `providerPaymentId` and `signature` to send to `/verify`, and delivers the matching webhook. The worker processes webhooks and refunds, so keep it running. Production refuses the mock and needs `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRETS`, with automatic capture enabled on the Razorpay account.
+
 To run the API and worker in containers instead of on the host:
 
 ```bash

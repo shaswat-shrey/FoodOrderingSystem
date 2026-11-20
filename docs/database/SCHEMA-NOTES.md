@@ -7,7 +7,7 @@
 | Path | Contents |
 | --- | --- |
 | `packages/db/prisma/schema/*.prisma` | Multi-file Prisma schema, one file per domain: `identity`, `customers`, `restaurants`, `menu`, `commerce`, `orders`, `payments`, `delivery`, `engagement`, `platform` (+ `base` for generator/datasource). 147 models, 105 enums. |
-| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints`, `…300_immutability`, `…400_payment_attempts_guard` (hand-written rules) · `20261120151832_auth_enum_values` (Phase 4: OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT`) · `20261120180000_phone_change_revoke_reason` (Phase 5: session revoke reason `PHONE_CHANGED`) |
+| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints`, `…300_immutability`, `…400_payment_attempts_guard` (hand-written rules) · `20261120151832_auth_enum_values` (Phase 4: OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT`) · `20261120180000_phone_change_revoke_reason` (Phase 5: session revoke reason `PHONE_CHANGED`) · `20261120190000_cart_item_price_seen` (Phase 6: `cart_items.unit_amount_seen`, pending approval as D-9) |
 | `packages/db/src/index.ts` | `createPrismaClient`, `pingDatabase` |
 | `packages/db/src/seed/` | Development seed (`data.ts` = dataset, `seed.ts` = loader) |
 | `packages/db/test/constraints.test.ts` | Integration tests proving every SQL rule (34 tests) |
@@ -133,6 +133,18 @@ Seed accounts have **no passwords**. Sign in with a one-time code to the seeded 
 | Menu cache | Raw menu (categories, items, variants, options, availability rows, stock) cached in Redis under `menu:v2:{branchId}:{menu_version}` for 1 h. **Every write that changes a menu, availability or stock reaching 0 must increment `branches.menu_version`** (Phase 7–8 writers). Time-based state (branch open now, `unavailable_until` passed) is resolved per request, so it is never stale. |
 | Search | Prefix full-text queries (`word:* & …`) on the weighted `search_vector`, with cuisine/category names added at query time as weight B. Typo tolerance uses `word_similarity(query, name) ≥ 0.3` (plain `similarity` scores a short query against a long dish name too low: "biriyani" vs "Chicken Dum Biryani" is 0.26). Trigram matches are used only when full text finds fewer than 5 dishes. User input is reduced to letters and digits before building the tsquery. |
 | Geocode cache | `geocode_cache` keys: `rev:{provider}:{lat 4dp}:{lng 4dp}` (≈ 11 m cell), `place:{provider}:{id}`, `geo:{provider}:{sha256 of text}`; 30-day expiry. |
+
+## 6b. Money paths added in Phase 6
+
+| Topic | How it works |
+| --- | --- |
+| Ledger signs | Entries: **+ debit, − credit**; every transaction sums to zero (deferred trigger). `ledger_accounts.balance` is kept on the account's **normal side**: credit-normal accounts (customer wallet and hold, order liability, restaurant/partner payables, platform revenue, tax payable) store their credit balance as a positive number, so `balance >= 0` checks on wallets are meaningful. `LedgerService.normalSign()` is the single source of this mapping. |
+| Ledger idempotency | `ledger_transactions (type, reference_type, reference_id, idempotency_key)` is unique; posting twice returns the first transaction. Accounts are locked in id order before balances change. JOB-LEDGER-001 (`LedgerService.verify`) compares every balance with its entries daily. |
+| Wallet | Credits are lots (`wallet_credit_lots`, refund credits never expire, promo/goodwill 30 days). Order flow: HOLD (wallet → hold) at order creation, DEBIT (hold → order liability, consuming earliest-expiring lots) on payment, RELEASE (hold → wallet) on failure. |
+| Payments | Each initiation adds a `payment_attempts` row; the provider payment id is linked when verify or a webhook names it (the attempt guard allows setting it once). Webhooks are stored raw in `payment_webhook_events` (unique per provider event id) and processed by the worker; status changes follow FR-PAY-009 precedence under a `payments` row lock. |
+| Outbox | Payment and refund state changes write `outbox_events` in the same transaction (`payment.captured`, `payment.failed`, `payment.late_capture`, `payment.amount_mismatch`, `refund.succeeded`). The relay and the order transitions consuming them arrive in Phase 7. |
+| Idempotency keys | `idempotency_keys (user_id, key)` hold the request hash and the stored response for 24 h; 5xx responses are not stored, so the client can retry with the same key. |
+| Cart prices | `cart_items.unit_amount_seen` is the unit price the customer last saw (set on add/edit and when a checkout session is created); a different current price flags the line `PRICE_CHANGED`. |
 
 ## 7. Running PostgreSQL locally
 
