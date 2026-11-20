@@ -161,6 +161,19 @@ No schema changes in Phase 7; these are conventions the code relies on.
 | Coupons on cancellation | `OffersService.release()` moves a redemption from RESERVED or REDEEMED to RELEASED and fixes `reserved_count` / `used_count` accordingly. |
 | Notification templates | Version 1 of the defaults (`modules/notifications/catalog.ts`) is inserted into `notification_templates` on first use; the newest active version per key and channel is used. |
 
+## 6d. Restaurant paths added in Phase 8
+
+No schema changes in Phase 8.
+
+| Topic | How it works |
+| --- | --- |
+| Applications | A restaurant row with `onboarding_status` is the application; its first branch is `PENDING_APPROVAL` until approval. The OWNER `restaurant_members` row exists from the start, but IAM only resolves memberships of restaurants that are `APPROVED` and `ACTIVE`. |
+| Encrypted columns | `restaurants.pan_encrypted`, `restaurant_bank_accounts.account_number_encrypted`, `restaurant_change_requests.payload_encrypted`: `keyId(1) ‖ iv(12) ‖ tag(16) ‖ ciphertext` (AES-256-GCM, `platform/crypto.ts`). Keys come from `FIELD_ENCRYPTION_KEYS`; only `*_last4` is ever shown. |
+| Files | `files.object_key` = `<purpose>/<yyyy-mm>/<id>.<ext>`; public images also have `<key>.thumb|card|hero.webp`. Status `UPLOADED` → `ATTACHED` when an entity claims it (owner and purpose checked) → `DELETED` when released or orphaned for 24 h. |
+| menu_version | Bumped on every branch whose menu or status a write affects: menu structure (all branches of the restaurant), availability, status events, settings, hours, holidays, logo/profile. |
+| Status log | `branch_status_events` is append-only; "closed for today" is a CLOSED row with `until`; the sweep picks the latest row by id (uuid v7 order). |
+| Invitations | `restaurant_invitations.token_hash` = SHA-256 of a random token sent by SMS/email; accepted, revoked or expired after 7 days. |
+
 ## 7. Running PostgreSQL locally
 
 - **Docker:** `pnpm infra:up` (PostGIS 16 on port 5432, plus `fos_test` and `fos_shadow`).

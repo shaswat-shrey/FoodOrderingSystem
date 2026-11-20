@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments) and §22.1f (orders, support, notifications).
+> Part of FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications) and §22.1g (restaurant application).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -241,6 +241,27 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 | FR-NOTIF-008 | Quiet hours for promotional sends | Planned (no promotional sends yet) |
 | API-TRK-001/002, FR-CORD-004…006 | Live tracking | Planned (Phase 9/10) |
 
+## 22.1g Restaurant application implemented in Phase 8
+
+Code: `apps/api/src/modules/{files,merchant}`, `apps/api/src/modules/orders/{restaurant-orders.service,merchant-orders.routes}.ts`, `apps/api/src/platform/crypto.ts`, `packages/validation/src/india.ts`, `packages/api-client/src/merchant-api.ts`, `apps/restaurant-web/src`. Tests: `apps/api/test/{files,onboarding,branch-ops,menu-admin,restaurant-orders,staff}.integration.test.ts`, `apps/api/src/modules/merchant/hours.test.ts`, `apps/api/src/platform/crypto.test.ts`, `packages/validation/src/india.test.ts`, `apps/restaurant-web/src/pages/restaurant-app.test.tsx`.
+
+Status is **Implemented** with tests passing locally; rows move to *Verified* once CI has run them (§27.2).
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| FR-FILE-001, 002, 004…006, BR-FILE-001, API-FILE-001…003 | Purpose rules, magic-byte typing, size limits, SVG refused, EXIF stripped, private files via audited 5-minute signed links, StorageProvider (local, S3), orphan cleanup | Implemented (FR-FILE-007 scanning is CORE) |
+| FR-FILE-003 | WebP derivatives for public images | Implemented synchronously — D-13 (open) |
+| FR-REST-001…005, BR-REST-005, 007, 008, API-MER-001…007 | Applications with validated PAN/GSTIN/IFSC/FSSAI, first outlet, hours, bank, documents, logo; checklist; submit; review decisions; reapply wait; resubmission cap | Implemented (owner membership timing — D-14, open; admin console Phase 11) |
+| FR-REST-010, BR-REST-012, FR-RFIN-003, API-MER-008…014 | Profile, logo/cover, encrypted change requests after re-auth | Implemented (review and payout hold in Phase 11) |
+| FR-REST-012…018, BR-REST-001…004, 006, 009, API-MER-016…027 | Hours, holidays, open/close for today with next-day reopen, pause with auto-resume, prep time and rush, delivery settings within caps, status with reason, go-live checklist | Implemented (FR-REST-011 new branches is CORE) |
+| FR-MENU-001…008, 012, BR-MENU-001…005, 007, 008, API-RMENU-001…026 | Categories, dishes, photos, variants, option groups, dietary consistency, availability, If-Match, menu_version bumps | Implemented (FR-MENU-009…011, 013, 014 are CORE/ADV) |
+| FR-RORD-001…006, 008…012, BR-ORDER-005, 014, 015, BR-REST-015, API-RORD-001…008, 010…012 | Queue, details with data minimisation, accept (race-safe), reject, preparing, ready, prep extension, restaurant cancel, KDS, KOT data | Implemented (realtime push Phase 10; KOT print layout Phase 12) |
+| FR-RORD-007, 013, API-RORD-009 | Handover with pickup code, partner delay | Planned (Phase 9) |
+| FR-RSTAFF-001, 002, API-RSTAFF-001…008 | Invitations, roles, scope, suspend, remove with immediate effect | Implemented (FR-RSTAFF-004…006 are CORE) |
+| FR-RANL-001…003, API-RANL-001…004, 007 | Dashboard, sales, top dishes, categories, operations | Implemented from live queries — D-15 (open) |
+| FR-RFIN-001, 002, 004, FR-RREV-001…003 | Settlements, payouts, reviews | Planned (Phase 9/11) |
+| NFR-SEC-005 | Field-level encryption of PAN and bank numbers | Implemented |
+
 ## 22.2 Non-functional requirements
 
 | Requirement IDs | Verification method | Test / evidence | Status |
@@ -277,3 +298,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-20 | 0.6.0 | D-9 approved: §15 `cart_items.unit_amount_seen`. |
 | 2026-11-20 | 0.6.1 | Phase 7: added §22.1f with orders, cancellations, refunds, settlement, invoices, support and notifications; D-10…D-12 then open. |
 | 2026-11-20 | 0.7.0 | D-10…D-12 approved: FR-ORDER-001 order number format, ADR-010 relay in the worker, BR-ORDER-011/012 fee cap. |
+| 2026-11-21 | 0.7.1 | Phase 8: added §22.1g with uploads, onboarding, outlets, menu, restaurant orders, staff and analytics; open D-13…D-15. |

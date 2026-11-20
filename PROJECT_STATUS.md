@@ -1,15 +1,15 @@
 # Project Status
 
-_Last updated: 2026-11-20_
+_Last updated: 2026-11-21_
 
 ## Summary
 
-| Item              | Status                                                                                                                                                                                                                                        |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 7 — Order management: complete; Phase 8 awaiting go-ahead**                                                                                                                                                                           |
-| Next phase        | Phase 8 — Restaurant application                                                                                                                                                                                                              |
-| SRS version       | FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20; v0.7.0 adds owner-approved D-10…D-12)                                                                                                                                                                |
-| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications |
+| Item              | Status                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase     | **Phase 8 — Restaurant application: complete; Phase 9 awaiting go-ahead (D-13…D-15 need decisions)**                                                                                                                                                                                                                                                                                              |
+| Next phase        | Phase 9 — Delivery application                                                                                                                                                                                                                                                                                                                                                                    |
+| SRS version       | FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20; v0.7.0 adds owner-approved D-10…D-12)                                                                                                                                                                                                                                                                                                                    |
+| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app) |
 
 ## Phases
 
@@ -22,13 +22,38 @@ _Last updated: 2026-11-20_
 | 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                |
 | 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                     |
 | 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 approved)               |
-| 8 Restaurant application      | Not started                                               |
+| 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 open)                   |
 | 9 Delivery application        | Not started                                               |
 | 10 Real-time                  | Not started                                               |
 | 11 Admin                      | Not started                                               |
 | 12 Frontend integration       | Not started                                               |
 | 13 Testing & hardening        | Not started                                               |
 | 14 Finalization               | Not started                                               |
+
+## Phase 8 deliverables
+
+API plus the first real restaurant web screens (the remaining restaurant pages and polish are Phase 12). Handover to a delivery partner (API-RORD-009) needs the delivery module and moves to Phase 9.
+
+| Area               | Delivered                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Uploads            | `POST /files` (multipart) with purpose rules (BR-FILE-001), type from magic bytes, SVG refused, EXIF/GPS stripped by re-encoding, WebP thumb/card/hero for public images, 5-minute signed links for private files (audited), delete of unattached uploads, hourly orphan cleanup; local storage driver for development, S3-compatible for production                                                                                                             |
+| Onboarding         | Application as the restaurant row in an onboarding state: business details (PAN/GSTIN/IFSC/FSSAI validated, GSTIN check digit), first outlet with zone from the pin and radius cap, weekly hours, bank account, documents, logo; completeness checklist; submit with no-GST declaration; duplicate FSSAI/GSTIN flagged; review decisions (changes requested, rejection with 30-day wait, approval activating restaurant, outlet, documents, bank and owner role) |
+| Security           | PAN, bank numbers and change-request payloads encrypted with rotatable AES-256-GCM field keys; IAM grants nothing for unapproved restaurants; merchant guard (404 to non-members, 403 without the permission); permission changes invalidate cached sessions immediately                                                                                                                                                                                         |
+| Profile & outlets  | Profile with masked PAN/bank, editable non-legal fields, logo and cover; legal/tax/bank change requests (owner, re-auth); outlet settings within zone, platform and packaging caps; hours, holidays, prep time and rush; effective status with a reason; go online (go-live checklist), offline for today (auto-reopens next day), pause 15–60 min or up to 4 h (auto-resume)                                                                                    |
+| Menu               | Management menu, categories (reorder, delete with a target), dishes (offer price, tags, allergens, ingredients, flags, If-Match versions, ≤ 5 photos), variants with one default, reusable option groups with min/max rules attachable per variant, dietary consistency, per-outlet availability until a time or end of day; every change bumps `menu_version`                                                                                                   |
+| Orders             | Queue tabs with counts and today's history, restaurant view without customer contact details, accept with prep time (one of two concurrent accepts wins), reject with reason (named items can be switched off), preparing, ready (one action from accepted), one prep extension, owner/manager cancel; kitchen display tickets without prices; delay timers armed                                                                                                |
+| Staff              | Invitations by phone/email with role and outlet scope (7-day token by SMS/email), public preview, accept only by the invitee; role, scope, suspend and remove with immediate effect; managers only manage roles below their own                                                                                                                                                                                                                                  |
+| Analytics          | Today dashboard (orders by state, food value, settled net payable, AOV, acceptance and prep times, rating) and sales, top dishes, categories, operations metrics from real orders                                                                                                                                                                                                                                                                                |
+| Restaurant web app | Workspace with restaurant/outlet switcher and permission-aware navigation; application form with uploads; order queue with repeating alert; kitchen display with offline banner; menu with stock toggles and quick dish creation; outlet status, pause, rush and hours; team; dashboard; invitation acceptance                                                                                                                                                   |
+
+## Verification notes (Phase 8)
+
+- ✅ 476 tests pass repo-wide; the API's 362 include 29 new Phase 8 integration and unit tests (uploads, onboarding, branch operations, menu, restaurant orders, staff and analytics, field encryption, hours, Indian identifiers); the restaurant app has 5 UI tests.
+- ✅ Browser check against the real API (port 4100, dev database, worker running): the seeded owner signed in by OTP, landed on the order queue, and the Outlet, Menu and Dashboard pages showed live data; marking a dish out of stock and back worked end to end; the API logged no errors.
+- Bugs found and fixed while building: the upload route had to sit before the JSON-only guard; local media had to sit outside the `X-Client-App` requirement and needs `Cross-Origin-Resource-Policy: cross-origin` for the apps to show images; IAM treated draft applications as live memberships; permission changes did not reach cached sessions; a signature-tamper test failed 1 in 16 runs.
+- ⚠️ Local storage driver only (no Docker for SeaweedFS here); the S3 driver is untested against a live endpoint.
+- ⚠️ Invitations and notifications still go to development message sinks.
+- ⚠️ CI still hasn't run (nothing pushed), so §22.1a–g rows are _Implemented_, not _Verified_.
 
 ## Phase 7 deliverables
 
@@ -156,7 +181,13 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-- None open.
+Open — need the owner's decision:
+
+| ID   | SRS says                                                              | Implemented                                                                                | Why                                                                                                                                                                                                                                                                             |
+| ---- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-13 | FR-FILE-003: WebP derivatives generated asynchronously (JOB-FILE-001) | Generated during the upload request                                                        | Images are ≤ 5–10 MB and sharp makes the three sizes in well under a second; synchronous generation means a URL never points at a missing derivative and needs no "derivatives ready" column. Proposal: allow synchronous generation in FR-FILE-003, async as a scaling option. |
+| D-14 | FR-REST-001 step 5: the OWNER membership is created on submit         | Created when the application starts, but IAM ignores memberships of unapproved restaurants | The membership is how the applicant owns the draft (one rule for access everywhere); it grants nothing until approval. Proposal: amend step 5 to "the owner membership becomes effective on approval".                                                                          |
+| D-15 | FR-RANL-002: periodic metrics pre-aggregated hourly (JOB-ANL-001)     | Computed on request from `orders` with indexed range queries                               | At pilot volume the queries are fast and always current; the hourly table (`analytics_branch_hourly`) exists for when they aren't. Proposal: make pre-aggregation a performance option (NFR-PERF), not a requirement.                                                           |
 
 Resolved:
 
@@ -164,7 +195,7 @@ Resolved:
 - D-9 resolved 2026-11-20 by owner decision (“Approve D-9”, SRS v0.6.0): `cart_items.unit_amount_seen` is part of §15.
 - Earlier: D-1…D-3 (v0.3.0), D-4…D-6 (v0.4.0), D-7…D-8 (v0.5.0); v0.3.1, v0.4.1 and v0.5.1 were editorial.
 
-Not discrepancies (planned later): reviews (API-REV) and popularity/trending from orders — no roadmap phase names them, proposed for Phase 8; images, avatar and issue-photo uploads, manual-close auto-reopen, restaurant accept/reject/ready endpoints (Phase 8); delivery, tracking (API-TRK), COD collection, tip settlement to partners, partner compensation and T14 at the no-partner deadline (Phase 9); live socket events (Phase 10); support agent tools, refund approvals above limits, invoice content legal review (Phase 11); real SMS/email/push provider adapters (the roadmap lists SMS/email adapters under Phase 7; only the adapter seam and dev sinks exist — needs provider choice and credentials); quiet hours and apology coupons (CORE); dispatch load factor in checkout ETAs (Phase 9); reconciliation reports, refund approvals, promo-credit expiry, settings editing and per-zone payment methods (Phase 11); linked zones, item schedules, data export, OAuth, account recovery and TOTP (CORE).
+Not discrepancies (planned later): handover with pickup code (API-RORD-009), partner card and delay visibility (Phase 9); reviews (API-REV, API-RREV) and popularity/trending — proposed for Phase 9 with partner ratings after delivery; new branches (API-MER-015), KDS device pairing, activity log, ownership transfer, stock counts, schedules, combos, bulk edits (CORE); admin review console for applications and change requests (Phase 11); avatar upload (Phase 12); delivery, tracking (API-TRK), COD collection, tip settlement to partners, partner compensation and T14 at the no-partner deadline (Phase 9); live socket events (Phase 10); support agent tools, refund approvals above limits, invoice content legal review (Phase 11); real SMS/email/push provider adapters (the roadmap lists SMS/email adapters under Phase 7; only the adapter seam and dev sinks exist — needs provider choice and credentials); quiet hours and apology coupons (CORE); dispatch load factor in checkout ETAs (Phase 9); reconciliation reports, refund approvals, promo-credit expiry, settings editing and per-zone payment methods (Phase 11); linked zones, item schedules, data export, OAuth, account recovery and TOTP (CORE).
 
 ## Modules
 
@@ -177,17 +208,18 @@ Not discrepancies (planned later): reviews (API-REV) and popularity/trending fro
 | Socket authentication and revocation                                                                                      | Implemented (Phase 4)     |
 | pricing, checkout (cart, sessions), offers, ledger (wallet), payments (refunds)                                           | Implemented (Phase 6)     |
 | orders (creation, transitions, timers, cancellations, settlement, invoices, issues), support, notifications, outbox relay | Implemented (Phase 7)     |
-| Other domain modules (restaurant ops, delivery, dispatch, reviews, admin)                                                 | Designed; not implemented |
+| files, merchant (onboarding, profile, outlets, menu, staff, analytics), restaurant order handling                         | Implemented (Phase 8)     |
+| Other domain modules (delivery, dispatch, reviews, admin)                                                                 | Designed; not implemented |
 
 ## APIs
 
-- Implemented (139 of 494): Phase 6's 105 plus API-CHK-004, API-PAY-005, API-ORD-001…013, API-SUP-001…009, API-NTF-001…010. A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout with the mock provider.
-- Planned: 355 remaining in `docs/requirements/API-SPECIFICATION.md` (API-TRK-001/002 move to Phase 9 with delivery).
+- Implemented (218 of 494): Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
+- Planned: 276 remaining in `docs/requirements/API-SPECIFICATION.md` (API-RORD-009 handover and API-TRK move to Phase 9).
 
 ## UI pages
 
-- Implemented: app shells for all four apps (home with platform status, 404, route error); auth screens shared by all four apps: sign-in, sign-up (not admin), verify phone, verify email, forgot/reset password, sign-in and security (devices, change password).
-- Planned: customer 21, restaurant 24, delivery 19, admin 31 feature pages.
+- Implemented: app shells for all four apps (404, route error); shared auth screens (sign-in, sign-up, verify phone/email, password recovery, security); restaurant app: application form, orders, kitchen display, menu, outlet, team, dashboard, invitation acceptance (8 of 24).
+- Planned: customer 21, restaurant 16, delivery 19, admin 31 feature pages (map pin picker, full dish editor with variants/options, holidays UI, analytics charts and settlements come in Phase 12).
 
 ## Database migrations
 
@@ -205,6 +237,19 @@ Not discrepancies (planned later): reviews (API-REV) and popularity/trending fro
 ## Known bugs
 
 - None known.
+
+## Technical decisions (Phase 8)
+
+- An application is the restaurant row itself in an onboarding state, not a separate table: approval flips states instead of copying data, and every later screen already reads the real restaurant.
+- Owner membership exists from the start but IAM only counts approved, active restaurants (D-14). One access rule covers drafts and live restaurants.
+- Field encryption uses AES-256-GCM with a one-byte key id, so keys rotate without re-encrypting at once; development derives a key from the HMAC secret, production must configure keys.
+- Restaurant-scoped checks return 404 to non-members and 403 to members without the permission, so ids of other restaurants' orders and outlets are never confirmed.
+- Images are re-encoded (not metadata-stripped in place) — the only reliable way to drop every EXIF/XMP block — and WebP derivatives are made at upload (D-13).
+- The upload and local-media routes sit outside the JSON API chain (multipart bodies; `<img>` requests carry no app header).
+- "Offline for today" is recorded as a CLOSED event with an `until`; a sweep reopens at the next day's first slot (configurable), and pause expiry writes a RESUMED event so the log stays complete.
+- Restaurant rejection reuses the cancellation path (full refund, coupon and stock back) with the order ending REJECTED, so refunds behave identically.
+- Analytics query live orders (D-15); the dashboard's net payable comes from settlement ledger entries, so it shows only money actually settled.
+- The restaurant app polls (orders 8 s, kitchen 5 s) until the realtime gateway (Phase 10); the new-order sound needs one click per session because browsers block autoplay.
 
 ## Technical decisions (Phase 7)
 
@@ -256,6 +301,12 @@ Not discrepancies (planned later): reviews (API-REV) and popularity/trending fro
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 8
+
+- npm packages added to `@fos/api`: `sharp` (prebuilt binary; its install script was not run and isn't needed), `busboy`, `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, and `@types/busboy` (dev).
+- `.claude/launch.json` (git-ignored) gained `api-4100` and `restaurant-web` entries for the browser check; the API, worker and restaurant app were started for it and stopped afterwards. Port 4000 (another project) was not touched.
+- Local uploads during the check would go to `.local/storage` (git-ignored); none were made.
+
 ## Machine changes made during Phase 7
 
 - None. The worker smoke boot used health port 4101 and was stopped by its own process id.
@@ -284,7 +335,8 @@ Not discrepancies (planned later): reviews (API-REV) and popularity/trending fro
 
 ## Next steps
 
-1. Owner go-ahead for Phase 8 (restaurant application: onboarding, menu management with `menu_version` bumps, order queue with accept/reject/ready, kitchen display, uploads, reviews).
+1. Owner decisions on D-13…D-15.
+2. Owner go-ahead for Phase 9 (delivery application: partner onboarding and documents, availability, dispatch, delivery stages with geofences, pickup/handover codes, OTP/photo/COD completion, earnings, cash in hand; plus reviews and partner ratings).
 
 ## TODO
 
@@ -293,9 +345,12 @@ Not discrepancies (planned later): reviews (API-REV) and popularity/trending fro
 - [x] Decide D-9 (approved 2026-11-20)
 - [x] Phase 7
 - [x] Decide D-10…D-12 (approved 2026-11-20)
+- [x] Phase 8
+- [ ] Decide D-13…D-15
+- [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
-- [ ] Push to GitHub so CI runs (moves §22.1a–f rows to _Verified_)
+- [ ] Push to GitHub so CI runs (moves §22.1a–g rows to _Verified_)
 - [ ] Exercise the Razorpay adapter in Razorpay test mode (needs test keys)
 - [ ] Dedicated test for idle/absolute session expiry (FR-AUTH-023)
-- [ ] Phase 7–8 writers must bump `branches.menu_version` on menu, availability and stock changes (SCHEMA-NOTES §6a)
+- [x] Phase 7–8 writers bump `branches.menu_version` on menu, availability, status and stock changes (SCHEMA-NOTES §6a)
