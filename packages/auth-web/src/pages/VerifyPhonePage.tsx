@@ -10,7 +10,7 @@ import { safeNext } from '../guards';
 
 const codeForm = z.object({ code: otpCodeSchema });
 
-/** FR-AUTH-002: confirm the phone with the code sent at sign-up. */
+/** FR-AUTH-009: confirm the phone with the code sent at sign-up. */
 export function VerifyPhonePage() {
   const { auth, user, config } = useAuth();
   const [params] = useSearchParams();

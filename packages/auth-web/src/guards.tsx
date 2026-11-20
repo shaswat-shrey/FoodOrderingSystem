@@ -28,7 +28,7 @@ export function safeNext(next: string | null, fallback: string): string {
 
 /**
  * Route guard (FR-FE-001): signed-out users go to sign-in with a return path;
- * accounts with an unverified phone finish verification first (BR-AUTH-003).
+ * accounts with an unverified phone finish verification first (FR-AUTH-001 step 6).
  */
 export function RequireAuth({ children }: { children?: ReactNode }) {
   const { status, user } = useAuth();

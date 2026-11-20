@@ -11,7 +11,7 @@ import { safeNext } from '../guards';
 
 const METHOD_LABEL: Record<SignInMethod, string> = { otp: 'Mobile number', password: 'Password' };
 
-/** FR-AUTH-004/005/006: OTP and/or password sign-in, with admin MFA. */
+/** FR-AUTH-002/003: OTP and/or password sign-in, with admin MFA (FR-AUTH-032). */
 export function SignInPage() {
   const { config } = useAuth();
   const [method, setMethod] = useState<SignInMethod>(config.methods[0] ?? 'password');
@@ -169,7 +169,7 @@ type OtpStep =
   | { kind: 'code'; phone: string; signUp?: { fullName: string } }
   | { kind: 'newAccount'; phone: string };
 
-/** FR-AUTH-005: phone + one-time code; first-time numbers create a customer account. */
+/** FR-AUTH-002: phone + one-time code; first-time numbers create an account (BR-AUTH-020 consent). */
 function OtpSignIn({ onDone }: { onDone: () => void }) {
   const { auth, config } = useAuth();
   const [step, setStep] = useState<OtpStep>({ kind: 'phone' });

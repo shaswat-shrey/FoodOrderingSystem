@@ -156,7 +156,7 @@ describe('session restore and guards (FR-FE-001/002)', () => {
   });
 });
 
-describe('OTP sign-in (FR-AUTH-005)', () => {
+describe('OTP sign-in (FR-AUTH-002)', () => {
   it('validates the number before sending', async () => {
     const { calls } = setup('/sign-in', () => undefined);
     await screen.findByRole('heading', { name: 'Sign in' });

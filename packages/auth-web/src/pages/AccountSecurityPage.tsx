@@ -20,7 +20,7 @@ const formatTime = (iso: string) =>
     timeZone: 'Asia/Kolkata',
   }).format(new Date(iso));
 
-/** FR-AUTH-013/014/015: signed-in devices, sign out elsewhere, change password. */
+/** FR-AUTH-005/006/007/013: signed-in devices, sign out elsewhere, change password. */
 export function AccountSecurityPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">

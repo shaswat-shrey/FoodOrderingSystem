@@ -4,7 +4,7 @@ import { Alert, Spinner } from '@fos/ui';
 import { AuthLayout } from '../AuthLayout';
 import { useAuth } from '../context';
 
-/** FR-AUTH-003: opened from the emailed link. */
+/** FR-AUTH-008: opened from the emailed link. */
 export function VerifyEmailPage() {
   const { auth, status, config, api } = useAuth();
   const [params] = useSearchParams();

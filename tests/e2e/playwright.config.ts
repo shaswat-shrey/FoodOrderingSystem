@@ -1,9 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Phase 2 smoke suite: runs against the production build of the customer app
- * (vite preview). Full-stack flows (AC-E2E-*) are added from Phase 12 with the
- * Docker Compose stack.
+ * Smoke suite against the production build of the customer app (vite preview,
+ * which proxies /api to localhost:4000). Specs named *.fullstack.spec.ts also
+ * need the API and worker and only run with E2E_FULL_STACK=1. The complete
+ * AC-E2E-* journeys arrive in Phase 12 with the Docker Compose stack.
  */
 export default defineConfig({
   testDir: './specs',
