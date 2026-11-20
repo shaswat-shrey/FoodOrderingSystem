@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ManualClock } from '../../platform/clock';
 import { checkPasswordPolicy, hashPassword, needsRehash, verifyPassword } from './password';
+import { COMMON_PASSWORDS } from './common-passwords';
 import { lockMinutesFor } from './policy';
 import { TokenError, TokenService } from './tokens';
 
@@ -30,6 +31,12 @@ describe('passwords (BR-AUTH-001)', () => {
     expect(checkPasswordPolicy('short')).toBe('AUTH_PASSWORD_WEAK');
     expect(checkPasswordPolicy('x'.repeat(129))).toBe('AUTH_PASSWORD_WEAK');
     expect(checkPasswordPolicy('Password@123')).toBe('AUTH_PASSWORD_BREACHED');
+    // BR-AUTH-001 / D-4: entries from the NCSC 100k list, matched case-insensitively.
+    expect(checkPasswordPolicy('Sunflower')).toBe('AUTH_PASSWORD_BREACHED');
+    expect(checkPasswordPolicy('IloveYou123')).toBe('AUTH_PASSWORD_BREACHED');
+    expect(checkPasswordPolicy('FoodOrderSystem')).toBe('AUTH_PASSWORD_BREACHED');
+    expect(COMMON_PASSWORDS.size).toBeGreaterThan(46_000);
+    expect(checkPasswordPolicy('orange-kettle-river-42')).toBeNull();
     expect(checkPasswordPolicy('aaaaaaaaaa')).toBe('AUTH_PASSWORD_WEAK');
     expect(checkPasswordPolicy('asha@example.com', { email: 'Asha@Example.com' })).toBe(
       'AUTH_PASSWORD_WEAK',

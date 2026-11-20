@@ -4,3 +4,4 @@ coverage
 .turbo
 docs
 **/migrations/**/*.sql
+apps/api/src/modules/auth/data/common-passwords.json
