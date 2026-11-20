@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { Button } from '@fos/ui';
 import { useAuth } from './context';
 
@@ -7,10 +7,12 @@ import { useAuth } from './context';
 export function AccountActions() {
   const { status, user, auth } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [busy, setBusy] = useState(false);
 
   if (status === 'loading') return null;
   if (status !== 'signedIn' || !user) {
+    if (pathname === '/sign-in' || pathname === '/sign-up') return null;
     return (
       <Link
         to="/sign-in"

@@ -170,7 +170,7 @@ describe('OTP sign-in (FR-AUTH-005)', () => {
     let loginAttempts = 0;
     const { calls } = setup('/sign-in', (url, body) => {
       if (url === '/api/v1/auth/otp/request')
-        return ok({ resendAfterSeconds: 30, expiresInSeconds: 300 });
+        return ok({ resendAfterSeconds: 0, expiresInSeconds: 300 });
       if (url === '/api/v1/auth/otp/login') {
         loginAttempts += 1;
         return body.acceptTerms ? session() : fail(422, 'AUTH_TERMS_REQUIRED');

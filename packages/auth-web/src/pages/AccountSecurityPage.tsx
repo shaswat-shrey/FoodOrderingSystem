@@ -160,6 +160,10 @@ function ChangePasswordCard() {
     <Card>
       <form noValidate onSubmit={onSubmit} className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900">Change password</h2>
+        <p className="text-sm text-gray-600">
+          Signed up with a one-time code and never set a password? Sign out and use “Forgot
+          password” to create one.
+        </p>
         {done && (
           <Alert tone="success">Password changed. Your other devices have been signed out.</Alert>
         )}

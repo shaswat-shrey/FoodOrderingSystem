@@ -203,6 +203,7 @@ function OtpSignIn({ onDone }: { onDone: () => void }) {
       <NewAccountStep
         phone={step.phone}
         message={server.message}
+        resendIn={countdown.seconds}
         onSubmit={async ({ fullName }) => {
           server.setMessage(null);
           try {
@@ -348,10 +349,12 @@ function CodeStep(props: {
 function NewAccountStep({
   phone,
   message,
+  resendIn,
   onSubmit,
 }: {
   phone: string;
   message: string | null;
+  resendIn: number;
   onSubmit: (v: { fullName: string }) => Promise<void>;
 }) {
   const form = useZodForm(newAccountForm, { fullName: '', acceptTerms: false as unknown as true });
@@ -372,8 +375,8 @@ function NewAccountStep({
         error={errors.acceptTerms?.message}
         registration={form.register('acceptTerms')}
       />
-      <Button type="submit" className="w-full" loading={isSubmitting}>
-        Send new code
+      <Button type="submit" className="w-full" loading={isSubmitting} disabled={resendIn > 0}>
+        {resendIn > 0 ? `Send new code in ${resendIn}s` : 'Send new code'}
       </Button>
     </form>
   );
