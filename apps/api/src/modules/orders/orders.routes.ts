@@ -12,6 +12,7 @@ import type { RateLimiter } from '../../platform/rate-limit';
 import { authenticate, requireApp, type AuthMiddlewareDeps } from '../auth';
 import { CUSTOMER_REASONS, type OrderCancellationService } from './cancellation.service';
 import type { InvoiceService } from './invoice.service';
+import type { OrderIssueService } from './issues.service';
 import type { OrderCreationService } from './order-creation.service';
 import { STATUS_GROUPS, type OrderQueryService } from './order-query.service';
 import type { ReorderService } from './reorder.service';
@@ -23,6 +24,7 @@ export interface OrdersRouterDeps extends AuthMiddlewareDeps {
   orderQueries: OrderQueryService;
   reorders: ReorderService;
   invoices: InvoiceService;
+  orderIssues: OrderIssueService;
   limiter: RateLimiter;
 }
 
@@ -53,6 +55,25 @@ const deliveryDetailsBody = z
   .refine((b) => b.deliveryInstructions !== undefined || b.contactPhone !== undefined, {
     message: 'Nothing to change.',
   });
+const issueBody = z
+  .object({
+    type: z.enum(['MISSING_ITEM', 'WRONG_ITEM', 'QUALITY', 'SPILLAGE', 'LATE', 'PAYMENT', 'OTHER']),
+    description: z.string().trim().min(10).max(1000),
+    items: z
+      .array(
+        z
+          .object({ orderItemId: schema.idSchema, quantity: z.number().int().min(1).max(50) })
+          .strict(),
+      )
+      .max(50)
+      .optional(),
+    requestRefund: z.boolean().optional(),
+    photoFileIds: z.array(schema.idSchema).max(3).optional(),
+  })
+  .strict();
+const notDeliveredBody = z
+  .object({ description: z.string().trim().min(3).max(1000).default('Order not received') })
+  .strict();
 const reorderBody = z.object({ replaceCart: z.boolean().default(false) }).strict();
 
 /**
@@ -203,6 +224,44 @@ export function ordersRouter(deps: OrdersRouterDeps): Router {
     writes,
     handle({ params: orderParams, body: deliveryDetailsBody }, async ({ params, body, res }) =>
       sendOk(res, await deps.orderQueries.updateDeliveryDetails(userId(res), params.orderId, body)),
+    ),
+  );
+
+  /** API-ORD-011 (FR-CORD-010/011). */
+  router.post(
+    '/orders/:orderId/issues',
+    ...customer,
+    writes,
+    idempotent(deps.prisma),
+    handle({ params: orderParams, body: issueBody }, async ({ params, body, res }) =>
+      sendOk(res, await deps.orderIssues.report(userId(res), params.orderId, body), {
+        status: 201,
+        message: 'Thanks for letting us know',
+      }),
+    ),
+  );
+
+  /** API-ORD-012 */
+  router.get(
+    '/orders/:orderId/issues',
+    ...customer,
+    handle({ params: orderParams }, async ({ params, res }) =>
+      sendOk(res, await deps.orderIssues.list(userId(res), params.orderId)),
+    ),
+  );
+
+  /** API-ORD-013 (FR-CORD-012). */
+  router.post(
+    '/orders/:orderId/not-delivered',
+    ...customer,
+    writes,
+    idempotent(deps.prisma),
+    handle({ params: orderParams, body: notDeliveredBody }, async ({ params, body, res }) =>
+      sendOk(
+        res,
+        await deps.orderIssues.notDelivered(userId(res), params.orderId, body.description),
+        { status: 201, message: 'We are looking into it right away' },
+      ),
     ),
   );
 

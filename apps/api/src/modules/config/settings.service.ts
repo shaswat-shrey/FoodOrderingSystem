@@ -59,6 +59,37 @@ export const SETTING_DEFINITIONS = {
     default: 3,
   },
   'restaurant.missedOrderPauseMinutes': { schema: z.number().int().min(1).max(1440), default: 30 },
+  /** BR-SUP-002 / FR-CORD-012: when issues and "not delivered" can be reported after delivery. */
+  'support.issueWindowHours': { schema: z.number().int().min(1).max(720), default: 48 },
+  'support.notDeliveredWindowMinutes': { schema: z.number().int().min(5).max(1440), default: 60 },
+  /** BR-SUP-004 */
+  'support.ticketsPerDay': { schema: z.number().int().min(1).max(100), default: 5 },
+  /** BR-REFUND-006: auto-approved item refunds (to wallet). */
+  'refund.autoApproveMaxAmount': {
+    schema: z.number().int().min(0).max(1_000_000),
+    default: 25_000,
+  },
+  'refund.autoApproveMaxPer90Days': { schema: z.number().int().min(0).max(50), default: 3 },
+  'refund.autoApproveMinAccountDays': { schema: z.number().int().min(0).max(3650), default: 30 },
+  /** FR-CSUP-006 (legal review, OD-15). */
+  'legal.grievanceOfficer': {
+    schema: z.object({
+      name: z.string().max(120),
+      designation: z.string().max(120),
+      email: z.email(),
+      phone: z.string().max(20),
+      address: z.string().max(400),
+      hours: z.string().max(120),
+    }),
+    default: {
+      name: 'Grievance Officer',
+      designation: 'Grievance Officer',
+      email: 'grievance@example.com',
+      phone: '+911800000000',
+      address: 'To be confirmed by legal (OD-15)',
+      hours: 'Mon–Sat, 10:00–18:00 IST',
+    },
+  },
   /** BR-PAY-002 */
   'cod.maxOrderAmount': { schema: z.number().int().min(0).max(10_000_000), default: 150_000 },
   /** BR-CART-002 */

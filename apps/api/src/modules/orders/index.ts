@@ -21,3 +21,4 @@ export { financialYear, INVOICE_SERIES, InvoiceService } from './invoice.service
 export { OrderQueryService, STATUS_GROUPS, type StatusGroup } from './order-query.service';
 export { ReorderService } from './reorder.service';
 export { OrderSettlement, settlementSplit } from './settlement';
+export { OrderIssueService, type ReportInput } from './issues.service';

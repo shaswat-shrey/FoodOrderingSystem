@@ -16,6 +16,7 @@ import { OffersService } from './modules/offers';
 import {
   InvoiceService,
   OrderCancellationService,
+  OrderIssueService,
   OrderQueryService,
   OrderSettlement,
   ReorderService,
@@ -37,6 +38,7 @@ import {
 import { BullJobQueue, type JobQueue } from './platform/jobs';
 import { PricingConfigService } from './modules/pricing';
 import { SearchService } from './modules/search';
+import { SupportService } from './modules/support';
 import {
   EstimatedRouting,
   GeoService,
@@ -191,6 +193,8 @@ export function createContainer(input: ContainerInput) {
   const reorders = new ReorderService(prisma, cart);
   const invoices = new InvoiceService(prisma, clock);
   const orderSettlement = new OrderSettlement(ledger);
+  const support = new SupportService(prisma, settings, clock);
+  const orderIssues = new OrderIssueService(prisma, support, refunds, settings, clock);
   // Consumers are registered here; the relay loop itself runs in the worker.
   const outboxRelay = new OutboxRelay(prisma, redis.core, clock, logger);
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
@@ -241,6 +245,8 @@ export function createContainer(input: ContainerInput) {
     reorders,
     invoices,
     orderSettlement,
+    support,
+    orderIssues,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

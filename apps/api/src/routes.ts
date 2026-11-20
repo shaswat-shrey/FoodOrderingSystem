@@ -11,6 +11,7 @@ import { ordersRouter } from './modules/orders';
 import { mountPaymentWebhooks, paymentsRouter } from './modules/payments';
 import type { Express } from 'express';
 import { searchHistoryRouter, searchRouter } from './modules/search';
+import { supportRouter } from './modules/support';
 import { usersRouter } from './modules/users';
 
 /**
@@ -42,6 +43,7 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use('/cart', cartRouter(container));
   api.use('/coupons', couponsRouter(container));
   api.use(ordersRouter(container));
+  api.use(supportRouter(container));
   api.use('/checkout/sessions', checkoutRouter(container));
   api.use('/payments/methods', paymentMethodsRouter(container));
   api.use(paymentsRouter(container));
