@@ -581,6 +581,91 @@ suite('dispatch (FR-DISP-006/007, BR-DEL-014)', () => {
   });
 });
 
+suite('immutability (SRS §15.6, FR-CFG-002, FR-DISP-013, FR-PAY-004)', () => {
+  it('never edits effective-dated fee, tax, commission or pay configuration in place', async () => {
+    await expectRejected('append-only', (tx) =>
+      tx.feeSchedule.updateMany({ data: { platformFeeAmount: 900 } }),
+    );
+    await expectRejected('append-only', (tx) => tx.taxRule.updateMany({ data: { rateBps: 1200 } }));
+    await expectRejected('append-only', (tx) =>
+      tx.commissionPlan.updateMany({ data: { rateBps: 2500 } }),
+    );
+    await expectRejected('append-only', (tx) =>
+      tx.partnerPayPlan.updateMany({ data: { baseAmount: 3000 } }),
+    );
+  });
+
+  it('freezes dispatch offers once they reach a final state', async () => {
+    await expectRejected('is final', async (tx) => {
+      const order = await createOrder(tx);
+      const delivery = await createDelivery(tx, order.id);
+      const offer = await tx.deliveryAssignment.create({
+        data: {
+          deliveryId: delivery.id,
+          partnerId: fixtures.partnerIds[0]!,
+          round: 1,
+          rank: 1,
+          score: 9000,
+          scoreBreakdown: {},
+          distanceToPickupM: 800,
+          expiresAt: new Date(Date.now() + 30_000),
+        },
+      });
+      await tx.deliveryAssignment.update({ where: { id: offer.id }, data: { status: 'REJECTED' } });
+      await tx.deliveryAssignment.update({ where: { id: offer.id }, data: { status: 'ACCEPTED' } });
+    });
+    // OFFERED → ACCEPTED → RELEASED is a valid path.
+    await inRollback(async (tx) => {
+      const order = await createOrder(tx);
+      const delivery = await createDelivery(tx, order.id);
+      const offer = await tx.deliveryAssignment.create({
+        data: {
+          deliveryId: delivery.id,
+          partnerId: fixtures.partnerIds[1]!,
+          round: 1,
+          rank: 1,
+          score: 9000,
+          scoreBreakdown: {},
+          distanceToPickupM: 800,
+          expiresAt: new Date(Date.now() + 30_000),
+        },
+      });
+      await tx.deliveryAssignment.update({ where: { id: offer.id }, data: { status: 'ACCEPTED' } });
+      await tx.deliveryAssignment.update({ where: { id: offer.id }, data: { status: 'RELEASED' } });
+    });
+  });
+
+  it('lets webhook processing status change but never the received payload', async () => {
+    await inRollback(async (tx) => {
+      const event = await tx.paymentWebhookEvent.create({
+        data: {
+          provider: 'MOCK',
+          eventId: 'evt_1',
+          eventType: 'payment.captured',
+          signatureValid: true,
+          payload: { a: 1 },
+        },
+      });
+      await tx.paymentWebhookEvent.update({
+        where: { id: event.id },
+        data: { processingStatus: 'PROCESSED', processedAt: new Date() },
+      });
+    });
+    await expectRejected('payload is immutable', async (tx) => {
+      const event = await tx.paymentWebhookEvent.create({
+        data: {
+          provider: 'MOCK',
+          eventId: 'evt_2',
+          eventType: 'payment.captured',
+          signatureValid: true,
+          payload: { a: 1 },
+        },
+      });
+      await tx.paymentWebhookEvent.update({ where: { id: event.id }, data: { payload: { a: 2 } } });
+    });
+  });
+});
+
 suite('reviews, audit, approvals', () => {
   it('requires the target id that matches the review type, one review per target', async () => {
     await expectRejected('reviews_target_chk', async (tx) => {
