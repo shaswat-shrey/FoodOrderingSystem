@@ -1,6 +1,6 @@
 # SRS Section 15 — Database Requirements
 
-> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). ERD diagrams: [`docs/database/ERD.md`](../database/ERD.md). Decisions: ADR-004 (PostgreSQL only), ADR-005 (PostGIS with Prisma), ADR-007 (money), ADR-011 (ledger).
+> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). Implementation notes: [`docs/database/SCHEMA-NOTES.md`](../database/SCHEMA-NOTES.md). ERD diagrams: [`docs/database/ERD.md`](../database/ERD.md). Decisions: ADR-004 (PostgreSQL only), ADR-005 (PostGIS with Prisma), ADR-007 (money), ADR-011 (ledger).
 
 ## 15.1 Technology
 
@@ -215,7 +215,7 @@ Legend: **PK** primary key, **UQ** unique, **FK** foreign key, **CK** check, **I
 | `outbox_events` | Transactional outbox | id (bigserial sequence), event_id uuid, aggregate_type, aggregate_id, aggregate_version, event_type, payload jsonb, created_at, published_at NULL, attempts | IX(published_at) WHERE published_at IS NULL; UQ(event_id) |
 | `analytics_branch_hourly` / `analytics_platform_daily` / `analytics_item_daily` | Pre-aggregates | dimension keys + metrics | PK on dimensions |
 
-**Entity count:** ~125 tables (including join tables), satisfying and extending the master prompt's starting list (mapping: `user_profiles` → `users` + `customer_profiles`; `restaurant_owners` → `restaurant_members` with role OWNER; `restaurant_inventory` → `branch_item_availability` + `branch_item_stock`; `delivery_partner_availability` → Redis state + `partner_online_sessions` + `delivery_partners.availability_state`; `wallets` / `wallet_transactions` / `transactions` / `earnings` → ledger tables + `partner_earnings`; `sessions` → `user_sessions`).
+**Entity count:** 147 tables as implemented in Phase 3 (including join tables; the Phase 1 estimate was ~125), satisfying and extending the master prompt's starting list (mapping: `user_profiles` → `users` + `customer_profiles`; `restaurant_owners` → `restaurant_members` with role OWNER; `restaurant_inventory` → `branch_item_availability` + `branch_item_stock`; `delivery_partner_availability` → Redis state + `partner_online_sessions` + `delivery_partners.availability_state`; `wallets` / `wallet_transactions` / `transactions` / `earnings` → ledger tables + `partner_earnings`; `sessions` → `user_sessions`).
 
 ## 15.4 Relationships (summary)
 

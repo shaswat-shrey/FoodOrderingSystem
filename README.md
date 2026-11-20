@@ -2,7 +2,7 @@
 
 A production-oriented food delivery ecosystem: customer, restaurant (including kitchen display), delivery-partner and admin applications on a shared Node.js/TypeScript modular-monolith backend (Express, Socket.IO, PostgreSQL + PostGIS, Prisma, Redis, BullMQ).
 
-> **Status:** Phase 2 (repository & infrastructure) complete — the platform skeleton builds, runs and is tested; no business features yet. See [PROJECT_STATUS.md](PROJECT_STATUS.md).
+> **Status:** Phase 3 (database) complete — full schema, migrations and seed data on top of the Phase 2 platform skeleton; no business features yet. See [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## Repository layout
 
@@ -17,7 +17,7 @@ A production-oriented food delivery ecosystem: customer, restaurant (including k
 | `packages/shared`     | Framework-free domain helpers: integer-paise money, error codes, constants |
 | `packages/validation` | Zod schemas shared by API validation and web forms                         |
 | `packages/types`      | API contract types (response envelope, readiness report)                   |
-| `packages/db`         | Prisma schema, migrations, client factory                                  |
+| `packages/db`         | Prisma schema (one file per domain), migrations, seed, DB tests            |
 | `packages/ui`         | Design system: Tailwind theme tokens + React components                    |
 | `packages/api-client` | Axios client + TanStack Query helpers for the web apps                     |
 | `packages/config`     | Shared TypeScript presets                                                  |
@@ -56,10 +56,20 @@ cp .env.example .env
 pnpm infra:up
 ```
 
-4. Apply database migrations:
+4. Apply database migrations and load the development data (fictional pilot-city restaurants, partners and demo accounts — see [docs/database/SCHEMA-NOTES.md](docs/database/SCHEMA-NOTES.md)):
 
 ```bash
 pnpm --filter @fos/db db:deploy
+```
+
+```bash
+pnpm --filter @fos/db db:seed
+```
+
+No Docker? Run a project-local PostgreSQL 18 + PostGIS on port 5433 instead (macOS: `brew install postgresql@18 postgis`), and point the `*_DATABASE_URL` variables in `.env` at port 5433:
+
+```bash
+infrastructure/scripts/local-postgres.sh init
 ```
 
 5. Run the API, worker and all four web apps with hot reload:
@@ -84,7 +94,7 @@ docker compose --profile app up -d --build
 
 ## Quality checks
 
-Everything CI runs (format, lint, typecheck, unit tests, SRS ID check):
+Everything CI runs (format, lint, typecheck, unit and database tests, SRS ID check). Database tests need `TEST_DATABASE_URL`; they are skipped with a warning when it is unset:
 
 ```bash
 pnpm check

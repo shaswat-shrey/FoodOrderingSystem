@@ -15,7 +15,7 @@
 | Project name | FoodOrderSystem — Online Food Ordering and Delivery Platform (working name; product brand name TBD — see OD-01) |
 | Document title | Software Requirements Specification (SRS) |
 | Document identifier | FOS-SRS-001 |
-| Document version | 0.2.1 |
+| Document version | 0.2.2 |
 | Document status | **APPROVED — Baseline for implementation** |
 | Date of creation | 2026-11-20 |
 | Author | Engineering (prepared with Claude Code acting as architecture partner) |
@@ -30,6 +30,7 @@
 | 0.1.0 | 2026-11-20 | Engineering | Initial complete draft of all 28 SRS sections, Phase 1 architecture, ADRs, API inventory, ERD, roadmap. | — |
 | 0.2.0 | 2026-11-20 | Engineering | Owner approval recorded. OD-01…OD-16 resolved with proposed defaults; assumptions A-01…A-20 confirmed; ADR-001…014 Accepted; documents re-labelled APPROVED. No requirement text changed. | Project owner |
 | 0.2.1 | 2026-11-20 | Engineering | Development object storage changed from MinIO to SeaweedFS (S3 gateway) because MinIO no longer publishes community Docker images. Production storage (S3/R2) and the `StorageProvider` requirement are unchanged. Editorial (§3.2, §3.5, §3.8, FR-FILE-005, IF-STO-001). | Patch (no approval needed) |
+| 0.2.2 | 2026-11-20 | Engineering | Editorial: §15.3 entity count corrected to the 147 tables implemented in Phase 3; link to schema implementation notes. Three proposed requirement changes from Phase 3 are pending owner approval (PROJECT_STATUS.md → discrepancies) and are **not** applied. | Patch (no approval needed) |
 
 Versioning rule: MAJOR = approved baseline change that alters scope; MINOR = requirements added/changed; PATCH = editorial fixes. Every change to a requirement ID's text is recorded here and in the Traceability Matrix change log (§27).
 
