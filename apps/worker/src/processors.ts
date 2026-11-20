@@ -15,6 +15,7 @@ import {
   SUBMIT_REFUND_JOB,
   type AccountAnonymizer,
   type CartExpiry,
+  type BranchOpsService,
   type FilesService,
   type LedgerService,
   type NotificationDeliverer,
@@ -52,6 +53,7 @@ export const SWEEP_ORDER_TIMERS_JOB = 'sweep-order-timers';
 export const EXPIRE_CHECKOUT_SESSIONS_JOB = 'expire-checkout-sessions';
 export const OUTBOX_HEALTH_JOB = 'outbox-health';
 export const CLEANUP_ORPHAN_FILES_JOB = 'cleanup-orphan-files';
+export const SWEEP_BRANCH_STATUS_JOB = 'sweep-branch-status';
 
 /** Repeatable jobs (BullMQ job schedulers), registered idempotently at boot. */
 export const SCHEDULES = [
@@ -73,6 +75,8 @@ export const SCHEDULES = [
   { queue: 'maintenance', id: OUTBOX_HEALTH_JOB, everyMs: 60 * 1000 },
   // JOB-FILE-002 (FR-FILE-006): uploads never attached to anything.
   { queue: 'maintenance', id: CLEANUP_ORPHAN_FILES_JOB, everyMs: 60 * 60 * 1000 },
+  // JOB-REST-001/002: expired pauses resume; "closed for today" reopens next day.
+  { queue: 'maintenance', id: SWEEP_BRANCH_STATUS_JOB, everyMs: 5 * 60 * 1000 },
 ] as const satisfies { queue: QueueName; id: string; everyMs: number }[];
 
 export interface JobServices {
@@ -86,6 +90,7 @@ export interface JobServices {
   outbox: Pick<OutboxRelay, 'checkStale'>;
   deliverer: Pick<NotificationDeliverer, 'deliver'>;
   files: Pick<FilesService, 'cleanupOrphans'>;
+  branchOps: Pick<BranchOpsService, 'sweep'>;
   logger: Logger;
 }
 
@@ -101,6 +106,7 @@ export function buildRegistrations({
   outbox,
   deliverer,
   files,
+  branchOps,
   logger,
 }: JobServices): ProcessorRegistration[] {
   const maintenance: Record<string, () => Promise<void>> = {
@@ -132,6 +138,9 @@ export function buildRegistrations({
     [EXPIRE_CHECKOUT_SESSIONS_JOB]: async () => {
       const count = await cartExpiry.expireSessions();
       if (count > 0) logger.info({ count }, 'expired checkout sessions');
+    },
+    [SWEEP_BRANCH_STATUS_JOB]: async () => {
+      await branchOps.sweep();
     },
     [CLEANUP_ORPHAN_FILES_JOB]: async () => {
       const count = await files.cleanupOrphans();

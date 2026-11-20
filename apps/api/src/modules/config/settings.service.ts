@@ -90,6 +90,13 @@ export const SETTING_DEFINITIONS = {
       hours: 'Mon–Sat, 10:00–18:00 IST',
     },
   },
+  /** BR-PRICE-006: packaging fee caps (paise). */
+  'packaging.maxPerItem': { schema: z.number().int().min(0).max(100_000), default: 1_000 },
+  'packaging.maxPerOrder': { schema: z.number().int().min(0).max(100_000), default: 5_000 },
+  /** BR-REST-002: "until I resume" pauses end after this long. */
+  'restaurant.pauseMaxMinutes': { schema: z.number().int().min(15).max(1440), default: 240 },
+  /** FR-REST-014: a manual close ends at the next day's first slot (false = until reopened). */
+  'restaurant.manualCloseUntilNextDay': { schema: z.boolean(), default: true },
   /** BR-PAY-002 */
   'cod.maxOrderAmount': { schema: z.number().int().min(0).max(10_000_000), default: 150_000 },
   /** BR-CART-002 */

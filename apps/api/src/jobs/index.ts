@@ -39,3 +39,5 @@ export {
   storageEnvFields,
   storageEnvProblems,
 } from '../modules/files';
+export { BranchRepository } from '../modules/catalog/branch-repository';
+export { BranchOpsService } from '../modules/merchant/branch-ops.service';

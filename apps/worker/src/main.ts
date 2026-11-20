@@ -4,6 +4,8 @@ import {
   AccountAnonymizer,
   AuditService,
   BullJobQueue,
+  BranchOpsService,
+  BranchRepository,
   CartExpiry,
   createStorageProvider,
   FilesService,
@@ -112,6 +114,14 @@ async function main(): Promise<void> {
     refunds,
     orderJobs,
     outbox,
+    branchOps: new BranchOpsService(
+      prisma,
+      new BranchRepository(prisma),
+      settings,
+      audit,
+      clock,
+      logger,
+    ),
     files: new FilesService(
       prisma,
       createStorageProvider(env, env.AUTH_HMAC_SECRET),

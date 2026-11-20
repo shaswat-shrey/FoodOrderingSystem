@@ -49,7 +49,13 @@ import {
 } from './modules/geo';
 import { AuthService, OtpService, SessionService, TokenService } from './modules/auth';
 import { IamService } from './modules/iam';
-import { MerchantAccess, OnboardingService, PermissionChanges } from './modules/merchant';
+import {
+  BranchOpsService,
+  MerchantAccess,
+  OnboardingService,
+  PermissionChanges,
+  RestaurantProfileService,
+} from './modules/merchant';
 import { fieldCipherFrom } from './platform/crypto';
 import {
   NotificationService,
@@ -225,6 +231,8 @@ export function createContainer(input: ContainerInput) {
     fieldCipher,
     clock,
   );
+  const branchOps = new BranchOpsService(prisma, branches, settings, audit, clock, logger);
+  const restaurantProfile = new RestaurantProfileService(prisma, files, audit, fieldCipher, clock);
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
   registerNotificationConsumers(outboxRelay, { prisma, notifications });
   return {
@@ -282,6 +290,8 @@ export function createContainer(input: ContainerInput) {
     merchantAccess,
     permissionChanges,
     onboarding,
+    branchOps,
+    restaurantProfile,
     outboxRelay,
     appOrigins: appOrigins(env),
   };
