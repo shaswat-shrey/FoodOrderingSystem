@@ -1,6 +1,6 @@
 # SRS Section 14 — API Requirements (API Inventory & Specification)
 
-> Part of FOS-SRS-001 v0.8.0 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002; API-AUTH-001…016, 021…023; API-USER-001…003, 006…011, 013, 014; API-GEO-001…005; API-ADDR-001…006; API-REST-001…005; API-MENU-001…007; API-DISC-001…006, 008…011; API-SRCH-001…006; API-FAV-001…006; API-CART-001…012; API-COUP-001…003; API-CHK-001…003; API-PAY-001…004, 006, 007; API-WAL-001/002; API-REF-001/002 (see Traceability Matrix §22.1a–e); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
+> Part of FOS-SRS-001 v0.9.0 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002; API-AUTH-001…016, 021…023; API-USER-001…003, 006…011, 013, 014; API-GEO-001…005; API-ADDR-001…006; API-REST-001…005; API-MENU-001…007; API-DISC-001…006, 008…011; API-SRCH-001…006; API-FAV-001…006; API-CART-001…012; API-COUP-001…003; API-CHK-001…003; API-PAY-001…004, 006, 007; API-WAL-001/002; API-REF-001/002 (see Traceability Matrix §22.1a–e); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
 
 ---
 
@@ -89,7 +89,7 @@ Some operations listed in the master prompt are intentionally **one endpoint** t
 
 ## 14.2 API inventory
 
-Counts: 494 planned endpoints across 30 modules (about 165 of them admin). Each row has a business purpose traced to an FR.
+Counts: 495 planned endpoints across 30 modules (about 165 of them admin). Each row has a business purpose traced to an FR.
 
 ### Authentication — `API-AUTH` (module `auth`)
 
@@ -488,6 +488,7 @@ All paths prefixed `/merchant/restaurants/{rid}` unless they start with `/mercha
 | API-DP-019 | GET `/partner/me/dashboard` | Today: online time, deliveries, earnings, active delivery | DP | — | FR-DP-015 |
 | API-DP-020 | POST `/partner/me/locations` | Batch location upload (REST fallback, ≤ 60 points) | DP | — | FR-TRK-001, 008 |
 | API-DP-021 | POST `/partner/sos` | SOS alert (CORE) | DP | **Idem** | FR-DEL-036 |
+| API-DP-022 | GET `/partner/zones` | Active zones (id, name, city) for the preferred-zone choice | DP (applicant) | — | FR-DP-001 (v0.9.0, D-16) |
 | API-DPDEL-001 | GET `/partner/offers/current` | Current open offer (recovery after reconnect) | DP | — | FR-DEL-001 |
 | API-DPDEL-002 | POST `/partner/offers/{offerId}/accept` | Accept offer | DP (offer owner) | **Idem** | FR-DEL-002, FR-DISP-006 |
 | API-DPDEL-003 | POST `/partner/offers/{offerId}/reject` | Reject offer (reason) | DP (offer owner) | **Idem** | FR-DEL-003 |

@@ -1,6 +1,6 @@
 # SRS Section 18 — Business Rules Catalog
 
-> Part of FOS-SRS-001 v0.8.0 (APPROVED 2026-11-20). Business rules are **policy**: they can change without changing the functional requirement that enforces them. Every numeric value marked ⚙ is a platform setting (`cfg.*`) or effective-dated config editable by authorized admins; values shown are the **defaults approved by the owner on 2026-11-20** (open decisions OD-02…OD-11 resolved with these defaults); values flagged for legal/tax review remain subject to that review. Each rule is testable; the test reference column in the Traceability Matrix maps rules to test cases.
+> Part of FOS-SRS-001 v0.9.0 (APPROVED 2026-11-20). Business rules are **policy**: they can change without changing the functional requirement that enforces them. Every numeric value marked ⚙ is a platform setting (`cfg.*`) or effective-dated config editable by authorized admins; values shown are the **defaults approved by the owner on 2026-11-20** (open decisions OD-02…OD-11 resolved with these defaults); values flagged for legal/tax review remain subject to that review. Each rule is testable; the test reference column in the Traceability Matrix maps rules to test cases.
 
 ---
 
@@ -216,7 +216,7 @@
 | BR-REVIEW-003 | Reviews editable within 48 h; deletable any time (soft). |
 | BR-REVIEW-004 | Text is moderated: profanity filter on submit (masking), PII patterns (phone numbers) removed; reported reviews hidden after 3 independent reports pending moderation ⚙. |
 | BR-REVIEW-005 | One public restaurant response per review; editable 24 h. |
-| BR-REVIEW-006 | Partner ratings: partners see averages and tag counts only, never customer identity or per-order rating. |
+| BR-REVIEW-006 | Partner ratings: partners see the average, count, star distribution and tag counts, never customer identity or per-order rating; written comments are shown only once the partner has ≥ 5 ratings ⚙, without rating, date or order (v0.9.0, D-17). |
 | BR-REVIEW-007 | Restaurant rating displayed = Bayesian average with prior mean 4.0 and weight 10 ⚙; "New" badge until 10 ratings. |
 
 ## BR-WALLET — Customer wallet

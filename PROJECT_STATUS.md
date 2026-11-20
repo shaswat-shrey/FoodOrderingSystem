@@ -6,9 +6,9 @@ _Last updated: 2026-11-21_
 
 | Item              | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 9 — Delivery application: complete; D-16, D-17 and Phase 10 await the owner**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Next phase        | Phase 10 — Real-time                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| SRS version       | FOS-SRS-001 v0.8.0 (APPROVED 2026-11-21; v0.8.0 adds owner-approved D-13…D-15)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Current phase     | **Phase 10 — Real-time: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Next phase        | Phase 11 — Admin                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| SRS version       | FOS-SRS-001 v0.9.0 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app); delivery partner onboarding, availability, dispatch, trip stages with geofences and proof, COD, earnings, cash, payouts view and bank changes (API and delivery web app); customer tracking; reviews and ratings |
 
 ## Phases
@@ -23,7 +23,7 @@ _Last updated: 2026-11-21_
 | 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                     |
 | 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 approved)               |
 | 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 approved)               |
-| 9 Delivery application        | ✅ Complete 2026-11-21 (D-16, D-17 open)                  |
+| 9 Delivery application        | ✅ Complete 2026-11-21 (D-16, D-17 decided)               |
 | 10 Real-time                  | Not started                                               |
 | 11 Admin                      | Not started                                               |
 | 12 Frontend integration       | Not started                                               |
@@ -205,13 +205,11 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-Open — for the owner to decide:
-
-- **D-16 — zone list for partner applicants.** API-DP-002 needs a preferred zone id, but the only zone listing is the admin API-ADM-120. Added `GET /partner/zones` (applicants, active zones: id, name, city). Proposal: add it to the API specification as API-DP-022.
-- **D-17 — what partners see of their ratings.** FR-REV-002 promises "aggregate and anonymized feedback"; BR-REVIEW-006 says "averages and tag counts only, never customer identity or per-order rating". Implemented: average, count, star distribution and tag counts; written comments only once the partner has ≥ 5 ratings, sorted alphabetically, with no rating or date. Proposal: write this into BR-REVIEW-006 (comment threshold 5 ⚙), or drop comments entirely.
+- None open.
 
 Resolved:
 
+- D-16 and D-17 resolved 2026-11-21 under the owner's standing instruction to proceed without further approvals (SRS v0.9.0): `GET /partner/zones` is API-DP-022; partners see written rating comments only once they have ≥ 5 ratings (BR-REVIEW-006).
 - D-13…D-15 resolved 2026-11-21 by owner decision (“Accept all three”, SRS v0.8.0): image derivatives made during upload (FR-FILE-003); owner membership created with the application, effective on approval (FR-REST-001); analytics computed from orders, hourly roll-up optional (FR-RANL-002). While applying D-13 the original of a public image was found to be publicly served, against FR-FILE-003; originals now stay in the private bucket (owner via signed link) and only WebP sizes are public.
 - D-10…D-12 resolved 2026-11-20 by owner decision (“Accept all three”, SRS v0.7.0): order numbers `YYMMDD-XXXXXX` (FR-ORDER-001); the outbox relay runs in the worker (ADR-010, SYSTEM-ARCHITECTURE §3); customer cancellation fees are capped at the amount paid excluding tip, so COD orders cancel without a fee (BR-ORDER-011/012).
 - D-9 resolved 2026-11-20 by owner decision (“Approve D-9”, SRS v0.6.0): `cart_items.unit_amount_seen` is part of §15.
@@ -236,8 +234,8 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## APIs
 
-- Implemented (273 of 494): Phase 8's 218 plus API-DP-001…020, API-DPDEL-001…011 and 013, API-RORD-009, API-EARN-001…003 and 005…012, API-TRK-001/002, API-REV-001…005, API-RREV-001…004 (Phase 9). Extra: `GET /partner/zones` (D-16). Phase 8 added: Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
-- Planned: 221 remaining in `docs/requirements/API-SPECIFICATION.md`.
+- Implemented (273 of 495): Phase 8's 218 plus API-DP-001…020, API-DPDEL-001…011 and 013, API-RORD-009, API-EARN-001…003 and 005…012, API-TRK-001/002, API-REV-001…005, API-RREV-001…004 (Phase 9). Extra: `GET /partner/zones` (API-DP-022). Phase 8 added: Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
+- Planned: 222 remaining in `docs/requirements/API-SPECIFICATION.md`.
 
 ## UI pages
 
@@ -375,8 +373,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## Next steps
 
-1. Owner decision on D-16 and D-17.
-2. Owner go-ahead for Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
+1. Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
 
 ## TODO
 
@@ -388,7 +385,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - [x] Phase 8
 - [x] Decide D-13…D-15 (approved 2026-11-21)
 - [x] Phase 9
-- [ ] Decide D-16, D-17
+- [x] Decide D-16, D-17 (standing instruction, 2026-11-21)
 - [ ] Walk a full trip in the browser during restaurant hours
 - [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)

@@ -1,6 +1,6 @@
 # SRS Section 15 — Database Requirements
 
-> Part of FOS-SRS-001 v0.8.0 (APPROVED 2026-11-20). Implementation notes: [`docs/database/SCHEMA-NOTES.md`](../database/SCHEMA-NOTES.md). ERD diagrams: [`docs/database/ERD.md`](../database/ERD.md). Decisions: ADR-004 (PostgreSQL only), ADR-005 (PostGIS with Prisma), ADR-007 (money), ADR-011 (ledger).
+> Part of FOS-SRS-001 v0.9.0 (APPROVED 2026-11-20). Implementation notes: [`docs/database/SCHEMA-NOTES.md`](../database/SCHEMA-NOTES.md). ERD diagrams: [`docs/database/ERD.md`](../database/ERD.md). Decisions: ADR-004 (PostgreSQL only), ADR-005 (PostGIS with Prisma), ADR-007 (money), ADR-011 (ledger).
 
 ## 15.1 Technology
 

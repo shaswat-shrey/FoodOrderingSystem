@@ -9,7 +9,7 @@
 | Non-functional requirements (`NFR-*`) | 104 |
 | Business rules (`BR-*`) | 161 |
 | Acceptance criteria (`AC-*`) | 96 |
-| API endpoints (`API-*`) | 494 |
+| API endpoints (`API-*`) | 495 |
 | Real-time events (`EVT-*`) | 49 |
 
 Integrity: **0** duplicate definitions, **0** references to undefined IDs.
@@ -690,7 +690,7 @@ Integrity: **0** duplicate definitions, **0** references to undefined IDs.
 | BR-REVIEW-003 | Reviews editable within 48 h; deletable any time (soft). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-REVIEW-004 | Text is moderated: profanity filter on submit (masking), PII patterns (phone numbers) removed; reported review |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-REVIEW-005 | One public restaurant response per review; editable 24 h. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
-| BR-REVIEW-006 | Partner ratings: partners see averages and tag counts only, never customer identity or per-order rating. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REVIEW-006 | Partner ratings: partners see the average, count, star distribution and tag counts, never customer identity or |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-REVIEW-007 | Restaurant rating displayed = Bayesian average with prior mean 4.0 and weight 10 ⚙; "New" badge until 10 ratin |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-SETTLE-001 | Settlement period Monday 00:00 – Sunday 23:59 IST; payout initiated by Wednesday ⚙. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-SUP-001 | Ticket SLA ⚙: first response — URGENT (active order) 5 min, HIGH 1 h, NORMAL 24 h; resolution targets 1 h / 24 |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
@@ -1061,6 +1061,7 @@ Integrity: **0** duplicate definitions, **0** references to undefined IDs.
 | API-DP-019 | GET `/partner/me/dashboard` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-DP-020 | POST `/partner/me/locations` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-DP-021 | POST `/partner/sos` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-022 | GET `/partner/zones` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-DPDEL-001 | GET `/partner/offers/current` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-DPDEL-002 | POST `/partner/offers/{offerId}/accept` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-DPDEL-003 | POST `/partner/offers/{offerId}/reject` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |

@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.8.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application) and §22.1h (delivery application, tracking, reviews).
+> Part of FOS-SRS-001 v0.9.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application) and §22.1h (delivery application, tracking, reviews).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -216,7 +216,7 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 |---|---|---|
 | FR-CHK-002, FR-ORDER-001, FR-ORDER-002, API-CHK-004, FR-PRICE-005 | One transaction: revalidate cart hash and price, lock and decrement stock, snapshot items/options/prices/address, reserve coupon, hold wallet, create payment (COD or online), history and events; idempotent and race-safe | Implemented (order number `YYMMDD-XXXXXX`, D-10 approved) |
 | FR-ORDER-003 | Order numbers short, unique, non-sequential | Implemented as `YYMMDD-XXXXXX` (13 characters; D-10 approved) |
-| SRS §10.3 T01…T16, FR-ORDER-010…012 | Transition table with allowed actors, version check under row lock, timestamps, history (two rows for T13c), outbox event per transition | Implemented |
+| SRS §10.3 T01…T16 | Transition table with allowed actors, version check under row lock, timestamps, history (two rows for T13c), outbox event per transition | Implemented |
 | ADR-010, NFR-REL-003 | Transactional outbox relay: sequence order, per-aggregate ordering on failure, retries, Redis leader lock, stale-event alert (JOB-OUTBOX-001) | Implemented in the worker (D-11 approved) |
 | BR-PAY-003, T03 | Capture places the order: coupon redeemed, wallet hold debited, acceptance timers armed; duplicate capture refunded (E10) | Implemented |
 | FR-PAY-006, BR-ORDER-003, T04, JOB-ORD-001 | Payment window: ask the provider (all payments on the provider order) before failing; release coupon, wallet and stock; payment EXPIRED | Implemented (`listOrderPayments` added to the provider interface) |
@@ -275,7 +275,7 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 | FR-DP-010…015, BR-DEL-006, 010, 011, 015, API-DP-014…020 | Online with a valid fix and blockers, offline (deferred on a trip), breaks, location batches with spoofing flags, auto-offline, dashboard | Implemented (API-DP-021 SOS is CORE) |
 | FR-DISP-001…009, BR-DEL-001…005, 007, 014, 017, API-DPDEL-001…003 | Dispatch timing, ranked sequential offers, rounds, escalation, no-partner deadline, exactly-once acceptance, reject/expire/withdraw, bicycle limits | Implemented (manual assignment and API-DPDEL-012 Phase 11) |
 | FR-DEL-001…005, 010, 020…035, 037, BR-DEL-008, 009, 013, API-DPDEL-004…011, 013, API-RORD-009 | Offer card, active delivery, geofenced arrivals, pickup and handover code, OTP/photo proof, COD collection, delivered, unreachable, unassign, history, heartbeat release | Implemented (offer push Phase 10; FR-DEL-036 SOS CORE) |
-| FR-EARN-001, 002, 005…007, BR-EARN-001, 002, 005…007, API-EARN-001…003, 005…012 | Trip pay, tips, cancellation compensation, summaries, statement, cash in hand, payout estimate and history, performance, ratings, bank change after re-auth | Implemented (incentives FR-EARN-003 CORE; adjustments, deposits and payout batches Phase 11; partner ratings view D-17 open) |
+| FR-EARN-001, 002, 005…007, BR-EARN-001, 002, 005…007, API-EARN-001…003, 005…012 | Trip pay, tips, cancellation compensation, summaries, statement, cash in hand, payout estimate and history, performance, ratings, bank change after re-auth | Implemented (incentives FR-EARN-003 CORE; adjustments, deposits and payout batches Phase 11; partner ratings view per BR-REVIEW-006 v0.9.0, D-17) |
 | FR-CORD-004…006, FR-TRK-001…005, BR-DEL-012, API-TRK-001/002 | Tracking snapshot and poll, location only from assignment to delivery, stale flag, delivery code, last-known location with database fallback | Implemented (socket fan-out FR-TRK-006, ETA pushes FR-TRK-007 and stale alerts Phase 10; route polyline needs a routing provider) |
 | FR-REV-001, 002, 004…006, BR-REVIEW-001…006, API-REV-001…005 | Ratings after delivery within 7 days, one per target, tags, photos, text cleaning, edit 48 h, delete, reports hiding after 3, aggregates via outbox | Implemented (FR-REV-003 item thumbs and FR-REV-007 prompt are CORE) |
 | FR-RREV-001…003, BR-REVIEW-005, API-RREV-001…004 | Restaurant reviews by outlet with filters, one response editable 24 h, reports | Implemented |
@@ -319,3 +319,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-21 | 0.7.1 | Phase 8: added §22.1g with uploads, onboarding, outlets, menu, restaurant orders, staff and analytics; D-13…D-15 then open. |
 | 2026-11-21 | 0.8.0 | D-13…D-15 approved: FR-FILE-003 derivative timing, FR-REST-001 owner membership, FR-RANL-002 pre-aggregation optional. |
 | 2026-11-21 | 0.8.1 | Phase 9: added §22.1h with partner onboarding, availability, dispatch, trip stages, earnings, tracking and reviews; D-16 and D-17 then open. |
+| 2026-11-21 | 0.9.0 | D-16 and D-17 decided under the owner's standing instruction: API-DP-022 zone list; BR-REVIEW-006 comment threshold. |

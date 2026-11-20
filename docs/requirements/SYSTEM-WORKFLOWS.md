@@ -1,6 +1,6 @@
 # SRS Section 21 — System Workflows
 
-> Part of FOS-SRS-001 v0.8.0 (APPROVED 2026-11-20). Each workflow lists actors, preconditions, main flow, alternative flows (A), failure flows (F), and postconditions. Requirement IDs in brackets.
+> Part of FOS-SRS-001 v0.9.0 (APPROVED 2026-11-20). Each workflow lists actors, preconditions, main flow, alternative flows (A), failure flows (F), and postconditions. Requirement IDs in brackets.
 
 ---
 
