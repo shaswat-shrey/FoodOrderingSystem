@@ -8,7 +8,7 @@ _Last updated: 2026-11-20_
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | Current phase     | **Phase 5 — Core customer backend: complete; Phase 6 awaiting go-ahead**                                                         |
 | Next phase        | Phase 6 — Cart, pricing, checkout, payments                                                                                      |
-| SRS version       | FOS-SRS-001 v0.4.1 (APPROVED 2026-11-20; v0.4.1 is an editorial update)                                                          |
+| SRS version       | FOS-SRS-001 v0.5.0 (APPROVED 2026-11-20; v0.5.0 adds owner-approved D-7, D-8)                                                    |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search and favourites |
 
 ## Phases
@@ -19,7 +19,7 @@ _Last updated: 2026-11-20_
 | 2 Repository & infrastructure | ✅ Complete 2026-11-20                                    |
 | 3 Database                    | ✅ Complete 2026-11-20 (SRS changes D-1…D-3 approved)     |
 | 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                 |
-| 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 await decision)          |
+| 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                |
 | 6 Cart, pricing, checkout     | Not started                                               |
 | 7 Order management            | Not started                                               |
 | 8 Restaurant application      | Not started                                               |
@@ -106,16 +106,13 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-Open — awaiting owner decision (SRS §27.3):
+- None open.
+- D-7 and D-8 resolved 2026-11-20 by owner decision (“Accept both”, SRS v0.5.0):
+  - **D-7:** branches serve their own zone only in MVP; linked neighbouring zones are CORE (zone-links table and admin screen).
+  - **D-8:** FR-ADDR-006 checks India's bounding box.
+- Earlier: D-1…D-3 (v0.3.0) and D-4…D-6 (v0.4.0) resolved by owner decision; v0.3.1 and v0.4.1 were editorial.
 
-| ID  | Requirement                                                                       | Observed                                                                                                                                                                                                                              | Proposal                                                                                                                                                                                       |
-| --- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D-7 | BR-GEO-001 (b): a branch serves its own zone "or a zone pair explicitly linked ⚙" | There is no table or setting for linked zone pairs, so a branch only serves locations in its own zone. The two seeded zones share an edge, so a customer just across it is never served by a branch on the other side, however close. | **Change requirement for MVP:** branches serve their own zone only; linked zone pairs move to CORE with a `zone_links` table and admin screen (Phase 11). Alternative: build `zone_links` now. |
-| D-8 | FR-ADDR-006: reject coordinates "outside India's bounding polygon"                | A bounding **box** around India (lat 6.5–37.2, lng 68.0–97.5) is used instead of the border polygon. It rejects clearly foreign pins (and 0,0) but accepts some points just over the border.                                          | **Change requirement:** "outside India's bounding box"; a precise border check adds a boundary dataset for little gain, since delivery zones already restrict where orders can go.             |
-
-Resolved: D-1…D-3 (SRS v0.3.0) and D-4…D-6 (SRS v0.4.0), both by owner decision on 2026-11-20. Editorial only: v0.3.1 and v0.4.1 added codes already specified elsewhere to the §19.2 table.
-
-Not discrepancies (planned later): offers in listings and the restaurant page (Phase 6); reviews and rating summary, bestsellers and popularity from real orders, trending dishes (Phase 7); avatar uploads and item/restaurant images (file storage, Phase 8); manual-close auto-reopen (Phase 8 branch operations); trending-search aggregation job, item schedules, data export, OAuth, account recovery and TOTP (CORE).
+Not discrepancies (planned later): offers in listings and the restaurant page (Phase 6); reviews and rating summary, bestsellers and popularity from real orders, trending dishes (Phase 7); avatar uploads and item/restaurant images (file storage, Phase 8); manual-close auto-reopen (Phase 8 branch operations); trending-search aggregation job, item schedules, data export, linked zones, OAuth, account recovery and TOTP (CORE).
 
 ## Modules
 
@@ -202,15 +199,14 @@ Not discrepancies (planned later): offers in listings and the restaurant page (P
 
 ## Next steps
 
-1. Owner decisions on D-7 and D-8.
-2. Owner go-ahead for Phase 6 (cart, pricing engine, coupons, checkout, idempotency, payments with the mock provider, wallet and ledger core).
+1. Owner go-ahead for Phase 6 (cart, pricing engine, coupons, checkout, idempotency, payments with the mock provider, wallet and ledger core).
 
 ## TODO
 
 - [x] Decide D-1…D-6
 - [x] Phase 4: auth & security
 - [x] Phase 5: core customer backend
-- [ ] Decide D-7, D-8
+- [x] Decide D-7, D-8 (accepted 2026-11-20)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
 - [ ] Push to GitHub so CI runs (moves §22.1a–d rows to _Verified_)
 - [ ] Dedicated test for idle/absolute session expiry (FR-AUTH-023)

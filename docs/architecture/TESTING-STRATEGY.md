@@ -1,6 +1,6 @@
 # Testing Strategy
 
-> Phase 1 · v0.4.1 (APPROVED 2026-11-20). Requirements traceability: SRS §22–23.
+> Phase 1 · v0.5.0 (APPROVED 2026-11-20). Requirements traceability: SRS §22–23.
 
 ## 1. Test pyramid & tools
 

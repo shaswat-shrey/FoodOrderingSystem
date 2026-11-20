@@ -1,6 +1,6 @@
 # SRS Section 17 — Interface Requirements
 
-> Part of FOS-SRS-001 v0.4.1 (APPROVED 2026-11-20).
+> Part of FOS-SRS-001 v0.5.0 (APPROVED 2026-11-20).
 
 ## 17.1 User interfaces
 

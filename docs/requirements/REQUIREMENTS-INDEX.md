@@ -609,7 +609,7 @@ Integrity: **0** duplicate definitions, **0** references to undefined IDs.
 | BR-EARN-006 | Payout amount = earnings − unremitted cash-in-hand − approved deductions; if negative, the balance carries ove |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-EARN-007 | **Compensation on cancellation:** if an order is cancelled after the partner accepted and the cancellation is  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-FILE-001 | Allowed types/sizes: images (JPEG, PNG, WebP) ≤ 5 MB for avatars/food/logos/covers/proofs (≤ 10 MB covers); do |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
-| BR-GEO-001 | **Serviceable** = (a) location inside an ACTIVE zone, (b) branch in the same zone (or zone pair explicitly lin |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-GEO-001 | **Serviceable** = (a) location inside an ACTIVE zone, (b) branch in the same zone (MVP; serving an explicitly  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-GEO-002 | Branch delivery radius 0.5–15 km; zone may cap it lower ⚙ (default 7 km). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-GEO-003 | Distance used for fees and partner pay = road distance from routing provider; fallback = haversine × 1.3 ⚙ roa |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
 | BR-MENU-001 | Every item and every customization option must have exactly one dietary marker (VEG, NON_VEG, EGG). An item ma |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |

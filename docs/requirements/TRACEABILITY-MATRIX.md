@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.4.1 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication) and §22.1d (customer backend).
+> Part of FOS-SRS-001 v0.5.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication) and §22.1d (customer backend).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -157,12 +157,12 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 |---|---|---|
 | FR-LOC-002, 003, 006; IF-GEO-001, 002, 006 | Geocoding adapter (mock gazetteer for development, `none` for degraded production), 30-day cache, routing estimate, serviceability with reason codes | Implemented |
 | FR-LOC-001, 004, 005 | Browser geolocation, map pin, session location | Planned (customer screens, Phase 12); the API treats the pin as authoritative |
-| BR-GEO-001 (a)–(c), (e); BR-GEO-002, 003 | Active zone, same zone, radius capped by zone, accepting orders; road distance estimate for fees | Implemented — linked zone pairs in (b) see **D-7**; (d) routing check applies at checkout (Phase 6) |
+| BR-GEO-001 (a)–(c), (e); BR-GEO-002, 003 | Active zone, same zone, radius capped by zone, accepting orders; road distance estimate for fees | Implemented — (b) is same-zone only in MVP (D-7, approved); (d) routing check applies at checkout (Phase 6) |
 | BR-REST-001, 003, 004, 010, 011 | Accepting-orders computation (hours across midnight, holidays, pause, manual close, FSSAI expiry, zone status), last-order cutoff, FSSAI on page | Implemented |
 | FR-CUST-001, 002, 003, 004, 006, 007 | Profile, preferences, email and phone change, account status | Implemented |
 | FR-CUST-005, 008 | Avatar upload, data export | Planned (file uploads with Phase 8; export is CORE) |
 | BR-AUTH-020 (API-USER-013/014) | Current legal documents and acceptance | Implemented |
-| FR-ADDR-001…006, BR-ADDR-001, 002 | Address book with limits, labels, default, soft delete, India and PIN checks, pin-distance warning, per-branch serviceability | Implemented — India check is a bounding box, see **D-8** |
+| FR-ADDR-001…006, BR-ADDR-001, 002 | Address book with limits, labels, default, soft delete, India and PIN checks, pin-distance warning, per-branch serviceability | Implemented (India bounding box per D-8, approved) |
 | FR-MENUC-001…006, 008 | Branch page, menu with smart sections, item cards and details, availability, filters, cache by menu version with ETag | Implemented — bestsellers by 30-day orders and item schedules join when order data exists (Phase 7) / CORE |
 | FR-MENUC-007 | Allergen warnings for signed-in customers | Implemented |
 | FR-MENUC-009, API-REST-007/008, API-MENU-008 | Reviews and rating summary | Planned (Phase 7) |
@@ -206,3 +206,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-20 | 0.3.1 | Phase 4: added §22.1c with authentication, session, realtime-auth and web-auth requirements. |
 | 2026-11-20 | 0.4.0 | D-4…D-6 approved: BR-AUTH-001 fully implemented; FR-AUTH-002/003/042 and API-AUTH-003/004/023 text updated. |
 | 2026-11-20 | 0.4.1 | Phase 5: added §22.1d with the core customer backend. |
+| 2026-11-20 | 0.5.0 | D-7 and D-8 approved: BR-GEO-001 (b) and FR-ADDR-006 text updated; §22.1d notes adjusted. |

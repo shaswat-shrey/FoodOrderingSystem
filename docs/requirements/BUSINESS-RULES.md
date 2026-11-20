@@ -1,6 +1,6 @@
 # SRS Section 18 — Business Rules Catalog
 
-> Part of FOS-SRS-001 v0.4.1 (APPROVED 2026-11-20). Business rules are **policy**: they can change without changing the functional requirement that enforces them. Every numeric value marked ⚙ is a platform setting (`cfg.*`) or effective-dated config editable by authorized admins; values shown are the **defaults approved by the owner on 2026-11-20** (open decisions OD-02…OD-11 resolved with these defaults); values flagged for legal/tax review remain subject to that review. Each rule is testable; the test reference column in the Traceability Matrix maps rules to test cases.
+> Part of FOS-SRS-001 v0.5.0 (APPROVED 2026-11-20). Business rules are **policy**: they can change without changing the functional requirement that enforces them. Every numeric value marked ⚙ is a platform setting (`cfg.*`) or effective-dated config editable by authorized admins; values shown are the **defaults approved by the owner on 2026-11-20** (open decisions OD-02…OD-11 resolved with these defaults); values flagged for legal/tax review remain subject to that review. Each rule is testable; the test reference column in the Traceability Matrix maps rules to test cases.
 
 ---
 
@@ -35,7 +35,7 @@
 |---|---|
 | BR-ADDR-001 | Max 20 saved addresses per customer; at most one HOME and one WORK label. |
 | BR-ADDR-002 | Every address must have map coordinates (pin); text alone is insufficient. |
-| BR-GEO-001 | **Serviceable** = (a) location inside an ACTIVE zone, (b) branch in the same zone (or zone pair explicitly linked ⚙), (c) straight-line distance ≤ branch delivery radius, (d) road distance ≤ radius × 1.4 when a routing provider is available, (e) branch accepting orders (BR-REST-001). Discovery uses (a)–(c) + (e); checkout uses all. |
+| BR-GEO-001 | **Serviceable** = (a) location inside an ACTIVE zone, (b) branch in the same zone (MVP; serving an explicitly linked neighbouring zone is CORE, with a zone-links table and admin screen), (c) straight-line distance ≤ branch delivery radius, (d) road distance ≤ radius × 1.4 when a routing provider is available, (e) branch accepting orders (BR-REST-001). Discovery uses (a)–(c) + (e); checkout uses all. |
 | BR-GEO-002 | Branch delivery radius 0.5–15 km; zone may cap it lower ⚙ (default 7 km). |
 | BR-GEO-003 | Distance used for fees and partner pay = road distance from routing provider; fallback = haversine × 1.3 ⚙ road factor. |
 

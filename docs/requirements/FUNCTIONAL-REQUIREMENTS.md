@@ -1,6 +1,6 @@
 # SRS Sections 4–9 — Functional Requirements
 
-> Part of FOS-SRS-001 v0.4.1 (APPROVED 2026-11-20). Master: [SRS-Online-Food-Ordering-and-Delivery-Platform.md](SRS-Online-Food-Ordering-and-Delivery-Platform.md).
+> Part of FOS-SRS-001 v0.5.0 (APPROVED 2026-11-20). Master: [SRS-Online-Food-Ordering-and-Delivery-Platform.md](SRS-Online-Food-Ordering-and-Delivery-Platform.md).
 > Business rules (`BR-*`) are defined in [BUSINESS-RULES.md](BUSINESS-RULES.md); error codes in [ERROR-HANDLING.md](ERROR-HANDLING.md); APIs in [API-SPECIFICATION.md](API-SPECIFICATION.md).
 
 ---
@@ -246,7 +246,7 @@ A user in the deletion grace period shall be able to reactivate by signing in su
 | FR-ADDR-003 | Update address | The system shall allow editing an address; orders already placed keep their address snapshot. | Coordinates change → re-validate pincode/city | P0 | MVP |
 | FR-ADDR-004 | Delete address | The system shall soft-delete an address; if it was default, no default remains until set. | — | P0 | MVP |
 | FR-ADDR-005 | Default address | The system shall allow exactly one default address per customer (partial unique index). | — | P1 | MVP |
-| FR-ADDR-006 | Address validation | The system shall reject addresses whose coordinates are outside India's bounding polygon, or whose pincode is not 6 digits; it shall warn (not block) when the text address geocodes > 500 m from the pin. | `ADDRESS_INVALID` | P1 | MVP |
+| FR-ADDR-006 | Address validation | The system shall reject addresses whose coordinates are outside India's bounding box (lat 6.5–37.2, lng 68.0–97.5; delivery zones restrict actual service), or whose pincode is not 6 digits; it shall warn (not block) when the text address geocodes > 500 m from the pin. | `ADDRESS_INVALID` | P1 | MVP |
 
 ### 6.3 Discovery & home (FR-DISC)
 
