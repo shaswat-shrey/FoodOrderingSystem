@@ -25,10 +25,17 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U fos -d fos_test"
           --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7.4-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 20
     env:
       # Database integration tests (packages/db) and the migration drift check.
       TEST_DATABASE_URL: postgresql://fos:fos_ci_password@localhost:5432/fos_test
       SHADOW_DATABASE_URL: postgresql://fos:fos_ci_password@localhost:5432/fos_shadow
+      # API integration tests (apps/api/test) — flushed by the tests.
+      TEST_REDIS_URL: redis://localhost:6379/15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

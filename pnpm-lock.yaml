@@ -114,6 +114,9 @@ importers:
       '@fos/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@fos/validation':
+        specifier: workspace:*
+        version: link:../../packages/validation
       '@node-rs/argon2':
         specifier: ^2.2.2
         version: 2.2.2
@@ -187,6 +190,9 @@ importers:
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
+      vite:
+        specifier: ^7.3.8
+        version: 7.3.8(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(tsx@4.23.15)
       vitest:
         specifier: ^3.2.7
         version: 3.2.7(@types/node@22.20.5)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.33.0)(tsx@4.23.15)
@@ -379,9 +385,15 @@ importers:
       '@fos/api':
         specifier: workspace:*
         version: link:../api
+      '@fos/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@fos/shared':
         specifier: workspace:*
         version: link:../../packages/shared
+      '@prisma/client':
+        specifier: ^6.19.3
+        version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
       bullmq:
         specifier: ^5.81.5
         version: 5.81.5

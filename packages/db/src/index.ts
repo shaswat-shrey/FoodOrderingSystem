@@ -28,3 +28,6 @@ export function createPrismaClient({ url, onQueryError }: CreatePrismaClientOpti
 export async function pingDatabase(client: PrismaClient): Promise<void> {
   await client.$queryRaw`SELECT 1`;
 }
+
+/** Development/test dataset loader (never run against production). */
+export { resetDatabase, seedDatabase, type SeedSummary } from './seed/seed';

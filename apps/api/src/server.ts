@@ -1,6 +1,11 @@
 import { createServer } from 'node:http';
 import { createPrismaClient, pingDatabase } from '@fos/db';
-import { appOrigins, loadEnv } from './config/env';
+import { loadEnv } from './config/env';
+import { createContainer } from './container';
+import { authRouter } from './modules/auth';
+import { QueueMessageDispatcher } from './modules/notifications';
+import { usersRouter } from './modules/users';
+import { systemClock } from './platform/clock';
 import { createApp } from './platform/http/app';
 import { createLogger } from './platform/logger';
 import { createSocketServer } from './platform/realtime/socket-server';
@@ -10,7 +15,6 @@ const SHUTDOWN_GRACE_MS = 25_000; // NFR-REL-007
 
 async function main(): Promise<void> {
   const env = loadEnv();
-  const corsOrigins = Object.values(appOrigins(env));
   const logger = createLogger({ level: env.LOG_LEVEL, service: 'api' });
 
   const prisma = createPrismaClient({
@@ -21,6 +25,9 @@ async function main(): Promise<void> {
     { core: env.REDIS_CORE_URL, cache: env.REDIS_CACHE_URL },
     logger,
   );
+  const messages = new QueueMessageDispatcher(redis.core);
+  const container = createContainer({ env, prisma, redis, logger, clock: systemClock, messages });
+  const corsOrigins = Object.values(container.appOrigins);
 
   const app = createApp({
     logger,
@@ -32,14 +39,21 @@ async function main(): Promise<void> {
         redisCache: () => pingRedis(redis.cache),
       },
     },
+    routes: (api) => {
+      api.use(
+        '/auth',
+        authRouter({
+          ...container,
+          cookieSecure: env.COOKIE_SECURE,
+          hmacSecret: env.AUTH_HMAC_SECRET,
+        }),
+      );
+      api.use(usersRouter(container));
+    },
   });
 
   const httpServer = createServer(app);
-  const io = createSocketServer(httpServer, {
-    corsOrigins,
-    logger,
-    redis: redis.core,
-  });
+  const io = createSocketServer(httpServer, { corsOrigins, logger, redis: redis.core });
 
   httpServer.listen(env.API_PORT, () => {
     logger.info({ port: env.API_PORT, env: env.NODE_ENV }, 'api listening');
@@ -56,11 +70,8 @@ async function main(): Promise<void> {
     }, SHUTDOWN_GRACE_MS);
     force.unref();
     await new Promise<void>((resolve) => io.close(() => resolve())); // also closes httpServer
-    await Promise.allSettled([
-      prisma.$disconnect(),
-      closeRedis(redis.core),
-      closeRedis(redis.cache),
-    ]);
+    await Promise.allSettled([messages.close(), prisma.$disconnect()]);
+    await Promise.allSettled([closeRedis(redis.core), closeRedis(redis.cache)]);
     logger.info('shutdown complete');
     process.exit(0);
   };

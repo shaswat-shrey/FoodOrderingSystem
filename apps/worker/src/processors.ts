@@ -9,6 +9,7 @@ import {
   type Message,
   type MessageSink,
 } from '@fos/api/notifications';
+import type { AccountAnonymizer } from '@fos/api/jobs';
 import type { WorkerEnv } from './env';
 
 export interface ProcessorRegistration {
@@ -28,9 +29,38 @@ export function createMessageSink(env: WorkerEnv, logger: Logger): MessageSink {
     : new LogMessageSink(logger);
 }
 
+export const ANONYMIZE_DUE_USERS_JOB = 'anonymize-due-users';
+
+/** Repeatable jobs (BullMQ job schedulers), registered idempotently at boot. */
+export const SCHEDULES = [
+  // JOB-USER-001: hourly sweep for accounts past their deletion grace period.
+  { queue: 'maintenance', id: ANONYMIZE_DUE_USERS_JOB, everyMs: 60 * 60 * 1000 },
+] as const satisfies { queue: QueueName; id: string; everyMs: number }[];
+
+export interface JobServices {
+  sink: MessageSink;
+  anonymizer: AccountAnonymizer;
+  logger: Logger;
+}
+
 /** Job processors registered by domain modules; more are added as modules are built. */
-export function buildRegistrations(sink: MessageSink): ProcessorRegistration[] {
+export function buildRegistrations({
+  sink,
+  anonymizer,
+  logger,
+}: JobServices): ProcessorRegistration[] {
   return [
+    {
+      queue: 'maintenance',
+      concurrency: 1,
+      processor: async (job) => {
+        if (job.name !== ANONYMIZE_DUE_USERS_JOB)
+          throw new Error(`Unknown maintenance job: ${job.name}`);
+        const count = await anonymizer.run();
+        if (count > 0)
+          logger.info({ count }, 'anonymised accounts past their deletion grace period');
+      },
+    },
     {
       queue: 'notifications',
       concurrency: 20,
