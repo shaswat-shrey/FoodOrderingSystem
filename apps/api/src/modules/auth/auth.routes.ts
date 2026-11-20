@@ -10,7 +10,7 @@ import { byIp, rateLimit } from '../../platform/http/middleware/rate-limit';
 import type { RateLimiter } from '../../platform/rate-limit';
 import type { PrismaClient } from '@fos/db';
 import { authenticate, type AuthMiddlewareDeps } from './auth.middleware';
-import * as schema from './auth.schemas';
+import * as schema from '@fos/validation';
 import type { AuthService, RequestMeta, SignInResult } from './auth.service';
 import { clearRefreshCookie, readRefreshCookie, setRefreshCookie } from './cookies';
 import { AUTH_POLICY } from './policy';
