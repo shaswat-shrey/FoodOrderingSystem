@@ -59,10 +59,33 @@ jobs:
         run: pnpm docs:check
 
   e2e:
-    name: E2E smoke (Playwright)
+    name: E2E (Playwright, full stack)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     needs: verify
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: fos
+          POSTGRES_PASSWORD: fos_ci_password
+          POSTGRES_DB: fos_e2e
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fos -d fos_e2e"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      redis:
+        image: redis:7.4-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      # Global setup migrates and seeds this database (it must end in _e2e) and
+      # starts the API, worker and app previews on ports 4300/4301/5373–5376.
+      E2E_DATABASE_URL: postgresql://fos:fos_ci_password@localhost:5432/fos_e2e
+      E2E_REDIS_CORE_URL: redis://localhost:6379/13
+      E2E_REDIS_CACHE_URL: redis://localhost:6379/14
+      E2E_SKIP_BUILD: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -72,13 +95,18 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @fos/db db:generate
+      - name: Build the four apps
+        run: pnpm --filter @fos/customer-web --filter @fos/restaurant-web --filter @fos/delivery-web --filter @fos/admin-web build
       - run: pnpm --filter @fos/e2e e2e:install
       - run: pnpm --filter @fos/e2e e2e
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           name: playwright-report
-          path: tests/e2e/playwright-report
+          path: |
+            tests/e2e/playwright-report
+            tests/e2e/test-results
+            .local/e2e/logs
           retention-days: 7
 
   docker:

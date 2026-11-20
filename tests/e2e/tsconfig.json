@@ -1,5 +1,5 @@
 {
   "extends": "@fos/config/tsconfig/node.json",
   "compilerOptions": { "lib": ["ES2023", "DOM"] },
-  "include": ["specs", "playwright.config.ts"]
+  "include": ["specs", "support", "playwright.config.ts"]
 }
