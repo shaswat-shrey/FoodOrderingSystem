@@ -1,2 +1,7 @@
 export { supportRouter } from './support.routes';
-export { SupportService, TICKET_CATEGORIES, type NewTicket } from './support.service';
+export {
+  FIRST_RESPONSE_MINUTES,
+  SupportService,
+  TICKET_CATEGORIES,
+  type NewTicket,
+} from './support.service';

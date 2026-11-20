@@ -90,13 +90,18 @@ import {
 } from './modules/partners';
 import { fieldCipherFrom } from './platform/crypto';
 import {
+  AdminConfigService,
+  AdminCouponsService,
   AdminDashboardService,
   AdminDispatchService,
   AdminFinanceService,
+  AdminGovernanceService,
   AdminMerchantsService,
   AdminOrdersService,
   AdminPartnersService,
+  AdminSupportService,
   AdminUsersService,
+  AdminZonesService,
 } from './modules/admin';
 import {
   NotificationService,
@@ -445,6 +450,11 @@ export function createContainer(input: ContainerInput) {
     audit,
     clock,
   );
+  const adminCoupons = new AdminCouponsService(prisma, audit, clock);
+  const adminZones = new AdminZonesService(prisma, audit, clock);
+  const adminConfig = new AdminConfigService(prisma, settings, audit, clock);
+  const adminSupport = new AdminSupportService(prisma, iam, reviews, audit, clock);
+  const adminGovernance = new AdminGovernanceService(prisma, permissionChanges, jobs, audit);
   return {
     env,
     prisma,
@@ -526,6 +536,11 @@ export function createContainer(input: ContainerInput) {
     adminOrders,
     adminDispatch,
     adminFinance,
+    adminCoupons,
+    adminZones,
+    adminConfig,
+    adminSupport,
+    adminGovernance,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

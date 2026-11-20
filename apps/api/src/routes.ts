@@ -19,7 +19,12 @@ import { partnerOfferRouter, trackingRouter } from './modules/dispatch';
 import { reviewRouter } from './modules/reviews';
 import { fileUploadRouter, filesRouter, localMediaRouter } from './modules/files';
 import { usersRouter } from './modules/users';
-import { adminAccountsRouter, adminOperationsRouter } from './modules/admin';
+import {
+  adminAccountsRouter,
+  adminConfigRouter,
+  adminDeskRouter,
+  adminOperationsRouter,
+} from './modules/admin';
 
 /**
  * Every /api/v1 router, mounted the same way by the server and the integration tests.
@@ -65,6 +70,8 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use(merchantOrdersRouter(container));
   api.use(adminAccountsRouter(container));
   api.use(adminOperationsRouter(container));
+  api.use(adminConfigRouter(container));
+  api.use(adminDeskRouter(container));
   api.use('/checkout/sessions', checkoutRouter(container));
   api.use('/payments/methods', paymentMethodsRouter(container));
   api.use(paymentsRouter(container));

@@ -28,7 +28,7 @@ export const TICKET_CATEGORIES = [
 ] as const;
 
 /** BR-SUP-001: first-response targets. */
-const FIRST_RESPONSE_MINUTES: Record<TicketPriority, number> = {
+export const FIRST_RESPONSE_MINUTES: Record<TicketPriority, number> = {
   URGENT: 5,
   HIGH: 60,
   NORMAL: 24 * 60,

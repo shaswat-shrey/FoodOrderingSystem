@@ -174,6 +174,23 @@ export const DEFAULT_TEMPLATES: TemplateDefinition[] = [
     },
   },
   {
+    key: 'ticket.replied',
+    category: 'TRANSACTIONAL',
+    app: 'CUSTOMER',
+    variables: ['ticketNumber', 'ticketId'],
+    deepLink: '/support/tickets/{{ticketId}}',
+    channels: {
+      IN_APP: {
+        subject: 'Support replied',
+        body: 'We replied to ticket {{ticketNumber}}. Open it to read the answer.',
+      },
+      PUSH: {
+        subject: 'Support replied',
+        body: 'There is a new reply on ticket {{ticketNumber}}.',
+      },
+    },
+  },
+  {
     key: 'restaurant.new_order',
     category: 'TRANSACTIONAL',
     app: 'RESTAURANT',

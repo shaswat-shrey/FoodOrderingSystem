@@ -139,17 +139,21 @@ export function registerNotificationConsumers(
         data: { orderId: order.id },
       });
     })
-    .on('ticket.created', async (e) => {
-      const t = await prisma.supportTicket.findUnique({
-        where: { id: e.aggregateId },
-        select: { id: true, number: true, requesterId: true, requesterType: true },
-      });
-      if (t?.requesterType !== 'CUSTOMER') return;
-      await notifications.notify({
-        eventId: e.eventId,
-        userId: t.requesterId,
-        key: 'ticket.created',
-        vars: { ticketNumber: t.number, ticketId: t.id },
-      });
+    .on('ticket.created', (e) => ticketNotice(e, 'ticket.created'))
+    // FR-ADMIN-080: an agent's public reply (internal notes never notify).
+    .on('ticket.agent_replied', (e) => ticketNotice(e, 'ticket.replied'));
+
+  async function ticketNotice(e: OutboxEvent, key: string) {
+    const t = await prisma.supportTicket.findUnique({
+      where: { id: e.aggregateId },
+      select: { id: true, number: true, requesterId: true, requesterType: true },
     });
+    if (t?.requesterType !== 'CUSTOMER') return;
+    await notifications.notify({
+      eventId: e.eventId,
+      userId: t.requesterId,
+      key,
+      vars: { ticketNumber: t.number, ticketId: t.id },
+    });
+  }
 }

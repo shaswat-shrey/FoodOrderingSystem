@@ -330,6 +330,33 @@ export class ReviewService {
     });
   }
 
+  /**
+   * FR-ADMIN-082 (API-ADM-164/165): a moderator's decision, inside the caller's
+   * transaction. Hiding upholds the open reports; restoring dismisses them (and
+   * any earlier upheld ones). Ratings follow through `review.changed`.
+   */
+  async moderate(tx: Tx, reviewId: string, hide: boolean) {
+    await tx.$queryRaw`SELECT id FROM reviews WHERE id = ${reviewId}::uuid FOR UPDATE`;
+    const r = await tx.review.findFirst({ where: { id: reviewId, deletedAt: null } });
+    if (!r || r.status === 'REMOVED')
+      throw new AppError('NOT_FOUND', { message: 'Review not found.' });
+    const to = hide ? 'HIDDEN' : 'PUBLISHED';
+    const open = await tx.reviewReport.count({ where: { reviewId, status: 'OPEN' } });
+    if (r.status === to && open === 0)
+      throw new AppError('RESOURCE_CONFLICT', {
+        message: hide ? 'This review is already hidden.' : 'This review is already visible.',
+      });
+    const reports = await tx.reviewReport.updateMany({
+      where: { reviewId, status: hide ? 'OPEN' : { in: ['OPEN', 'UPHELD'] } },
+      data: { status: hide ? 'UPHELD' : 'DISMISSED' },
+    });
+    if (r.status !== to) {
+      await tx.review.update({ where: { id: r.id }, data: { status: to } });
+      await this.changed(tx, r);
+    }
+    return { id: r.id, before: r.status, status: to, reportsResolved: reports.count };
+  }
+
   /** API-RREV-001 (FR-RREV-001): a branch's reviews for its team. Customers show by first name. */
   async forBranch(
     branchId: string,

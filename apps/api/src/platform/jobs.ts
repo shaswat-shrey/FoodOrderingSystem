@@ -10,7 +10,22 @@ export interface JobQueue {
     data: Record<string, unknown>,
     opts?: { jobId?: string; delayMs?: number },
   ): Promise<void>;
+  /** Dead-letter view (E27, API-ADM-202): jobs that exhausted their attempts, newest first. */
+  failed(queue: QueueName, limit: number): Promise<FailedJob[]>;
+  /** Re-queues a failed job (API-ADM-203); false when it is not (or no longer) failed. */
+  retry(queue: QueueName, jobId: string): Promise<boolean>;
   close(): Promise<void>;
+}
+
+export interface FailedJob {
+  id: string;
+  queue: QueueName;
+  name: string;
+  data: Record<string, unknown>;
+  failedReason: string | null;
+  attemptsMade: number;
+  createdAt: Date | null;
+  failedAt: Date | null;
 }
 
 export class BullJobQueue implements JobQueue {
@@ -43,6 +58,29 @@ export class BullJobQueue implements JobQueue {
     });
   }
 
+  async failed(queue: QueueName, limit: number): Promise<FailedJob[]> {
+    const jobs = await this.queue(queue).getFailed(0, Math.max(0, limit - 1));
+    return jobs
+      .filter((j) => j?.id)
+      .map((j) => ({
+        id: j.id!,
+        queue,
+        name: j.name,
+        data: (j.data ?? {}) as Record<string, unknown>,
+        failedReason: j.failedReason ?? null,
+        attemptsMade: j.attemptsMade,
+        createdAt: j.timestamp ? new Date(j.timestamp) : null,
+        failedAt: j.finishedOn ? new Date(j.finishedOn) : null,
+      }));
+  }
+
+  async retry(queue: QueueName, jobId: string): Promise<boolean> {
+    const job = await this.queue(queue).getJob(jobId);
+    if (!job || (await job.getState()) !== 'failed') return false;
+    await job.retry('failed');
+    return true;
+  }
+
   async close(): Promise<void> {
     await Promise.all([...this.queues.values()].map((q) => q.close()));
   }
@@ -68,5 +106,43 @@ export class RecordingJobQueue implements JobQueue {
     if (opts.jobId && this.jobs.some((j) => j.queue === queue && j.jobId === opts.jobId)) return;
     this.jobs.push({ queue, name, data, ...opts });
   }
+
+  /** Dead-lettered jobs; tests add them with `fail()`. */
+  readonly failedJobs: FailedJob[] = [];
+
+  /** Records a job that exhausted its attempts. */
+  fail(
+    queue: QueueName,
+    name: string,
+    data: Record<string, unknown>,
+    failedReason: string,
+    jobId = `${name}-${this.failedJobs.length + 1}`,
+  ): FailedJob {
+    const job: FailedJob = {
+      id: jobId,
+      queue,
+      name,
+      data,
+      failedReason,
+      attemptsMade: 5,
+      createdAt: new Date(),
+      failedAt: new Date(),
+    };
+    this.failedJobs.unshift(job);
+    return job;
+  }
+
+  async failed(queue: QueueName, limit: number): Promise<FailedJob[]> {
+    return this.failedJobs.filter((j) => j.queue === queue).slice(0, limit);
+  }
+
+  async retry(queue: QueueName, jobId: string): Promise<boolean> {
+    const at = this.failedJobs.findIndex((j) => j.queue === queue && j.id === jobId);
+    if (at < 0) return false;
+    const [job] = this.failedJobs.splice(at, 1);
+    this.jobs.push({ queue, name: job!.name, data: job!.data, jobId: job!.id });
+    return true;
+  }
+
   async close(): Promise<void> {}
 }
