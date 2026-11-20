@@ -68,6 +68,7 @@ import {
 import {
   PartnerAvailabilityService,
   PartnerEarningsService,
+  PartnerFinanceService,
   PartnerOnboardingService,
   PresenceStore,
 } from './modules/partners';
@@ -307,6 +308,14 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  const partnerFinance = new PartnerFinanceService(
+    prisma,
+    partnerAvailability,
+    settings,
+    audit,
+    fieldCipher,
+    clock,
+  );
   partnerAvailability.onLeave = (partnerId) => dispatch.withdrawFor(partnerId);
   partnerAvailability.onIdle = (partnerId) => dispatch.partnerIdle(partnerId);
   // BR-DEL-003: nobody would deliver it — cancel as a platform fault with a full refund.
@@ -394,6 +403,7 @@ export function createContainer(input: ContainerInput) {
     partnerAvailability,
     dispatch,
     partnerEarnings,
+    partnerFinance,
     deliveryStages,
     restaurantOrders,
     outboxRelay,

@@ -99,6 +99,8 @@ export const SETTING_DEFINITIONS = {
   'restaurant.manualCloseUntilNextDay': { schema: z.boolean(), default: true },
   /** BR-DEL-010: partner cash-in-hand cap (paise). */
   'partner.cashCapAmount': { schema: z.number().int().min(0).max(10_000_000), default: 300_000 },
+  /** BR-EARN-005: smaller partner payouts roll over to the next week (paise). */
+  'partner.minPayoutAmount': { schema: z.number().int().min(0).max(1_000_000), default: 10_000 },
   /** FR-DP-010 / BR-DEL-001: a usable location fix. */
   'partner.locationMaxAgeSeconds': { schema: z.number().int().min(10).max(600), default: 60 },
   'partner.locationMaxAccuracyM': { schema: z.number().int().min(10).max(1000), default: 100 },
