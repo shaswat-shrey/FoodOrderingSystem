@@ -27,7 +27,8 @@ export function attachConnectionLogging(client: Redis, name: string, logger: Log
   });
 }
 
-function connect(url: string, name: string, logger: Logger): Redis {
+/** Creates one named Redis client with connection logging attached. */
+export function connectRedis(url: string, name: string, logger: Logger): Redis {
   const client = new Redis(url, {
     connectionName: `fos-${name}`,
     // BullMQ requires this for blocking connections; harmless for others.
@@ -40,7 +41,7 @@ function connect(url: string, name: string, logger: Logger): Redis {
 }
 
 export function createRedisClients(urls: { core: string; cache: string }, logger: Logger): RedisClients {
-  return { core: connect(urls.core, 'core', logger), cache: connect(urls.cache, 'cache', logger) };
+  return { core: connectRedis(urls.core, 'core', logger), cache: connectRedis(urls.cache, 'cache', logger) };
 }
 
 export async function pingRedis(client: Redis): Promise<void> {

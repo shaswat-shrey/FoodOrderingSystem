@@ -7,10 +7,10 @@ export default defineConfig({
   target: 'node22',
   sourcemap: true,
   clean: true,
-  // Workspace packages ship TypeScript sources, so they are bundled in.
-  // Third-party dependencies stay external and are resolved from node_modules.
+  // Workspace packages (@fos/*) ship TypeScript sources, so they are bundled in.
+  // Every third-party package stays external and is resolved from node_modules at
+  // runtime — including dependencies of bundled workspace packages, which must
+  // therefore be declared in this app's package.json too.
   noExternal: [/^@fos\//],
-  // Dependencies of bundled workspace packages must stay external too (Prisma loads
-  // its query engine from disk) and are therefore also declared in this package.json.
-  external: ['@prisma/client'],
+  external: [/^(?!@fos\/)[^./]/],
 });
