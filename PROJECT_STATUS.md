@@ -6,9 +6,9 @@ _Last updated: 2026-11-21_
 
 | Item              | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 11 — Admin: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Next phase        | Phase 12 — Frontend integration                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| SRS version       | FOS-SRS-001 v0.10.0 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Current phase     | **Phase 12 — Frontend integration: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Next phase        | Phase 13 — Testing & hardening                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| SRS version       | FOS-SRS-001 v0.10.1 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19; v0.10.1 editorial)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app); delivery partner onboarding, availability, dispatch, trip stages with geofences and proof, COD, earnings, cash, payouts view and bank changes (API and delivery web app); customer tracking; reviews and ratings |
 
 ## Phases
@@ -25,10 +25,28 @@ _Last updated: 2026-11-21_
 | 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 approved)               |
 | 9 Delivery application        | ✅ Complete 2026-11-21 (D-16, D-17 decided)               |
 | 10 Real-time                  | ✅ Complete 2026-11-21 (D-18, D-19 decided)               |
-| 11 Admin                      | Not started                                               |
+| 11 Admin                      | ✅ Complete 2026-11-21                                    |
 | 12 Frontend integration       | Not started                                               |
 | 13 Testing & hardening        | Not started                                               |
 | 14 Finalization               | Not started                                               |
+
+## Phase 11 deliverables
+
+The admin API (built in three batches) and the admin console. Every admin mutation is audited; ★ actions require a reason and are recorded as high-sensitivity; maker-checker is CORE.
+
+| Area                      | Delivered                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accounts                  | Users (masked search, PII reveal, suspend with session revocation, sign-out everywhere, wallet adjustments, COD block, sessions); restaurant applications (review, approve, reject, request changes, signed document links), restaurants and branches (edit, suspend, approve, commission override, COD), change requests applied with encryption; partner applications and vehicles, partner management (suspend, force offline, cash deposits, earning adjustments, location trail)                                                                                                              |
+| Operations                | Dashboard (today in IST), ops alerts; order search and 360 view, cancel with fault, mark delivered/failed with settlement, extend acceptance, audit trail; dispatch board with ranked candidates, manual assignment that the partner must acknowledge within 60 s, reassign, redispatch, deadline extension; payments with provider sync and webhook log; refunds with a per-order support limit and approval; payout batches for partners and restaurants (create for a week, approve by another admin, CSV export, mark paid with UTR through a payout clearing account, failed lines roll over) |
+| Configuration and support | Coupons validated with the checkout's rules; zones with polygon validation, suspension and surge; settings with history; append-only fee schedules, tax rules, commission and partner pay plans; support desk with queues, replies, internal notes, assignment and escalation; review moderation; cuisines; staff roles with last-super-admin and self-change guards; audit search; failed jobs with retry                                                                                                                                                                                         |
+| Admin console             | Sidebar filtered by the admin's permissions; dashboard with live ops feed; approvals, users, restaurants, partners, orders, dispatch, finance and payouts, coupons, zones, settings, pricing, support desk, moderation, roles, audit and jobs screens; one reason dialog for every ★ action                                                                                                                                                                                                                                                                                                        |
+
+## Verification notes (Phase 11)
+
+- ✅ 565 tests pass repo-wide (API 439, admin app 9): 34 new admin integration tests across accounts, operations and configuration, plus 9 console tests.
+- ✅ Browser check against the real API (port 4100, dev database, worker running): the seeded admin signed in with the emailed second factor; the dashboard showed live tiles with the socket connected; users (masked), settings and zones pages showed real data; no server errors.
+- Bugs found and fixed: the partner payout estimate read the payable balance with the wrong sign (Phase 9); restaurant rating recomputes failed a database check written for the wrong scale (migration `20261121150000_rating_scale`); a menu test depended on no reviews existing.
+- ⚠️ Not built (CORE or later): maker-checker, reconciliation, promotions/banners/FAQs/legal/templates/broadcasts content screens, custom roles, ops map, incentives, feature flags.
 
 ## Phase 10 deliverables
 
@@ -236,23 +254,23 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## Modules
 
-| Module                                                                                                                    | Status                    |
-| ------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| Platform (HTTP, logging, config, health, Redis, socket gateway shell)                                                     | Implemented (Phase 2)     |
-| Database schema, migrations, seed for all MVP + CORE domains                                                              | Implemented (Phase 3)     |
-| auth, iam, audit, notifications (dev sinks), users (`/me`)                                                                | Implemented (Phase 4)     |
-| geo, catalog, customers, discovery, search, config                                                                        | Implemented (Phase 5)     |
-| Socket authentication and revocation                                                                                      | Implemented (Phase 4)     |
-| pricing, checkout (cart, sessions), offers, ledger (wallet), payments (refunds)                                           | Implemented (Phase 6)     |
-| orders (creation, transitions, timers, cancellations, settlement, invoices, issues), support, notifications, outbox relay | Implemented (Phase 7)     |
-| files, merchant (onboarding, profile, outlets, menu, staff, analytics), restaurant order handling                         | Implemented (Phase 8)     |
-| partners (onboarding, availability, presence, earnings, finance), dispatch (offers, stages, tracking), reviews            | Implemented (Phase 9)     |
-| realtime (room policy, projections, live tracking), socket gateway rooms and client events                                | Implemented (Phase 10)    |
-| admin                                                                                                                     | Designed; not implemented |
+| Module                                                                                                                    | Status                 |
+| ------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Platform (HTTP, logging, config, health, Redis, socket gateway shell)                                                     | Implemented (Phase 2)  |
+| Database schema, migrations, seed for all MVP + CORE domains                                                              | Implemented (Phase 3)  |
+| auth, iam, audit, notifications (dev sinks), users (`/me`)                                                                | Implemented (Phase 4)  |
+| geo, catalog, customers, discovery, search, config                                                                        | Implemented (Phase 5)  |
+| Socket authentication and revocation                                                                                      | Implemented (Phase 4)  |
+| pricing, checkout (cart, sessions), offers, ledger (wallet), payments (refunds)                                           | Implemented (Phase 6)  |
+| orders (creation, transitions, timers, cancellations, settlement, invoices, issues), support, notifications, outbox relay | Implemented (Phase 7)  |
+| files, merchant (onboarding, profile, outlets, menu, staff, analytics), restaurant order handling                         | Implemented (Phase 8)  |
+| partners (onboarding, availability, presence, earnings, finance), dispatch (offers, stages, tracking), reviews            | Implemented (Phase 9)  |
+| realtime (room policy, projections, live tracking), socket gateway rooms and client events                                | Implemented (Phase 10) |
+| admin (accounts, operations, configuration, support desk, governance)                                                     | Implemented (Phase 11) |
 
 ## APIs
 
-- Implemented (273 of 495): Phase 8's 218 plus API-DP-001…020, API-DPDEL-001…011 and 013, API-RORD-009, API-EARN-001…003 and 005…012, API-TRK-001/002, API-REV-001…005, API-RREV-001…004 (Phase 9). Extra: `GET /partner/zones` (API-DP-022). Phase 8 added: Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
+- Implemented (273 of 495 before Phase 11; Phase 11 adds about 120 admin endpoints): Phase 8's 218 plus API-DP-001…020, API-DPDEL-001…011 and 013, API-RORD-009, API-EARN-001…003 and 005…012, API-TRK-001/002, API-REV-001…005, API-RREV-001…004 (Phase 9). Extra: `GET /partner/zones` (API-DP-022). Phase 8 added: Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
 - Planned: 222 remaining in `docs/requirements/API-SPECIFICATION.md`.
 
 ## UI pages
@@ -276,6 +294,14 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 ## Known bugs
 
 - None known.
+
+## Technical decisions (Phase 11)
+
+- The admin backend was built in three batches by delegated agents with one shared guard file (`admin.http.ts`), so every admin route has the same app check, rate limit, permission check and reason/audit handling.
+- Admin actions reuse the domain services (order transitions, cancellation, dispatch, refunds, onboarding decisions, ledger) instead of writing rows directly, so the same rules, events and pushes apply whether a customer, restaurant, partner or admin acts.
+- Payouts move money out through a `PAYOUT_CLEARING` ledger account until bank reconciliation exists; a partner line nets their cash in hand off the payable in the same posting.
+- Pricing tables stay append-only: admins create future-dated versions; nothing is edited in place.
+- Refunds come from the order's liability while it is unsettled and from the cost bearer afterwards, so goodwill refunds never push a liability negative.
 
 ## Technical decisions (Phase 10)
 
@@ -360,6 +386,11 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 11
+
+- Migrations `20261121090000_admin_forced_offline`, `20261121120000_admin_operations` and `20261121150000_rating_scale` applied to the dev database (5433).
+- For the browser check the seeded dev admin (admin@example.com) got a generated password through the app's own reset flow; the value is only in the session scratchpad. `.claude/launch.json` (git-ignored) gained `admin-web-4100`. The API, worker and admin app were stopped afterwards.
+
 ## Machine changes made during Phase 10
 
 - `socket.io-client` added to `@fos/api-client` (already in the lockfile through the API). The API (4100) and worker were started for the live check and stopped; one OTP sign-in for the seeded partner +919000000402. A temporary check script was run from `apps/api` and deleted.
@@ -403,7 +434,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## Next steps
 
-1. Phase 11 (admin) — in progress; then Phase 12 (frontend integration), 13 (testing and hardening), 14 (finalization).
+1. Phase 12 (frontend integration) — in progress; then 13 (testing and hardening) and 14 (finalization).
 2. (Earlier plan) Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
 
 ## TODO
@@ -419,6 +450,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - [x] Decide D-16, D-17 (standing instruction, 2026-11-21)
 - [ ] Walk a full trip in the browser during restaurant hours
 - [x] Phase 10
+- [x] Phase 11
 - [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)

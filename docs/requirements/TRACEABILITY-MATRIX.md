@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.10.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews) and §22.1i (real-time).
+> Part of FOS-SRS-001 v0.10.1 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews), §22.1i (real-time) and §22.1j (administration).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -300,6 +300,26 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 | EVT-C-001…006 | Client events | Implemented (heartbeat acknowledged only, D-18) |
 | FR-TRK-001…007, FR-CORD-004 | Location over the socket or REST, throttled fan-out (3 s), ETA recompute (≤ 60 s, Δ ≥ 2 min), stale after 60 s and ops alert after 5 min | Implemented |
 
+## 22.1j Administration implemented in Phase 11
+
+Code: `apps/api/src/modules/admin` (accounts, operations, configuration and desk routers and services), admin hooks in `modules/{dispatch,orders,payments,merchant,partners,offers,reviews,support,config}`, `apps/api/src/platform/jobs.ts`, migrations `20261121090000_admin_forced_offline`, `20261121120000_admin_operations`, `20261121150000_rating_scale`, `packages/api-client/src/admin-api.ts`, `apps/admin-web/src`. Tests: `apps/api/test/admin-{accounts,operations,config}.integration.test.ts`, `apps/admin-web/src/pages/admin-app.test.tsx`.
+
+Status is **Implemented** with tests passing locally; rows move to *Verified* once CI has run them (§27.2). ★ actions require a reason and write HIGH-sensitivity audit records; maker-checker (⧉) is CORE and not built.
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| FR-ADMIN-001, 002, API-ADM-001…003 | Admin sign-in with emailed second factor; dashboard tiles; ops alerts with acknowledge/resolve; live feed | Implemented (ops map FR-ADMIN-003 / API-ADM-004 is CORE) |
+| FR-ADMIN-010, API-ADM-010…017, 019 | User search with masked contacts, PII reveal, suspend/unsuspend, sign-out everywhere, wallet adjustments, COD block, sessions | Implemented (API-ADM-018 account recovery CORE) |
+| FR-ADMIN-020…023, API-ADM-020…038, 040 | Restaurant applications, restaurants and branches, suspension, change requests, commission override, COD, signed document links | Implemented (API-ADM-039 menu moderation CORE) |
+| FR-ADMIN-030, 031, API-ADM-041…054 | Partner applications, vehicles, partner management, force offline, cash deposits, earning adjustments, location trail | Implemented |
+| FR-ADMIN-040, 041, API-ADM-060…065, 067, API-ADM-070…075, API-DPDEL-012 | Order search and 360 view, cancel with fault, mark delivered/failed, extend acceptance, audit trail; dispatch board, candidates, manual assignment with partner acknowledgement, reassign, redispatch, deadline extension | Implemented (API-ADM-066 resend, 068 address correction CORE) |
+| FR-ADMIN-050, 051, 121, API-ADM-080…087, 091…097 | Payments with provider sync and webhook log; refunds with support limit and approval; payout batches (create, approve by another admin, CSV export, mark paid with UTR, failed lines roll over) | Implemented (reconciliation API-ADM-088…090 CORE) |
+| FR-ADMIN-060, API-ADM-100…105 | Coupons with checkout rules enforced on create/edit, redemptions | Implemented (promotions and banners API-ADM-106…117 Phase 12 content work) |
+| FR-ADMIN-070…073, API-ADM-120…140 | Zones with polygon validation, suspension and surge; settings with history; fee schedules, tax rules, commission and partner pay plans (append-only, future-dated) | Implemented (incentives API-ADM-141…143, feature flags 144…146 CORE) |
+| FR-ADMIN-080, 082, API-ADM-150…155, 163…165 | Support desk queues, replies, internal notes, assignment, escalation; review moderation | Implemented (macros, complaints, disputes CORE) |
+| FR-ADMIN-110, 111, 120, API-ADM-180, 183…185, 187, 202, 203 | Staff role grant/revoke with immediate effect and guards, audit search, failed jobs with retry | Implemented (custom roles 181/182, audit export 188 CORE) |
+| FR-ADMIN-122 (cuisines), API-ADM-196…198 | Cuisine list/create/rename | Implemented (FAQs, legal documents, templates, broadcasts in Phase 12/CORE) |
+
 ## 22.2 Non-functional requirements
 
 | Requirement IDs | Verification method | Test / evidence | Status |
@@ -341,3 +361,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-21 | 0.8.1 | Phase 9: added §22.1h with partner onboarding, availability, dispatch, trip stages, earnings, tracking and reviews; D-16 and D-17 then open. |
 | 2026-11-21 | 0.9.0 | D-16 and D-17 decided under the owner's standing instruction: API-DP-022 zone list; BR-REVIEW-006 comment threshold. |
 | 2026-11-21 | 0.10.0 | Phase 10: added §22.1i (real-time); D-18 (FR-RT-021 liveness) and D-19 (§13.1 version rule) decided under the owner's standing instruction. |
+| 2026-11-21 | 0.10.1 | Phase 11: added §22.1j (administration); §19.2 lists codes from Phases 9–11 (editorial). |

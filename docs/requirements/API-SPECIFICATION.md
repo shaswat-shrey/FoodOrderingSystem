@@ -1,6 +1,6 @@
 # SRS Section 14 — API Requirements (API Inventory & Specification)
 
-> Part of FOS-SRS-001 v0.10.0 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002; API-AUTH-001…016, 021…023; API-USER-001…003, 006…011, 013, 014; API-GEO-001…005; API-ADDR-001…006; API-REST-001…005; API-MENU-001…007; API-DISC-001…006, 008…011; API-SRCH-001…006; API-FAV-001…006; API-CART-001…012; API-COUP-001…003; API-CHK-001…003; API-PAY-001…004, 006, 007; API-WAL-001/002; API-REF-001/002 (see Traceability Matrix §22.1a–e); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
+> Part of FOS-SRS-001 v0.10.1 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002; API-AUTH-001…016, 021…023; API-USER-001…003, 006…011, 013, 014; API-GEO-001…005; API-ADDR-001…006; API-REST-001…005; API-MENU-001…007; API-DISC-001…006, 008…011; API-SRCH-001…006; API-FAV-001…006; API-CART-001…012; API-COUP-001…003; API-CHK-001…003; API-PAY-001…004, 006, 007; API-WAL-001/002; API-REF-001/002 (see Traceability Matrix §22.1a–e); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
 
 ---
 
