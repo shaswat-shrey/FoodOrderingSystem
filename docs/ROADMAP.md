@@ -1,6 +1,6 @@
 # Development Roadmap, Task Breakdown & Risks
 
-> Phase 1 · v0.6.0 (APPROVED 2026-11-20). Phases follow the master prompt §28. Each phase ends with: code merged, tests green, PROJECT_STATUS.md + Traceability Matrix updated, demo of the phase's acceptance criteria. No phase starts before the previous one's exit criteria are met (except overlapping frontend work noted below).
+> Phase 1 · v0.7.0 (APPROVED 2026-11-20). Phases follow the master prompt §28. Each phase ends with: code merged, tests green, PROJECT_STATUS.md + Traceability Matrix updated, demo of the phase's acceptance criteria. No phase starts before the previous one's exit criteria are met (except overlapping frontend work noted below).
 
 ## 1. Phase roadmap
 

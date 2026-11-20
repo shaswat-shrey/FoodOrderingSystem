@@ -1,6 +1,6 @@
 # SRS Section 18 — Business Rules Catalog
 
-> Part of FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20). Business rules are **policy**: they can change without changing the functional requirement that enforces them. Every numeric value marked ⚙ is a platform setting (`cfg.*`) or effective-dated config editable by authorized admins; values shown are the **defaults approved by the owner on 2026-11-20** (open decisions OD-02…OD-11 resolved with these defaults); values flagged for legal/tax review remain subject to that review. Each rule is testable; the test reference column in the Traceability Matrix maps rules to test cases.
+> Part of FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20). Business rules are **policy**: they can change without changing the functional requirement that enforces them. Every numeric value marked ⚙ is a platform setting (`cfg.*`) or effective-dated config editable by authorized admins; values shown are the **defaults approved by the owner on 2026-11-20** (open decisions OD-02…OD-11 resolved with these defaults); values flagged for legal/tax review remain subject to that review. Each rule is testable; the test reference column in the Traceability Matrix maps rules to test cases.
 
 ---
 
@@ -127,8 +127,8 @@
 | BR-ORDER-005 | Prep time per order 5–90 min; restaurant may extend once by ≤ 20 min. |
 | BR-ORDER-006 | Address changes after placement only via support, before pickup, ≤ 500 m from the original pin, still serviceable; no fee recalculation. |
 | BR-ORDER-010 | **Customer cancellation before acceptance** (PAYMENT_PENDING, PLACED): free, full refund. |
-| BR-ORDER-011 | **Customer cancellation in ACCEPTED** ⚙: allowed within 60 s of acceptance free of charge; after 60 s, fee = 50 % of food value (items subtotal after discounts), refund the rest. |
-| BR-ORDER-012 | **Customer cancellation in PREPARING** ⚙: allowed with fee = 100 % of food value + packaging (customer refunded delivery fee, platform fee, tip). |
+| BR-ORDER-011 | **Customer cancellation in ACCEPTED** ⚙: allowed within 60 s of acceptance free of charge; after 60 s, fee = 50 % of food value (items subtotal after discounts), refund the rest. The fee never exceeds what the customer actually paid excluding the tip, so a COD order is cancelled without a fee (COD abuse is handled by BR-PAY-002 strikes). |
+| BR-ORDER-012 | **Customer cancellation in PREPARING** ⚙: allowed with fee = 100 % of food value + packaging (customer refunded delivery fee, platform fee, tip). The same cap as BR-ORDER-011 applies. |
 | BR-ORDER-013 | **No customer self-cancellation** in READY_FOR_PICKUP, PICKED_UP — support may cancel/fail with fault attribution. |
 | BR-ORDER-014 | Restaurant rejection requires a reason code; ITEM_UNAVAILABLE requires the item IDs. |
 | BR-ORDER-015 | Restaurant cancellation after acceptance requires OWNER/MANAGER, a reason, and confirmation; full refund to customer (BR-REST-015). |

@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments) and §22.1f (orders, support, notifications).
+> Part of FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments) and §22.1f (orders, support, notifications).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -214,17 +214,17 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 
 | Requirement | Summary | Status / note |
 |---|---|---|
-| FR-CHK-002, FR-ORDER-001, FR-ORDER-002, API-CHK-004, FR-PRICE-005 | One transaction: revalidate cart hash and price, lock and decrement stock, snapshot items/options/prices/address, reserve coupon, hold wallet, create payment (COD or online), history and events; idempotent and race-safe | Implemented (order number format: D-10, open) |
-| FR-ORDER-003 | Order numbers short, unique, non-sequential | Implemented as `YYMMDD-XXXXXX` (13 characters) — D-10 |
+| FR-CHK-002, FR-ORDER-001, FR-ORDER-002, API-CHK-004, FR-PRICE-005 | One transaction: revalidate cart hash and price, lock and decrement stock, snapshot items/options/prices/address, reserve coupon, hold wallet, create payment (COD or online), history and events; idempotent and race-safe | Implemented (order number `YYMMDD-XXXXXX`, D-10 approved) |
+| FR-ORDER-003 | Order numbers short, unique, non-sequential | Implemented as `YYMMDD-XXXXXX` (13 characters; D-10 approved) |
 | SRS §10.3 T01…T16, FR-ORDER-010…012 | Transition table with allowed actors, version check under row lock, timestamps, history (two rows for T13c), outbox event per transition | Implemented |
-| ADR-010, NFR-REL-003 | Transactional outbox relay: sequence order, per-aggregate ordering on failure, retries, Redis leader lock, stale-event alert (JOB-OUTBOX-001) | Implemented in the worker — D-11 (open) |
+| ADR-010, NFR-REL-003 | Transactional outbox relay: sequence order, per-aggregate ordering on failure, retries, Redis leader lock, stale-event alert (JOB-OUTBOX-001) | Implemented in the worker (D-11 approved) |
 | BR-PAY-003, T03 | Capture places the order: coupon redeemed, wallet hold debited, acceptance timers armed; duplicate capture refunded (E10) | Implemented |
 | FR-PAY-006, BR-ORDER-003, T04, JOB-ORD-001 | Payment window: ask the provider (all payments on the provider order) before failing; release coupon, wallet and stock; payment EXPIRED | Implemented (`listOrderPayments` added to the provider interface) |
 | FR-PAY-016, API-PAY-005, T05 | Abandon an unpaid order after checking the provider; late capture auto-refunded | Implemented |
 | BR-ORDER-004, T08b, JOB-ORD-002, BR-REST-009, AC-ORDER-009 | Acceptance reminder (event for notifications) and timeout cancellation with full refund; branch auto-paused after 3 consecutive misses | Implemented (SMS reminder delivery uses dev sinks until providers exist) |
 | JOB-ORD-003…007, AC-ORDER-010 | Auto-preparing, prep/pickup/delivery delay alerts, self-healing timer sweeper with remaining delays | Implemented (004–006 scheduled by Phase 8/9 transitions; T14 at the no-partner deadline is Phase 9) |
 | JOB-CHK-001 | Expire checkout sessions | Implemented |
-| FR-ORDER-020…023, BR-ORDER-010…013, 016, API-ORD-006, 007 | Cancellation preview with quote id, fees by state and time, refused once ready, every initiator, fault attribution, `order_cancellations`, row-lock serialisation (409 vs stale quote) | Implemented (COD fees: D-12, open) |
+| FR-ORDER-020…023, BR-ORDER-010…013, 016, API-ORD-006, 007 | Cancellation preview with quote id, fees by state and time, refused once ready, every initiator, fault attribution, `order_cancellations`, row-lock serialisation (409 vs stale quote) | Implemented (fee capped at amount paid, D-12 approved) |
 | BR-REFUND-001…003, FR-REFUND-002, 004 | Refund matrix for cancellations; split refunds per payment and wallet; fee from wallet first; tip always refunded; cancellation fee to the restaurant; food compensation for platform/partner-fault cancellations after cooking | Implemented |
 | BR-COUPON-006 | Coupon released before acceptance or when the customer isn't at fault (including redeemed coupons) | Implemented |
 | FR-ORDER-022 (stock) | Stock restored when cancelled before preparation | Implemented (delivery cancellation and partner compensation: Phase 9) |
@@ -275,4 +275,5 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-20 | 0.5.0 | D-7 and D-8 approved: BR-GEO-001 (b) and FR-ADDR-006 text updated; §22.1d notes adjusted. |
 | 2026-11-20 | 0.5.1 | Phase 6: added §22.1e with cart, pricing, coupons, checkout, ledger, wallet and payments. |
 | 2026-11-20 | 0.6.0 | D-9 approved: §15 `cart_items.unit_amount_seen`. |
-| 2026-11-20 | 0.6.1 | Phase 7: added §22.1f with orders, cancellations, refunds, settlement, invoices, support and notifications; open D-10…D-12. |
+| 2026-11-20 | 0.6.1 | Phase 7: added §22.1f with orders, cancellations, refunds, settlement, invoices, support and notifications; D-10…D-12 then open. |
+| 2026-11-20 | 0.7.0 | D-10…D-12 approved: FR-ORDER-001 order number format, ADR-010 relay in the worker, BR-ORDER-011/012 fee cap. |

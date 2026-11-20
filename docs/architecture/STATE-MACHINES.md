@@ -1,6 +1,6 @@
 # State Machines
 
-> Phase 1 · v0.6.0 (APPROVED 2026-11-20). Normative transition tables live in SRS §10.3 (orders) and §12.1 (deliveries). This document provides diagrams and the remaining machines. Implementation: each machine is a pure, data-driven transition table in `@fos/shared/state-machines` (used by API for enforcement and by frontends for labels/available actions); the API's `transition()` adds locking, guards, side effects.
+> Phase 1 · v0.7.0 (APPROVED 2026-11-20). Normative transition tables live in SRS §10.3 (orders) and §12.1 (deliveries). This document provides diagrams and the remaining machines. Implementation: each machine is a pure, data-driven transition table in `@fos/shared/state-machines` (used by API for enforcement and by frontends for labels/available actions); the API's `transition()` adds locking, guards, side effects.
 
 ## 1. Order
 

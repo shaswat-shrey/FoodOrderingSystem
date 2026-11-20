@@ -1,6 +1,6 @@
 # Delivery Assignment (Dispatch) Algorithm Design
 
-> Phase 1 · v0.6.0 (APPROVED 2026-11-20). Requirements: SRS §12 (FR-DISP-*), BR-DEL-*. Decision: ADR-008.
+> Phase 1 · v0.7.0 (APPROVED 2026-11-20). Requirements: SRS §12 (FR-DISP-*), BR-DEL-*. Decision: ADR-008.
 
 ## 1. Goals (in priority order)
 1. **Correctness:** never two partners on one delivery; never offer to ineligible partners; never lose a delivery (always SEARCHING, ASSIGNED, or terminal).

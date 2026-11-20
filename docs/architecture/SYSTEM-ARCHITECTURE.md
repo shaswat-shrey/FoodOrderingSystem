@@ -1,6 +1,6 @@
 # System Architecture
 
-> Phase 1 deliverable · v0.6.0 (APPROVED 2026-11-20). Requirements: `docs/requirements/`. Decisions: `docs/architecture/adr/`.
+> Phase 1 deliverable · v0.7.0 (APPROVED 2026-11-20). Requirements: `docs/requirements/`. Decisions: `docs/architecture/adr/`.
 > Contents: 1 Context · 2 Containers · 3 Backend module architecture · 4 Request, real-time & job pipelines · 5 Data architecture · 6 Authentication & session architecture · 7 Authorization (RBAC) & permission matrix · 8 Real-time architecture · 9 Security architecture · 10 Caching strategy · 11 Search strategy · 12 Frontend architecture · 13 Infrastructure & environments · 14 Project directory structure · 15 Cross-cutting conventions
 
 ---
@@ -50,8 +50,8 @@ flowchart TB
 
 | Container | Responsibility | Scaling unit |
 |---|---|---|
-| `apps/api` | REST, Socket.IO gateway, webhook intake, outbox relay (one leader via Redis lock) | Stateless; horizontal |
-| `apps/worker` | BullMQ processors & repeatable schedulers | Per-queue concurrency; horizontal |
+| `apps/api` | REST, Socket.IO gateway, webhook intake | Stateless; horizontal |
+| `apps/worker` | BullMQ processors & repeatable schedulers, outbox relay (one leader via Redis lock) | Per-queue concurrency; horizontal |
 | `apps/customer-web`, `restaurant-web`, `delivery-web`, `admin-web` | SPAs (static assets on CDN/Nginx) | CDN |
 | PostgreSQL | System of record | Vertical → read replicas |
 | Redis (cache) | Disposable cache | Vertical / separate instance |
@@ -119,7 +119,7 @@ Dotted arrows = asynchronous via domain events (outbox). Cycles are forbidden (d
 ### 3.4 Domain events (in-process + outbox)
 
 - A service writes state + `outbox_events` row in one transaction.
-- The **outbox relay** (in API, single leader) reads unpublished rows in sequence order, publishes to: (a) the in-process/Redis pub-sub domain event bus (consumed by modules running in API or worker), (b) BullMQ queues for jobs, (c) the realtime fan-out channel. Marks rows published.
+- The **outbox relay** (in the worker, single leader via a Redis lock; v0.7.0, D-11) reads unpublished rows in sequence order, publishes to: (a) the in-process/Redis pub-sub domain event bus (consumed by modules running in API or worker), (b) BullMQ queues for jobs, (c) the realtime fan-out channel. Marks rows published.
 - Consumers are idempotent (`processed_events(consumer, event_id)` table or natural idempotency).
 - This is the extraction seam: a module can later move to its own service consuming the same events from a broker.
 

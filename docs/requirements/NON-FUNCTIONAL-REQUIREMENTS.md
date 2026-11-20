@@ -1,6 +1,6 @@
 # SRS Section 16 — Non-Functional Requirements
 
-> Part of FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20). **All numeric targets are proposed engineering objectives**, not contractual SLAs. They assume the MVP pilot load profile (A-12) on modest production infrastructure (2–3 API instances, 1–2 worker instances, managed PostgreSQL with 4 vCPU/16 GB, managed Redis). Targets are verified by load tests (k6) in a production-like staging environment before launch, and re-baselined after real traffic.
+> Part of FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20). **All numeric targets are proposed engineering objectives**, not contractual SLAs. They assume the MVP pilot load profile (A-12) on modest production infrastructure (2–3 API instances, 1–2 worker instances, managed PostgreSQL with 4 vCPU/16 GB, managed Redis). Targets are verified by load tests (k6) in a production-like staging environment before launch, and re-baselined after real traffic.
 
 **Load profiles**
 - **Normal:** 20 orders/min, 2,000 concurrent customer sessions, 200 online partners, 300 open restaurant dashboards.

@@ -1,6 +1,6 @@
 # SRS Sections 10–12 — Order Management, Payments, Delivery Assignment
 
-> Part of FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20). Diagrams of all state machines: `docs/architecture/STATE-MACHINES.md`. Design rationale: ADR-006 (separate state machines), ADR-008 (dispatch), ADR-011 (ledger).
+> Part of FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20). Diagrams of all state machines: `docs/architecture/STATE-MACHINES.md`. Design rationale: ADR-006 (separate state machines), ADR-008 (dispatch), ADR-011 (ledger).
 
 ---
 
@@ -31,7 +31,7 @@ Order creation occurs only via FR-CHK-002 (checkout confirmation) or admin re-cr
 5. **Price validation:** recompute quote; equals `expectedPayable` else `PRICE_CHANGED`.
 6. **Coupon validation:** reserve redemption (row lock on coupon usage counter; per-user count includes RESERVED).
 7. **Payment validation:** method allowed (BR-PAY-001/002); wallet balance sufficient for `walletApplied` (lock wallet account row) → place HOLD.
-8. **Persist:** `orders` (number = human-readable `FOS-YYMMDD-XXXXXX` base32, unique), `order_items` (+`order_item_options`) with name/price/tax snapshots, `order_price_components`, `order_addresses` snapshot (text + coordinates + contact), delivery OTP hash (if required), `order_status_history` row, delivery record (`PENDING`, created at acceptance — see FR-DISP-001), outbox events.
+8. **Persist:** `orders` (number = human-readable `YYMMDD-XXXXXX`: IST date plus 6 Crockford base32 characters, 13 characters, unique — FR-ORDER-003), `order_items` (+`order_item_options`) with name/price/tax snapshots, `order_price_components`, `order_addresses` snapshot (text + coordinates + contact), delivery OTP hash (if required), `order_status_history` row, delivery record (`PENDING`, created at acceptance — see FR-DISP-001), outbox events.
 9. Set status `PLACED` (COD/fully wallet) or `PAYMENT_PENDING` (online) and schedule the corresponding timeout job.
 
 #### FR-ORDER-002 — Duplicate order prevention  [P0 · MVP]

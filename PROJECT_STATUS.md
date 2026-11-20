@@ -6,9 +6,9 @@ _Last updated: 2026-11-20_
 
 | Item              | Status                                                                                                                                                                                                                                        |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 7 — Order management: complete; Phase 8 awaiting go-ahead (D-10…D-12 need decisions)**                                                                                                                                                |
+| Current phase     | **Phase 7 — Order management: complete; Phase 8 awaiting go-ahead**                                                                                                                                                                           |
 | Next phase        | Phase 8 — Restaurant application                                                                                                                                                                                                              |
-| SRS version       | FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20; v0.6.0 adds owner-approved D-9)                                                                                                                                                                      |
+| SRS version       | FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20; v0.7.0 adds owner-approved D-10…D-12)                                                                                                                                                                |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications |
 
 ## Phases
@@ -21,7 +21,7 @@ _Last updated: 2026-11-20_
 | 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                 |
 | 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                |
 | 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                     |
-| 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 open)                   |
+| 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 approved)               |
 | 8 Restaurant application      | Not started                                               |
 | 9 Delivery application        | Not started                                               |
 | 10 Real-time                  | Not started                                               |
@@ -156,16 +156,11 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-Open — need the owner's decision:
-
-| ID   | SRS says                                                                           | Implemented                                                                                                        | Why                                                                                                                                                                                    |
-| ---- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D-10 | FR-ORDER-001: order numbers `FOS-YYMMDD-XXXXXX`                                    | `YYMMDD-XXXXXX` (Crockford base32, 13 characters)                                                                  | The prefixed form is 17 characters, breaking FR-ORDER-003's "≤ 13 chars, readable aloud" and the 16-character `orders.number` column. Proposal: amend FR-ORDER-001 to drop the prefix. |
-| D-11 | ADR-010 / SYSTEM-ARCHITECTURE §3: the outbox relay runs in the API (single leader) | Runs in the worker (same Redis leader lock)                                                                        | Keeps API instances request-only and puts the relay next to the queues its consumers feed; still one leader. Proposal: amend ADR-010 and §3 to say "worker".                           |
-| D-12 | BR-ORDER-011/012 fees "charged" on customer cancellation                           | Fee = policy fee capped at what was actually paid (tip excluded); a COD order is therefore cancelled without a fee | Nothing prepaid to keep for COD; the SRS doesn't say how to collect it. Proposal: state the cap in BR-ORDER-011/012 and leave COD abuse to the COD strike rules (BR-PAY-002).          |
+- None open.
 
 Resolved:
 
+- D-10…D-12 resolved 2026-11-20 by owner decision (“Accept all three”, SRS v0.7.0): order numbers `YYMMDD-XXXXXX` (FR-ORDER-001); the outbox relay runs in the worker (ADR-010, SYSTEM-ARCHITECTURE §3); customer cancellation fees are capped at the amount paid excluding tip, so COD orders cancel without a fee (BR-ORDER-011/012).
 - D-9 resolved 2026-11-20 by owner decision (“Approve D-9”, SRS v0.6.0): `cart_items.unit_amount_seen` is part of §15.
 - Earlier: D-1…D-3 (v0.3.0), D-4…D-6 (v0.4.0), D-7…D-8 (v0.5.0); v0.3.1, v0.4.1 and v0.5.1 were editorial.
 
@@ -217,7 +212,7 @@ Not discrepancies (planned later): reviews (API-REV) and popularity/trending fro
 - Order reactions to payments run from the outbox relay, not inside the payment code, so a capture is never lost if the order step fails — the event is retried. The cost is up to ~0.5 s before a paid order shows `PLACED`.
 - The relay runs in the worker (D-11) and consumers are idempotent by state or by delivery records; the relay can replay events safely.
 - Cancellation quote ids are derived from the terms instead of stored; the version in clear lets the API answer 409 (order moved on) vs 422 (only the fee changed).
-- A cancellation fee is taken from wallet money first so as much as possible returns to the customer's card or UPI; the fee is capped at what was paid (D-12).
+- A cancellation fee is taken from wallet money first so as much as possible returns to the customer's card or UPI; the fee is capped at what was paid (D-12, approved).
 - Settlement uses the order's stored price components plus the quote's funding and tax-collector data, and refuses to post if the split doesn't add up to what the order holds.
 - Invoice numbers come from an advisory-locked max + 1, which is gap-free (a sequence is not) — required for tax invoices.
 - Invoices are rendered by a small built-in PDF writer (text only, Helvetica) rather than a new dependency; branding can come later.
@@ -289,8 +284,7 @@ Not discrepancies (planned later): reviews (API-REV) and popularity/trending fro
 
 ## Next steps
 
-1. Owner decisions on D-10…D-12.
-2. Owner go-ahead for Phase 8 (restaurant application: onboarding, menu management with `menu_version` bumps, order queue with accept/reject/ready, kitchen display, uploads, reviews).
+1. Owner go-ahead for Phase 8 (restaurant application: onboarding, menu management with `menu_version` bumps, order queue with accept/reject/ready, kitchen display, uploads, reviews).
 
 ## TODO
 
@@ -298,7 +292,7 @@ Not discrepancies (planned later): reviews (API-REV) and popularity/trending fro
 - [x] Phases 4–6
 - [x] Decide D-9 (approved 2026-11-20)
 - [x] Phase 7
-- [ ] Decide D-10…D-12
+- [x] Decide D-10…D-12 (approved 2026-11-20)
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
 - [ ] Push to GitHub so CI runs (moves §22.1a–f rows to _Verified_)
