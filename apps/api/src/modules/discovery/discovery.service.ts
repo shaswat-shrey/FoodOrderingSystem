@@ -1,9 +1,9 @@
-import { createHash } from 'node:crypto';
 import type { PrismaClient } from '@fos/db';
 import type { DiscoveryListQuery } from '@fos/validation';
 import type { Redis } from 'ioredis';
 import type { Clock } from '../../platform/clock';
 import { AppError } from '../../platform/http/errors';
+import { queryFingerprint } from '../../platform/pagination';
 import type { Logger } from '../../platform/logger';
 import {
   branchCard,
@@ -209,10 +209,7 @@ export class DiscoveryService {
   async list(query: DiscoveryListQuery, userId: string | null) {
     const { lat, lng, sort, cursor, limit, ...filters } = query;
     const { zone, list } = await this.candidates({ lat, lng }, userId);
-    const context = createHash('sha1')
-      .update(JSON.stringify({ sort, filters }))
-      .digest('base64url')
-      .slice(0, 16);
+    const context = queryFingerprint({ sort, filters });
     const byEntry = new Map(list.map((c) => [c.entry, c]));
     const filtered = applyFilters(
       list.map((c) => c.entry),
@@ -285,7 +282,7 @@ export class DiscoveryService {
     }
     const { page, nextCursor } = paginate(picked, {
       limit: opts.limit,
-      context: `col:${slug}:${opts.vegOnly ? 1 : 0}`,
+      context: queryFingerprint(['collection', slug, opts.vegOnly]),
       ...(opts.cursor ? { cursor: opts.cursor } : {}),
     });
     return { slug, title, results: page.map((c) => c.card), nextCursor };

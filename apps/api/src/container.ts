@@ -8,8 +8,9 @@ import type { RedisClients } from './platform/redis';
 import { AuditService } from './modules/audit';
 import { BranchRepository, MenuService, ServiceabilityService } from './modules/catalog';
 import { SettingsService } from './modules/config';
-import { AddressService, ProfileService } from './modules/customers';
+import { AddressService, FavoritesService, ProfileService } from './modules/customers';
 import { DiscoveryService } from './modules/discovery';
+import { SearchService } from './modules/search';
 import {
   EstimatedRouting,
   GeoService,
@@ -82,6 +83,8 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  const search = new SearchService(prisma, discovery, menus, settings, clock);
+  const favorites = new FavoritesService(prisma, discovery, branches, menus, clock);
   return {
     env,
     prisma,
@@ -105,6 +108,8 @@ export function createContainer(input: ContainerInput) {
     addresses,
     menus,
     discovery,
+    search,
+    favorites,
     appOrigins: appOrigins(env),
   };
 }
