@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.10.1 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews), §22.1i (real-time) and §22.1j (administration).
+> Part of FOS-SRS-001 v0.11.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews), §22.1i (real-time), §22.1j (administration) and §22.1k (user interfaces).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -320,6 +320,18 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 | FR-ADMIN-110, 111, 120, API-ADM-180, 183…185, 187, 202, 203 | Staff role grant/revoke with immediate effect and guards, audit search, failed jobs with retry | Implemented (custom roles 181/182, audit export 188 CORE) |
 | FR-ADMIN-122 (cuisines), API-ADM-196…198 | Cuisine list/create/rename | Implemented (FAQs, legal documents, templates, broadcasts in Phase 12/CORE) |
 
+## 22.1k User interfaces completed in Phase 12
+
+Code: `apps/customer-web/src`, `apps/restaurant-web/src`, `apps/delivery-web/src`, `apps/admin-web/src` (Phase 11), `packages/api-client/src/{customer,merchant,partner,admin}-api.ts`; API addition `GET /merchant/restaurants/:rid/payouts` (API-RFIN-006, D-20) and the partner fields on the restaurant order details. Tests: `apps/customer-web/src/pages/customer-{app,account}.test.tsx`, `apps/restaurant-web/src/pages/restaurant-{app,manage}.test.tsx`, `apps/delivery-web/src/pages/partner-{app,profile}.test.tsx`, `apps/api/test/restaurant-payouts.integration.test.ts`.
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| §17.1.1 customer interface, FR-DISC-*, FR-MENUC-*, FR-CART-*, FR-CHK-*, FR-PAY (dev mock checkout), FR-CORD-001…006 | Location, discovery and search, restaurant menu with customisation, cart with coupons, checkout and payment, live order tracking with cancellation | Implemented (map tiles optional; Razorpay checkout needs keys) |
+| FR-ORDER history/reorder/issues, FR-REV-001, 002, 004, FR-ADDR-*, FR-CUST-*, FR-WALLET-*, FR-FAV-*, FR-NOTIF in-app, FR-CSUP-* | Orders history, invoice, reorder, issue reports, ratings and my reviews, addresses, profile and preferences, wallet, favourites, notifications inbox with live badge, help tickets | Implemented |
+| §17.1.2/17.1.3 restaurant interface, FR-MENU-001…008, 012, FR-REST-014/015, FR-RORD-007, FR-RANL-001…003, FR-RREV-001…003, FR-RFIN-001 (payouts), 003, FR-REST-010 | Full dish editor with variants and option groups, category management, holidays and delivery settings, order details with pickup-code handover and live partner status, analytics charts, reviews with responses, payouts, profile and change requests with re-authentication | Implemented (settlement statements API-RFIN-001…003 and invoices remain planned) |
+| §17.1.4 delivery interface, FR-DP-004/005 | Live trip notices, partner profile with emergency contact, zone and vehicles | Implemented (vehicle edit API-DP-011 has no route yet) |
+| NFR-ACCESS-001 | Labels, aria-live status changes, ≥ 44 px targets, landmarks | Implemented in the new screens; a full audit is Phase 13 |
+
 ## 22.2 Non-functional requirements
 
 | Requirement IDs | Verification method | Test / evidence | Status |
@@ -362,3 +374,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-21 | 0.9.0 | D-16 and D-17 decided under the owner's standing instruction: API-DP-022 zone list; BR-REVIEW-006 comment threshold. |
 | 2026-11-21 | 0.10.0 | Phase 10: added §22.1i (real-time); D-18 (FR-RT-021 liveness) and D-19 (§13.1 version rule) decided under the owner's standing instruction. |
 | 2026-11-21 | 0.10.1 | Phase 11: added §22.1j (administration); §19.2 lists codes from Phases 9–11 (editorial). |
+| 2026-11-21 | 0.11.0 | Phase 12: added §22.1k (user interfaces); D-20 API-RFIN-006 decided under the owner's standing instruction. |

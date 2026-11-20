@@ -1,6 +1,6 @@
 # SRS Section 14 — API Requirements (API Inventory & Specification)
 
-> Part of FOS-SRS-001 v0.10.1 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002; API-AUTH-001…016, 021…023; API-USER-001…003, 006…011, 013, 014; API-GEO-001…005; API-ADDR-001…006; API-REST-001…005; API-MENU-001…007; API-DISC-001…006, 008…011; API-SRCH-001…006; API-FAV-001…006; API-CART-001…012; API-COUP-001…003; API-CHK-001…003; API-PAY-001…004, 006, 007; API-WAL-001/002; API-REF-001/002 (see Traceability Matrix §22.1a–e); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
+> Part of FOS-SRS-001 v0.11.0 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002; API-AUTH-001…016, 021…023; API-USER-001…003, 006…011, 013, 014; API-GEO-001…005; API-ADDR-001…006; API-REST-001…005; API-MENU-001…007; API-DISC-001…006, 008…011; API-SRCH-001…006; API-FAV-001…006; API-CART-001…012; API-COUP-001…003; API-CHK-001…003; API-PAY-001…004, 006, 007; API-WAL-001/002; API-REF-001/002 (see Traceability Matrix §22.1a–e); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
 
 ---
 
@@ -89,7 +89,7 @@ Some operations listed in the master prompt are intentionally **one endpoint** t
 
 ## 14.2 API inventory
 
-Counts: 495 planned endpoints across 30 modules (about 165 of them admin). Each row has a business purpose traced to an FR.
+Counts: 496 planned endpoints across 30 modules (about 165 of them admin). Each row has a business purpose traced to an FR.
 
 ### Authentication — `API-AUTH` (module `auth`)
 
@@ -458,6 +458,7 @@ All paths prefixed `/merchant/restaurants/{rid}` unless they start with `/mercha
 | API-RFIN-003 | GET `/merchant/restaurants/{rid}/settlements/{sid}/orders?cursor` | Per-order earnings | RM[finance:read] | FR-RFIN-002 |
 | API-RFIN-004 | GET `/merchant/restaurants/{rid}/bank-account` | Masked bank details & verification state | RM[finance:read] | FR-RFIN-003 |
 | API-RFIN-005 | GET `/merchant/restaurants/{rid}/invoices` | Platform commission invoices (CORE) | RM[finance:read] | FR-RFIN-004 |
+| API-RFIN-006 | GET `/merchant/restaurants/{rid}/payouts?cursor` | Payout history (period, amount, status, UTR, failure reason) with the settlement breakdown | RM[finance:read] | FR-RFIN-001, 003 (v0.11.0, D-20) |
 | API-RREV-001 | GET `/merchant/branches/{bid}/reviews?rating&responded&cursor` | Reviews | RM[review:read] | FR-RREV-001 |
 | API-RREV-002 | POST `/merchant/reviews/{reviewId}/response` | Respond | RM[review:respond] | FR-RREV-002 |
 | API-RREV-003 | PATCH `/merchant/reviews/{reviewId}/response` | Edit response (≤ 24 h) | RM[review:respond] | FR-RREV-002 |

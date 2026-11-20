@@ -9,7 +9,7 @@
 | Non-functional requirements (`NFR-*`) | 104 |
 | Business rules (`BR-*`) | 161 |
 | Acceptance criteria (`AC-*`) | 96 |
-| API endpoints (`API-*`) | 495 |
+| API endpoints (`API-*`) | 496 |
 | Real-time events (`EVT-*`) | 49 |
 
 Integrity: **0** duplicate definitions, **0** references to undefined IDs.
@@ -1195,6 +1195,7 @@ Integrity: **0** duplicate definitions, **0** references to undefined IDs.
 | API-RFIN-003 | GET `/merchant/restaurants/{rid}/settlements/{sid}/orders?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-RFIN-004 | GET `/merchant/restaurants/{rid}/bank-account` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-RFIN-005 | GET `/merchant/restaurants/{rid}/invoices` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RFIN-006 | GET `/merchant/restaurants/{rid}/payouts?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-RMENU-001 | GET `/menu` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-RMENU-002 | POST `/categories` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
 | API-RMENU-003 | PATCH `/categories/{cid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |

@@ -6,9 +6,9 @@ _Last updated: 2026-11-21_
 
 | Item              | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 12 — Frontend integration: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Next phase        | Phase 13 — Testing & hardening                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| SRS version       | FOS-SRS-001 v0.10.1 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19; v0.10.1 editorial)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Current phase     | **Phase 13 — Testing & hardening: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Next phase        | Phase 14 — Finalization                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| SRS version       | FOS-SRS-001 v0.11.0 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19; v0.10.1 editorial; v0.11.0 adds D-20)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app); delivery partner onboarding, availability, dispatch, trip stages with geofences and proof, COD, earnings, cash, payouts view and bank changes (API and delivery web app); customer tracking; reviews and ratings |
 
 ## Phases
@@ -26,9 +26,24 @@ _Last updated: 2026-11-21_
 | 9 Delivery application        | ✅ Complete 2026-11-21 (D-16, D-17 decided)               |
 | 10 Real-time                  | ✅ Complete 2026-11-21 (D-18, D-19 decided)               |
 | 11 Admin                      | ✅ Complete 2026-11-21                                    |
-| 12 Frontend integration       | Not started                                               |
+| 12 Frontend integration       | ✅ Complete 2026-11-21 (D-20 decided)                     |
 | 13 Testing & hardening        | Not started                                               |
 | 14 Finalization               | Not started                                               |
+
+## Phase 12 deliverables
+
+| App        | Delivered                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Customer   | Location (saved, current, area search or coordinates), discovery with filters and sort, search, restaurant menu with customisation, cart with coupons and price-change flags, checkout (address, tip, contactless, COD/online/wallet), dev payment step, live order tracking with cancellation; orders history, invoice, reorder, issue reports, ratings and reviews, addresses, profile and food preferences, wallet, favourites, notifications inbox with a live badge, help tickets |
+| Restaurant | Full dish editor (fields, photos, variants with one default, option groups per dish/variant, If-Match conflicts), option group management, category management, holidays and delivery settings, order details with live partner status and pickup-code handover, analytics charts, reviews with responses and reports, payouts (new API-RFIN-006), profile and change requests with re-authentication                                                                                  |
+| Delivery   | Live notices for expired/withdrawn offers, revoked assignments and cancelled orders; profile with emergency contact, preferred zone and vehicles                                                                                                                                                                                                                                                                                                                                       |
+
+## Verification notes (Phase 12)
+
+- ✅ 599 tests pass repo-wide (API 441, customer 25, restaurant 13, delivery 8, admin 9, plus packages); all four apps build.
+- ✅ Browser check of the customer app against the real API (customer app on port 5183 because 5173 belongs to another project; the API's customer origin pointed at it for the check): location, discovery with live restaurants and the restaurant page with menu, offers and FSSAI number worked; closed restaurants showed a raw status code, now shown in plain words.
+- Bugs found and fixed: closed-restaurant status codes shown to customers; the restaurant order details never returned the assigned partner (Phase 9 placeholder); the discovery rating filter was sent as a number.
+- ⚠️ Not yet exercised end to end in a browser: placing and paying an order and the restaurant/partner screens of this phase (the seeded restaurants were closed at the time of checking; covered by UI tests). Phase 13 adds end-to-end runs.
 
 ## Phase 11 deliverables
 
@@ -243,6 +258,7 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 Resolved:
 
+- D-20 resolved 2026-11-21 under the owner's standing instruction (SRS v0.11.0): restaurant owners get payout history with the settlement breakdown (API-RFIN-006); settlement statements stay planned.
 - D-18 and D-19 resolved 2026-11-21 under the owner's standing instruction (SRS v0.10.0): partner liveness comes from location fixes only (FR-RT-021); clients drop events with a lower aggregate version, equal versions allowed (§13.1).
 - D-16 and D-17 resolved 2026-11-21 under the owner's standing instruction to proceed without further approvals (SRS v0.9.0): `GET /partner/zones` is API-DP-022; partners see written rating comments only once they have ≥ 5 ratings (BR-REVIEW-006).
 - D-13…D-15 resolved 2026-11-21 by owner decision (“Accept all three”, SRS v0.8.0): image derivatives made during upload (FR-FILE-003); owner membership created with the application, effective on approval (FR-REST-001); analytics computed from orders, hourly roll-up optional (FR-RANL-002). While applying D-13 the original of a public image was found to be publicly served, against FR-FILE-003; originals now stay in the private bucket (owner via signed link) and only WebP sizes are public.
@@ -275,7 +291,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## UI pages
 
-- Implemented: app shells for all four apps (404, route error); shared auth screens (sign-in, sign-up, verify phone/email, password recovery, security); restaurant app: application form, orders, kitchen display, menu, outlet, team, dashboard, invitation acceptance (8 of 24); delivery app: application, shift with offers, trip, earnings, trips, bank (6 of 19).
+- Implemented: all four apps — customer (ordering journey and account area), restaurant (Phases 8 and 12), delivery (Phases 9, 10, 12) and admin (Phase 11).
 - Planned: customer 21, restaurant 16, delivery 13, admin 31 feature pages (map pin picker, full dish editor with variants/options, holidays UI, analytics charts and settlements come in Phase 12).
 
 ## Database migrations
@@ -386,6 +402,10 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 12
+
+- `.claude/launch.json` (git-ignored) gained `api-4100-c5183` and `customer-web-5183` for the customer check (5173 is another project's dev server and was left running). The API, worker and customer app were stopped afterwards.
+
 ## Machine changes made during Phase 11
 
 - Migrations `20261121090000_admin_forced_offline`, `20261121120000_admin_operations` and `20261121150000_rating_scale` applied to the dev database (5433).
@@ -434,7 +454,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## Next steps
 
-1. Phase 12 (frontend integration) — in progress; then 13 (testing and hardening) and 14 (finalization).
+1. Phase 13 (testing and hardening) — in progress; then Phase 14 (finalization).
 2. (Earlier plan) Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
 
 ## TODO
@@ -451,6 +471,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - [ ] Walk a full trip in the browser during restaurant hours
 - [x] Phase 10
 - [x] Phase 11
+- [x] Phase 12
 - [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
