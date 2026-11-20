@@ -6,7 +6,7 @@ import type { Logger } from './platform/logger';
 import { RedisRateLimiter, type RateLimiter } from './platform/rate-limit';
 import type { RedisClients } from './platform/redis';
 import { AuditService } from './modules/audit';
-import { BranchRepository, ServiceabilityService } from './modules/catalog';
+import { BranchRepository, MenuService, ServiceabilityService } from './modules/catalog';
 import { SettingsService } from './modules/config';
 import { AddressService, ProfileService } from './modules/customers';
 import {
@@ -70,6 +70,7 @@ export function createContainer(input: ContainerInput) {
   const branches = new BranchRepository(prisma);
   const serviceability = new ServiceabilityService(prisma, branches, routing, settings, clock);
   const addresses = new AddressService(prisma, geo, serviceability, settings);
+  const menus = new MenuService(prisma, redis.cache, logger);
   return {
     env,
     prisma,
@@ -91,6 +92,7 @@ export function createContainer(input: ContainerInput) {
     branches,
     serviceability,
     addresses,
+    menus,
     appOrigins: appOrigins(env),
   };
 }

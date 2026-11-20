@@ -1,6 +1,7 @@
 export {
   authenticate,
   authorize,
+  optionalAuthenticate,
   requireApp,
   type AuthenticateOptions,
   type AuthMiddlewareDeps,

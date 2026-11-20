@@ -1,7 +1,7 @@
 import type { Router } from 'express';
 import type { Container } from './container';
 import { authRouter } from './modules/auth';
-import { geoRouter } from './modules/catalog';
+import { catalogRouter, geoRouter } from './modules/catalog';
 import { addressesRouter } from './modules/customers';
 import { usersRouter } from './modules/users';
 
@@ -19,4 +19,5 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use('/me/addresses', addressesRouter(container));
   api.use(usersRouter(container));
   api.use('/geo', geoRouter(container));
+  api.use(catalogRouter(container));
 }

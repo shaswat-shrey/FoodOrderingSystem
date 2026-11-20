@@ -7,3 +7,6 @@ export {
   type DeliveryInfo,
   type ServiceabilityReason,
 } from './serviceability.service';
+export { catalogRouter } from './catalog.routes';
+export { favoriteRestaurantIds } from './favorites';
+export { MenuService, type ItemCard, type RawMenu } from './menu.service';

@@ -104,3 +104,13 @@ export const requireApp =
   (_req, res, next) => {
     next(res.locals.auth?.app === app ? undefined : new AppError('FORBIDDEN'));
   };
+
+/**
+ * For public routes that personalise when signed in (favourites, allergen
+ * warnings): authenticates only when a bearer token is sent. A bad or expired
+ * token still fails, so the client refreshes instead of silently seeing guest data.
+ */
+export function optionalAuthenticate(deps: AuthMiddlewareDeps): RequestHandler {
+  const auth = authenticate(deps, { allowUnverified: true, allowOnboarding: true });
+  return (req, res, next) => (req.header('authorization') ? auth(req, res, next) : next());
+}
