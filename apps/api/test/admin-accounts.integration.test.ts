@@ -46,6 +46,10 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   if (!integrationEnabled) return;
+  // Other files sign the same staff in at the same manual clock time: lift this file's OTP cooldown.
+  await ctx.prisma.otpCode.deleteMany({
+    where: { userId: { in: [...signedIn.values()].map((s) => s.userId) } },
+  });
   await ctx.prisma.branch.updateMany({
     where: { restaurantId: { in: created } },
     data: { deletedAt: new Date() },

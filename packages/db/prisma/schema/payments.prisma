@@ -382,6 +382,8 @@ model Payout {
   restaurantBankAccountId String?      @map("restaurant_bank_account_id") @db.Uuid
   partnerBankAccountId    String?      @map("partner_bank_account_id") @db.Uuid
   amount                  BigInt
+  /// BR-EARN-006: partner cash in hand netted off this payout (paise).
+  cashDeduction           BigInt       @default(0) @map("cash_deduction")
   status                  PayoutStatus @default(PENDING)
   utr                     String?      @db.VarChar(40)
   failureReason           String?      @map("failure_reason") @db.VarChar(300)

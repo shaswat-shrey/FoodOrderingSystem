@@ -1,4 +1,4 @@
-export { DISPATCH_JOBS, DispatchService } from './dispatch.service';
+export { DISPATCH_JOBS, DispatchService, MANUAL_ACK_SECONDS } from './dispatch.service';
 export { lockDelivery, moveDelivery } from './delivery-state';
 export { dispatchStart, noPartnerDeadline, rank, score, type CandidateFeatures } from './ranking';
 export { registerDispatchConsumers } from './consumers';

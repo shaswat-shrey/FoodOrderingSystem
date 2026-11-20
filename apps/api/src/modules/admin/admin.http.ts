@@ -5,6 +5,8 @@ import * as schema from '@fos/validation';
 import { requireClientApp } from '../../platform/http/middleware/client-app';
 import { rateLimit } from '../../platform/http/middleware/rate-limit';
 import type { RateLimiter } from '../../platform/rate-limit';
+import type { Prisma } from '@fos/db';
+import type { AuditService } from '../audit';
 import { authenticate, authorize, requireApp, type AuthMiddlewareDeps } from '../auth';
 
 export interface AdminHttpDeps extends AuthMiddlewareDeps {
@@ -82,4 +84,36 @@ export function maskEmail(email: string | null | undefined): string | null {
   const at = email.indexOf('@');
   if (at < 1) return '***';
   return `${email[0]}***${email.slice(at)}`;
+}
+
+/** One admin action in the audit trail; ★ actions pass `sensitivity: 'HIGH'` with their reason. */
+export function auditAs(
+  audit: AuditService,
+  actor: AdminActor,
+  entry: {
+    action: string;
+    targetType: string;
+    targetId: string;
+    reason?: string | null;
+    before?: Record<string, unknown>;
+    after?: Record<string, unknown>;
+    sensitivity: 'NORMAL' | 'HIGH';
+  },
+  tx?: Prisma.TransactionClient,
+) {
+  return audit.record(
+    {
+      action: entry.action,
+      targetType: entry.targetType,
+      targetId: entry.targetId,
+      actorUserId: actor.userId,
+      actorRoles: actor.roles,
+      sessionId: actor.sessionId,
+      reason: entry.reason ?? null,
+      before: entry.before ?? null,
+      after: entry.after ?? null,
+      sensitivity: entry.sensitivity,
+    },
+    tx,
+  );
 }

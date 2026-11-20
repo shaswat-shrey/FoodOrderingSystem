@@ -292,8 +292,8 @@ export class PartnerFinanceService {
         where: { partnerId, status: 'PENDING_VERIFICATION' },
       }),
     ]);
-    // PARTNER_PAYABLE is credit-normal: a negative balance is money owed to the partner.
-    const earned = -Number(payable?.balance ?? 0n);
+    // PARTNER_PAYABLE is credit-normal and stored on its normal side: a positive balance is owed to the partner.
+    const earned = Number(payable?.balance ?? 0n);
     const amount = earned - cash;
     const week = periodBounds('week', this.clock.now());
     return {
@@ -350,6 +350,7 @@ export class PartnerFinanceService {
   private payoutView(p: {
     id: string;
     amount: bigint;
+    cashDeduction: bigint;
     status: string;
     utr: string | null;
     failureReason: string | null;
@@ -362,6 +363,7 @@ export class PartnerFinanceService {
       periodStart: p.batch.periodStart,
       periodEnd: p.batch.periodEnd,
       amount: Number(p.amount),
+      cashDeduction: Number(p.cashDeduction),
       status: p.status,
       utr: p.utr,
       failureReason: p.failureReason,

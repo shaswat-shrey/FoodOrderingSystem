@@ -541,6 +541,31 @@ export class PaymentsService {
     }
   }
 
+  /**
+   * API-ADM-082 (FR-ADMIN-050): asks the provider about every payment made
+   * against this payment's provider order and applies what it says (the same
+   * idempotent path as webhooks and polls). Captures first, as in pollOrder.
+   */
+  async sync(paymentId: string): Promise<{ applied: number; seen: number }> {
+    const p = await this.prisma.payment.findUnique({ where: { id: paymentId } });
+    if (!p) throw new AppError('NOT_FOUND', { message: "We couldn't find that payment." });
+    if (p.method !== 'ONLINE' || !p.providerOrderId)
+      throw new AppError('VALIDATION_ERROR', {
+        message: 'Only online payments can be checked with the provider.',
+      });
+    let found: ProviderPayment[];
+    try {
+      found = await this.provider.listOrderPayments(p.providerOrderId);
+    } catch (error) {
+      if (!(error instanceof ProviderError)) throw error;
+      throw new AppError('PAYMENT_PROVIDER_UNAVAILABLE', { retryable: true, cause: error });
+    }
+    found.sort((a, b) => Number(b.status === 'CAPTURED') - Number(a.status === 'CAPTURED'));
+    let applied = 0;
+    for (const pp of found) if ((await this.apply(p.id, pp, 'poll')) === 'APPLIED') applied += 1;
+    return { applied, seen: found.length };
+  }
+
   /** T04/T05: open payments of a dead order become EXPIRED / CANCELLED (never after capture). */
   async closeOpenPayments(tx: Tx, orderId: string, to: 'EXPIRED' | 'CANCELLED'): Promise<void> {
     const open = await tx.payment.findMany({

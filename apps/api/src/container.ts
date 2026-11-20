@@ -89,7 +89,15 @@ import {
   PresenceStore,
 } from './modules/partners';
 import { fieldCipherFrom } from './platform/crypto';
-import { AdminMerchantsService, AdminPartnersService, AdminUsersService } from './modules/admin';
+import {
+  AdminDashboardService,
+  AdminDispatchService,
+  AdminFinanceService,
+  AdminMerchantsService,
+  AdminOrdersService,
+  AdminPartnersService,
+  AdminUsersService,
+} from './modules/admin';
 import {
   NotificationService,
   registerNotificationConsumers,
@@ -413,6 +421,30 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  // T16 money (BR-REFUND-001) for admin-failed deliveries.
+  deliveryStages.onFailed = (tx, order, cause, actor) =>
+    orderCancellation.failedDelivery(tx, order, cause, actor);
+  const adminDashboard = new AdminDashboardService(prisma, presence, audit, clock);
+  const adminOrders = new AdminOrdersService(
+    prisma,
+    orderCancellation,
+    deliveryStages,
+    refunds,
+    orderTimers,
+    settings,
+    audit,
+    clock,
+  );
+  const adminDispatch = new AdminDispatchService(prisma, dispatch, audit);
+  const adminFinance = new AdminFinanceService(
+    prisma,
+    payments,
+    refunds,
+    ledger,
+    settings,
+    audit,
+    clock,
+  );
   return {
     env,
     prisma,
@@ -490,6 +522,10 @@ export function createContainer(input: ContainerInput) {
     adminUsers,
     adminMerchants,
     adminPartners,
+    adminDashboard,
+    adminOrders,
+    adminDispatch,
+    adminFinance,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

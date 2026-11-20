@@ -25,6 +25,10 @@ export interface CreateRefundInput {
   initiatorType: 'CUSTOMER' | 'RESTAURANT' | 'PARTNER' | 'ADMIN' | 'SYSTEM';
   initiatorId?: string | null;
   costBearer: CostBearer;
+  /** REQUESTED waits for an approver (FR-REFUND-008); everything else is approved at once. */
+  status?: 'APPROVED' | 'REQUESTED';
+  /** Item-level refunds (FR-REFUND-003). */
+  items?: { orderItemId: string; quantity: number; amount: number }[];
 }
 
 /**
@@ -47,26 +51,35 @@ export class RefundService {
    * Creates an approved refund inside the caller's transaction. The payment row
    * is locked so concurrent refunds can never exceed what was captured (FR-REFUND-003).
    */
+  /** What is left to refund on one payment, under its row lock (FR-REFUND-003). */
+  async refundable(tx: Tx, paymentId: string, exceptRefundId?: string): Promise<number> {
+    const [payment] = await tx.$queryRaw<{ captured_amount: number; refunded_amount: number }[]>`
+      SELECT captured_amount, refunded_amount FROM payments WHERE id = ${paymentId}::uuid FOR UPDATE`;
+    if (!payment) throw new AppError('NOT_FOUND', { message: 'Payment not found.' });
+    const open = await tx.refund.aggregate({
+      where: {
+        paymentId,
+        status: { in: ['REQUESTED', 'APPROVED', 'PROCESSING'] },
+        ...(exceptRefundId ? { id: { not: exceptRefundId } } : {}),
+      },
+      _sum: { amount: true },
+    });
+    return payment.captured_amount - payment.refunded_amount - (open._sum.amount ?? 0);
+  }
+
+  private tooMuch(refundable: number) {
+    return new AppError('REFUND_EXCEEDS_REFUNDABLE', {
+      message: `At most ₹${(Math.max(0, refundable) / 100).toFixed(2)} can be refunded.`,
+      details: [{ path: 'amount', code: 'REFUNDABLE', message: String(Math.max(0, refundable)) }],
+    });
+  }
+
   async create(tx: Tx, input: CreateRefundInput): Promise<Refund> {
     if (input.paymentId) {
-      const [payment] = await tx.$queryRaw<{ captured_amount: number; refunded_amount: number }[]>`
-        SELECT captured_amount, refunded_amount FROM payments WHERE id = ${input.paymentId}::uuid FOR UPDATE`;
-      if (!payment) throw new AppError('NOT_FOUND', { message: 'Payment not found.' });
-      const open = await tx.refund.aggregate({
-        where: {
-          paymentId: input.paymentId,
-          status: { in: ['REQUESTED', 'APPROVED', 'PROCESSING'] },
-        },
-        _sum: { amount: true },
-      });
-      const refundable =
-        payment.captured_amount - payment.refunded_amount - (open._sum.amount ?? 0);
-      if (input.amount > refundable) {
-        throw new AppError('REFUND_EXCEEDS_REFUNDABLE', {
-          message: `At most ₹${(refundable / 100).toFixed(2)} can be refunded.`,
-        });
-      }
+      const refundable = await this.refundable(tx, input.paymentId);
+      if (input.amount > refundable) throw this.tooMuch(refundable);
     }
+    const requested = input.status === 'REQUESTED';
     return tx.refund.create({
       data: {
         orderId: input.orderId,
@@ -78,9 +91,56 @@ export class RefundService {
         initiatorType: input.initiatorType,
         initiatorId: input.initiatorId ?? null,
         costBearer: input.costBearer,
-        status: 'APPROVED',
-        nextAttemptAt: this.clock.now(),
+        status: requested ? 'REQUESTED' : 'APPROVED',
+        nextAttemptAt: requested ? null : this.clock.now(),
+        ...(input.items?.length ? { items: { create: input.items } } : {}),
       },
+    });
+  }
+
+  /** API-ADM-086 (FR-REFUND-008): a REQUESTED refund is approved and queued. */
+  async approve(refundId: string): Promise<Refund> {
+    const moved = await this.prisma.refund.updateMany({
+      where: { id: refundId, status: 'REQUESTED' },
+      data: { status: 'APPROVED', nextAttemptAt: this.clock.now(), version: { increment: 1 } },
+    });
+    if (moved.count === 0) throw await this.stateConflict(refundId, 'waiting for approval');
+    return this.prisma.refund.findUniqueOrThrow({ where: { id: refundId } });
+  }
+
+  /** API-ADM-087 (FR-REFUND-005): a FAILED refund goes back to the queue with fresh attempts. */
+  async retry(refundId: string): Promise<Refund> {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM refunds WHERE id = ${refundId}::uuid FOR UPDATE`;
+      const refund = await tx.refund.findUnique({ where: { id: refundId } });
+      if (!refund) throw new AppError('NOT_FOUND', { message: "We couldn't find that refund." });
+      if (refund.status !== 'FAILED') throw await this.stateConflict(refundId, 'failed');
+      if (refund.paymentId) {
+        const refundable = await this.refundable(tx, refund.paymentId, refund.id);
+        if (refund.amount > refundable) throw this.tooMuch(refundable);
+      }
+      return tx.refund.update({
+        where: { id: refundId },
+        data: {
+          status: 'APPROVED',
+          attempts: 0,
+          providerRefundId: null,
+          nextAttemptAt: this.clock.now(),
+          version: { increment: 1 },
+        },
+      });
+    });
+  }
+
+  private async stateConflict(refundId: string, wanted: string) {
+    const r = await this.prisma.refund.findUnique({
+      where: { id: refundId },
+      select: { status: true },
+    });
+    if (!r) return new AppError('NOT_FOUND', { message: "We couldn't find that refund." });
+    return new AppError('REFUND_STATE_CONFLICT', {
+      message: `Only a refund that is ${wanted} can do this; this one is ${r.status.toLowerCase()}.`,
+      details: [{ code: 'CURRENT_STATUS', message: r.status }],
     });
   }
 
@@ -98,14 +158,20 @@ export class RefundService {
 
   /**
    * Who pays for a refund in the ledger (FR-REFUND-009): before settlement the
-   * money still sits in the order's liability; afterwards the cost bearer pays.
+   * money still sits in the order's liability; afterwards — or once the
+   * liability has already been given back, e.g. a goodwill refund on a
+   * cancelled order — the cost bearer pays.
    */
   private async debitAccount(tx: Tx, refund: Refund): Promise<AccountRef> {
     const settled = await tx.ledgerTransaction.count({
       where: { type: 'ORDER_SETTLEMENT', referenceType: 'order', referenceId: refund.orderId },
     });
-    if (!settled)
-      return { ownerType: 'ORDER', ownerId: refund.orderId, type: 'CUSTOMER_ORDER_LIABILITY' };
+    const liability: AccountRef = {
+      ownerType: 'ORDER',
+      ownerId: refund.orderId,
+      type: 'CUSTOMER_ORDER_LIABILITY',
+    };
+    if (!settled && (await this.ledger.balance(tx, liability)) >= refund.amount) return liability;
     if (refund.costBearer === 'RESTAURANT') {
       const order = await tx.order.findUniqueOrThrow({
         where: { id: refund.orderId },

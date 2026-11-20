@@ -22,7 +22,7 @@ export interface PartnerDeliveryRouterDeps extends AuthMiddlewareDeps {
   limiter: RateLimiter;
 }
 
-/** Offers for partners (API-DPDEL-001…003). Delivery stage routes are added by the stages module. */
+/** Offers (API-DPDEL-001…003), the trip (004…011, 013) and manual-assignment acknowledgement (012). */
 export function partnerOfferRouter(deps: PartnerDeliveryRouterDeps): Router {
   const router = Router();
   const partner: RequestHandler[] = [
@@ -204,6 +204,18 @@ export function partnerOfferRouter(deps: PartnerDeliveryRouterDeps): Router {
             body.note ? `${body.reason}: ${body.note}` : body.reason,
           ),
         ),
+    ),
+  );
+
+  /** API-DPDEL-012 (FR-DISP-011): acknowledge a delivery ops assigned to you. */
+  router.post(
+    '/partner/deliveries/:deliveryId/acknowledge',
+    ...partner,
+    ...actions,
+    handle({ params: did, body: z.object({}).strict() }, async ({ params, res }) =>
+      sendOk(res, await deps.dispatch.acknowledge(me(res), params.deliveryId), {
+        message: 'Assignment acknowledged',
+      }),
     ),
   );
 

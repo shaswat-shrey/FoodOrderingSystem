@@ -30,6 +30,7 @@ type TimedOrder = Pick<
   | 'readyAt'
   | 'pickedUpAt'
   | 'etaMinAt'
+  | 'acceptExtendedUntil'
 >;
 
 /**
@@ -85,6 +86,16 @@ export class OrderTimers {
       ORDER_JOBS.acceptTimeout,
       orderId,
       await this.settings.get('order.acceptTimeoutSeconds'),
+    );
+  }
+
+  /** API-ADM-065: the acceptance timeout fires again at the extended time (the original one then finds it extended). */
+  async afterAcceptanceExtended(orderId: string, until: Date) {
+    await this.at(
+      ORDER_JOBS.acceptTimeout,
+      orderId,
+      (until.getTime() - this.clock.now().getTime()) / 1000,
+      `${ORDER_JOBS.acceptTimeout}-ext`,
     );
   }
 
@@ -156,6 +167,8 @@ export class OrderTimers {
           order.id,
           this.secondsUntil(placedAt, await this.settings.get('order.acceptTimeoutSeconds')),
         );
+        if (order.acceptExtendedUntil)
+          await this.afterAcceptanceExtended(order.id, order.acceptExtendedUntil);
         break;
       }
       case 'ACCEPTED': {

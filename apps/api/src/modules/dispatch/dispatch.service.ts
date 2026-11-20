@@ -33,6 +33,14 @@ const BICYCLE_KMPH = 12;
 const RESPONDED = ['REJECTED', 'RELEASED', 'ACCEPTED', 'REVOKED'] as const;
 const EXPIRED_COOLDOWN_MS = 5 * 60_000; // BR-DEL-004
 const RETRY_SECONDS = 60; // BR-DEL-003
+/** FR-DISP-011: a manual assignment must be acknowledged within a minute. */
+export const MANUAL_ACK_SECONDS = 60;
+const ACTIVE_STATUSES = [
+  'ASSIGNED',
+  'AT_RESTAURANT',
+  'EN_ROUTE_TO_CUSTOMER',
+  'AT_CUSTOMER',
+] as const;
 
 interface Context {
   delivery: Delivery;
@@ -647,6 +655,7 @@ export class DispatchService {
     deliveryId: string,
     reason: string,
     actor: { type: 'PARTNER' | 'SYSTEM' | 'ADMIN'; id?: string | null },
+    opts: { revoke?: boolean; redispatch?: boolean } = {},
   ) {
     const partnerId = await this.prisma.$transaction(async (tx) => {
       const d = await lockDelivery(tx, deliveryId);
@@ -654,9 +663,10 @@ export class DispatchService {
         throw new AppError('ORDER_STATE_CONFLICT', {
           message: 'This delivery can’t be released now. Contact support.',
         });
+      // FR-DISP-012: ops taking a delivery away is REVOKED; the partner letting go is RELEASED.
       await tx.deliveryAssignment.updateMany({
         where: { deliveryId, partnerId: d.partnerId, status: 'ACCEPTED' },
-        data: { status: 'RELEASED', rejectReason: reason.slice(0, 200) },
+        data: { status: opts.revoke ? 'REVOKED' : 'RELEASED', rejectReason: reason.slice(0, 200) },
       });
       await moveDelivery(tx, d, 'SEARCHING', {
         actor,
@@ -667,7 +677,8 @@ export class DispatchService {
     });
     await this.backToIdle(partnerId);
     await this.refreshAcceptance(partnerId);
-    await this.next(deliveryId);
+    if (opts.redispatch !== false) await this.next(deliveryId);
+    return partnerId;
   }
 
   /**
@@ -736,6 +747,288 @@ export class DispatchService {
       take: 200,
     });
     for (const a of late) await this.expire(a.id);
-    return stuck.length + late.length;
+    const unacknowledged = await this.releaseUnacknowledged();
+    return stuck.length + late.length + unacknowledged;
+  }
+
+  /* ----------------------------- operations (API-ADM-070…075) ----------------------------- */
+
+  /**
+   * API-ADM-071 (FR-DISP-011): partners ops may assign, ranked — the same
+   * eligibility as automatic dispatch (online and idle, fresh fix, COD cap, not
+   * excluded by BR-DEL-004), searched at the widest radius.
+   */
+  async rankedFor(deliveryId: string): Promise<Scored[]> {
+    const d = await this.prisma.delivery.findUnique({ where: { id: deliveryId } });
+    if (!d) throw new AppError('NOT_FOUND', { message: "We couldn't find that delivery." });
+    if (!['PENDING', 'SEARCHING', 'ASSIGNED', 'AT_RESTAURANT'].includes(d.status)) return [];
+    const radii = await this.settings.get('dispatch.roundRadiiM');
+    const ranked = await this.candidates(d, radii.length);
+    return ranked.filter((c) => c.partnerId !== d.partnerId);
+  }
+
+  /**
+   * API-ADM-072 (FR-DISP-011, D03 by A ★): a manual assignment is ACCEPTED at
+   * once and the partner has `MANUAL_ACK_SECONDS` to acknowledge it, or the sweep
+   * gives it back to dispatch. `force` allows a partner the ranking would skip
+   * (offline but reachable) — never one who is suspended, unapproved or busy.
+   */
+  async assignManually(
+    deliveryId: string,
+    partnerId: string,
+    by: { userId: string; force: boolean },
+  ) {
+    if (!by.force && !(await this.rankedFor(deliveryId)).some((c) => c.partnerId === partnerId))
+      throw new AppError('PARTNER_UNAVAILABLE', {
+        message: 'This partner isn’t eligible for this delivery right now.',
+      });
+    const token = randomUUID();
+    const lockKey = `lock:delivery:${deliveryId}`;
+    if ((await this.redis.set(lockKey, token, 'PX', 5_000, 'NX')) !== 'OK')
+      throw new AppError('ORDER_STATE_CONFLICT', {
+        message: 'This delivery is being assigned right now. Try again.',
+      });
+    let withdrawn: { id: string; partnerId: string }[] = [];
+    try {
+      const now = this.now();
+      const ackBy = new Date(now.getTime() + MANUAL_ACK_SECONDS * 1000);
+      const live = await this.presence.get(partnerId);
+      const out = await this.prisma.$transaction(async (tx) => {
+        let d = await lockDelivery(tx, deliveryId);
+        if (d.status === 'PENDING')
+          d = await moveDelivery(tx, d, 'SEARCHING', {
+            actor: { type: 'ADMIN', id: by.userId },
+            now,
+            patch: { searchRound: Math.max(1, d.searchRound) },
+          });
+        if (d.status !== 'SEARCHING' || d.partnerId)
+          throw new AppError('ORDER_STATE_CONFLICT', {
+            message: 'This delivery already has a partner. Reassign it instead.',
+          });
+        // FR-DISP-007: one active delivery per partner, checked under the partner row lock.
+        await tx.$queryRaw`SELECT id FROM delivery_partners WHERE id = ${partnerId}::uuid FOR UPDATE`;
+        const p = await tx.deliveryPartner.findUnique({
+          where: { id: partnerId },
+          select: { status: true, onboardingStatus: true },
+        });
+        if (!p) throw new AppError('NOT_FOUND', { message: "We couldn't find that partner." });
+        if (p.status !== 'ACTIVE' || p.onboardingStatus !== 'APPROVED')
+          throw new AppError('PARTNER_UNAVAILABLE', {
+            message: 'This partner isn’t active, so they can’t be assigned.',
+          });
+        const busy = await tx.delivery.count({
+          where: { partnerId, status: { in: [...ACTIVE_STATUSES] } },
+        });
+        const offered = await tx.deliveryAssignment.count({
+          where: { partnerId, status: 'OFFERED', deliveryId: { not: deliveryId } },
+        });
+        if (busy > 0 || offered > 0)
+          throw new AppError('PARTNER_UNAVAILABLE', {
+            message: 'This partner is busy with another delivery or offer.',
+          });
+        withdrawn = await tx.deliveryAssignment.findMany({
+          where: { deliveryId, status: 'OFFERED' },
+          select: { id: true, partnerId: true },
+        });
+        await tx.deliveryAssignment.updateMany({
+          where: { deliveryId, status: 'OFFERED' },
+          data: { status: 'WITHDRAWN' },
+        });
+        const ctx = await this.context(d);
+        const distance = live?.lat !== undefined ? Math.round(haversineM(ctx.branch, live)) : 0;
+        const round = Math.max(1, d.searchRound);
+        const assignment = await tx.deliveryAssignment.create({
+          data: {
+            deliveryId,
+            partnerId,
+            round,
+            rank: 0,
+            score: 0,
+            scoreBreakdown: { manual: true, force: by.force, distanceM: distance },
+            distanceToPickupM: distance,
+            status: 'ACCEPTED',
+            offeredAt: now,
+            // The acknowledgement deadline; respondedAt records the acknowledgement.
+            expiresAt: ackBy,
+            manual: true,
+            assignedBy: by.userId,
+          },
+        });
+        const moved = await moveDelivery(tx, d, 'ASSIGNED', {
+          actor: { type: 'ADMIN', id: by.userId },
+          now,
+          patch: { partnerId, distancePickupM: distance },
+        });
+        await writeOutbox(tx, {
+          aggregateType: 'delivery',
+          aggregateId: deliveryId,
+          aggregateVersion: moved.version,
+          eventType: 'delivery.manual_assignment',
+          payload: {
+            deliveryId,
+            orderId: d.orderId,
+            partnerId,
+            assignmentId: assignment.id,
+            acknowledgeBy: ackBy.toISOString(),
+          },
+        });
+        return { delivery: moved, assignment };
+      });
+      for (const o of withdrawn) {
+        await this.presence.releaseOfferSlot(o.partnerId);
+        await this.onOfferClosed?.(o.partnerId, o.id, 'ORDER_CANCELLED');
+        if (o.partnerId !== partnerId) await this.backToIdle(o.partnerId);
+      }
+      if (live && live.state !== 'OFFLINE') await this.presence.setState(partnerId, 'ON_DELIVERY');
+      await this.presence.releaseOfferSlot(partnerId);
+      return {
+        deliveryId,
+        status: out.delivery.status,
+        partnerId,
+        assignmentId: out.assignment.id,
+        acknowledgeBy: ackBy,
+      };
+    } finally {
+      if ((await this.redis.get(lockKey)) === token) await this.redis.del(lockKey);
+    }
+  }
+
+  /** API-DPDEL-012 (FR-DISP-011): the partner has seen the ops assignment. Idempotent. */
+  async acknowledge(userId: string, deliveryId: string) {
+    const partnerId = await this.partnerId(userId);
+    const a = await this.prisma.deliveryAssignment.findFirst({
+      where: { deliveryId, partnerId, manual: true, status: 'ACCEPTED' },
+    });
+    if (!a) throw new AppError('NOT_FOUND', { message: "We couldn't find that assignment." });
+    if (!a.respondedAt)
+      await this.prisma.deliveryAssignment.updateMany({
+        where: { id: a.id, respondedAt: null },
+        data: { respondedAt: this.now() },
+      });
+    const done = await this.prisma.deliveryAssignment.findUniqueOrThrow({ where: { id: a.id } });
+    return { deliveryId, assignmentId: a.id, acknowledgedAt: done.respondedAt };
+  }
+
+  /**
+   * FR-DISP-011: a manual assignment nobody acknowledged in time goes back to
+   * automatic dispatch and ops is alerted (run by the dispatch sweep).
+   */
+  async releaseUnacknowledged(): Promise<number> {
+    const late = await this.prisma.deliveryAssignment.findMany({
+      where: {
+        manual: true,
+        status: 'ACCEPTED',
+        respondedAt: null,
+        expiresAt: { lt: this.now() },
+        delivery: { status: 'ASSIGNED' },
+      },
+      select: { id: true, deliveryId: true, partnerId: true },
+      take: 100,
+    });
+    let released = 0;
+    for (const a of late) {
+      try {
+        await this.release(a.deliveryId, 'Manual assignment not acknowledged', {
+          type: 'SYSTEM',
+        });
+        released++;
+      } catch (error) {
+        this.logger.warn({ err: error, deliveryId: a.deliveryId }, 'unacknowledged release failed');
+        continue;
+      }
+      await raiseOpsAlert(this.prisma, {
+        type: 'MANUAL_ASSIGNMENT_UNACKNOWLEDGED',
+        severity: 'WARNING',
+        refType: 'delivery',
+        refId: a.deliveryId,
+        message: `The partner didn’t acknowledge the manual assignment within ${MANUAL_ACK_SECONDS} s; dispatch resumed.`,
+        dedupeKey: `manual-unack:${a.id}`,
+      });
+    }
+    return released;
+  }
+
+  /** API-ADM-073 (FR-DISP-012, D08 by A ★): REVOKED from the current partner, then assigned. */
+  async reassign(
+    deliveryId: string,
+    partnerId: string,
+    by: { userId: string; force: boolean; reason: string },
+  ) {
+    const d = await this.prisma.delivery.findUnique({ where: { id: deliveryId } });
+    if (!d) throw new AppError('NOT_FOUND', { message: "We couldn't find that delivery." });
+    if (d.partnerId === partnerId)
+      throw new AppError('PARTNER_UNAVAILABLE', {
+        message: 'This partner already has the delivery.',
+      });
+    // Check the new partner before taking the delivery away from the current one.
+    if (!by.force && !(await this.rankedFor(deliveryId)).some((c) => c.partnerId === partnerId))
+      throw new AppError('PARTNER_UNAVAILABLE', {
+        message: 'This partner isn’t eligible for this delivery right now.',
+      });
+    const previous = await this.release(
+      deliveryId,
+      by.reason,
+      { type: 'ADMIN', id: by.userId },
+      { revoke: true, redispatch: false },
+    );
+    try {
+      return {
+        ...(await this.assignManually(deliveryId, partnerId, by)),
+        previousPartnerId: previous,
+      };
+    } catch (error) {
+      // The delivery is searching again either way; let dispatch carry on.
+      await this.next(deliveryId);
+      throw error;
+    }
+  }
+
+  /** API-ADM-074 (FR-DISP-009): back to automatic dispatch from the first round. */
+  async redispatch(deliveryId: string, userId: string, reason: string) {
+    const d = await this.prisma.delivery.findUnique({ where: { id: deliveryId } });
+    if (!d) throw new AppError('NOT_FOUND', { message: "We couldn't find that delivery." });
+    if (['ASSIGNED', 'AT_RESTAURANT'].includes(d.status))
+      await this.release(
+        deliveryId,
+        reason,
+        { type: 'ADMIN', id: userId },
+        { revoke: true, redispatch: false },
+      );
+    else if (d.status === 'PENDING') {
+      await this.start(deliveryId);
+    } else if (d.status !== 'SEARCHING')
+      throw new AppError('ORDER_STATE_CONFLICT', {
+        message: `This delivery is ${d.status.toLowerCase().replace(/_/g, ' ')}.`,
+      });
+    await this.prisma.delivery.updateMany({
+      where: { id: deliveryId, status: 'SEARCHING' },
+      data: { searchRound: 1 },
+    });
+    const outcome = await this.next(deliveryId);
+    const after = await this.prisma.delivery.findUniqueOrThrow({ where: { id: deliveryId } });
+    return { deliveryId, status: after.status, outcome };
+  }
+
+  /** API-ADM-075 (FR-DISP-010 ★): the no-partner deadline moves out, once. */
+  async extendDeadline(deliveryId: string, minutes: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const d = await lockDelivery(tx, deliveryId);
+      if (!['PENDING', 'SEARCHING'].includes(d.status))
+        throw new AppError('ORDER_STATE_CONFLICT', {
+          message: 'Only a delivery still looking for a partner has a deadline.',
+        });
+      if (d.deadlineExtended)
+        throw new AppError('ORDER_STATE_CONFLICT', {
+          message: 'This deadline has already been extended once.',
+        });
+      const from =
+        d.noPartnerDeadline && d.noPartnerDeadline > this.now() ? d.noPartnerDeadline : this.now();
+      const until = new Date(from.getTime() + minutes * 60_000);
+      await tx.delivery.update({
+        where: { id: deliveryId },
+        data: { noPartnerDeadline: until, deadlineExtended: true, version: { increment: 1 } },
+      });
+      return { deliveryId, before: d.noPartnerDeadline, noPartnerDeadline: until };
+    });
   }
 }

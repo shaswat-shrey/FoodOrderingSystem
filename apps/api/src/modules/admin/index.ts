@@ -9,6 +9,7 @@ export {
   pageQuery,
   reasonBody,
   reasonSchema,
+  auditAs,
   type AdminActor,
   type AdminHttpDeps,
   type Page,
@@ -21,3 +22,8 @@ export {
   type RestaurantPatch,
 } from './merchants.service';
 export { AdminPartnersService, MAX_EARNING_ADJUSTMENT } from './partners.service';
+export { adminOperationsRouter, type AdminOperationsRouterDeps } from './operations.routes';
+export { AdminDashboardService } from './dashboard.service';
+export { AdminOrdersService, MAX_ACCEPT_EXTENSION_MINUTES } from './orders.service';
+export { AdminDispatchService, MAX_DEADLINE_EXTENSION_MINUTES } from './dispatch-admin.service';
+export { AdminFinanceService } from './finance.service';

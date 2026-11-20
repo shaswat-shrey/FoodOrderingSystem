@@ -62,6 +62,8 @@ export const SETTING_DEFINITIONS = {
   /** BR-SUP-002 / FR-CORD-012: when issues and "not delivered" can be reported after delivery. */
   'support.issueWindowHours': { schema: z.number().int().min(1).max(720), default: 48 },
   'support.notDeliveredWindowMinutes': { schema: z.number().int().min(5).max(1440), default: 60 },
+  /** FR-ADMIN-051 / FR-REFUND-008: refunds a support agent may issue per order without approval (paise). */
+  'support.refundLimit': { schema: z.number().int().min(0).max(10_000_000), default: 50_000 },
   /** BR-SUP-004 */
   'support.ticketsPerDay': { schema: z.number().int().min(1).max(100), default: 5 },
   /** BR-REFUND-006: auto-approved item refunds (to wallet). */

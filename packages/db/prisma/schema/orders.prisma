@@ -142,6 +142,8 @@ model Order {
   cancelledAt          DateTime?           @map("cancelled_at") @db.Timestamptz(3)
   etaMinAt             DateTime?           @map("eta_min_at") @db.Timestamptz(3)
   etaMaxAt             DateTime?           @map("eta_max_at") @db.Timestamptz(3)
+  /// API-ADM-065: the acceptance timeout pushed out once by ops.
+  acceptExtendedUntil  DateTime?           @map("accept_extended_until") @db.Timestamptz(3)
   version              Int                 @default(0)
   createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt            DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)

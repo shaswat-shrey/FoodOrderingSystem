@@ -52,11 +52,18 @@ export class OrderTimerJobs {
         return;
       case ORDER_JOBS.acceptReminder:
         return this.acceptReminder(orderId);
-      case ORDER_JOBS.acceptTimeout:
-        if (!(await this.is(orderId, 'PLACED'))) return;
+      case ORDER_JOBS.acceptTimeout: {
+        const order = await this.prisma.order.findUnique({
+          where: { id: orderId },
+          select: { status: true, acceptExtendedUntil: true },
+        });
+        if (order?.status !== 'PLACED') return;
+        // API-ADM-065: ops extended the window; the extension's own job decides.
+        if (order.acceptExtendedUntil && this.clock.now() < order.acceptExtendedUntil) return;
         if (!this.onAcceptTimeout) throw new Error('acceptance timeout handler not registered');
         await this.onAcceptTimeout(orderId);
         return;
+      }
       case ORDER_JOBS.autoPreparing:
         return this.autoPreparing(orderId);
       case ORDER_JOBS.prepDelay:

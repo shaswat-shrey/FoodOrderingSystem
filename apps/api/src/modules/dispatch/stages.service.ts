@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
-import type { Delivery, Prisma, PrismaClient } from '@fos/db';
+import type { Delivery, Order, Prisma, PrismaClient } from '@fos/db';
 import type { Clock } from '../../platform/clock';
 import { AppError } from '../../platform/http/errors';
 import type { Logger } from '../../platform/logger';
@@ -37,6 +37,16 @@ const HEARTBEAT_RELEASE_MS = 5 * 60_000;
  * code, completion by OTP or photo with COD cash, then settlement and pay.
  */
 export class DeliveryStagesService {
+  /** Set by orders: refunds and ledger for a failed delivery (T16, BR-REFUND-001); returns refund ids. */
+  onFailed:
+    | ((
+        tx: Tx,
+        order: Order,
+        cause: 'DELIVERY_FAILED' | 'CUSTOMER_UNREACHABLE',
+        actor: { type: 'ADMIN'; id: string },
+      ) => Promise<string[]>)
+    | null = null;
+
   constructor(
     private readonly prisma: PrismaClient,
     private readonly transitions: OrderTransitions,
@@ -437,59 +447,167 @@ export class DeliveryStagesService {
           purposes: ['DELIVERY_PROOF'],
         });
       }
-      const now = this.now();
-      const { order: delivered } = await this.transitions.apply(tx, {
-        orderId: d.orderId,
-        to: 'DELIVERED',
+      await this.finish(tx, d, order, {
         actor: { type: 'PARTNER', id: userId },
-      });
-      const done = await moveDelivery(tx, d, 'DELIVERED', {
-        actor: { type: 'PARTNER', id: userId },
-        now,
         at: input.at ?? null,
         patch: { proofType: input.method, proofFileId: input.photoFileId ?? null },
-      });
-      if (cod) {
-        // FR-DEL-032: the partner now holds the customer's cash.
-        await tx.payment.updateMany({
-          where: { orderId: d.orderId, method: 'COD', status: 'PENDING' },
-          data: {
-            status: 'COLLECTED',
-            capturedAmount: order.payableAmount,
-            capturedAt: now,
-            version: { increment: 1 },
-          },
-        });
-        await this.ledger.post(tx, {
-          type: 'COD_COLLECTION',
-          referenceType: 'order',
-          referenceId: d.orderId,
-          description: `Cash collected for order ${order.number}`,
-          entries: [
-            {
-              ownerType: 'PARTNER',
-              ownerId: partnerId,
-              type: 'PARTNER_CASH_IN_HAND',
-              amount: order.payableAmount,
-            },
-            {
-              ownerType: 'ORDER',
-              ownerId: d.orderId,
-              type: 'CUSTOMER_ORDER_LIABILITY',
-              amount: -order.payableAmount,
-            },
-          ],
-        });
-      }
-      await this.settlement.settle(tx, delivered);
-      await this.earnings.recordDelivered(tx, done);
-      await tx.partnerStats.update({
-        where: { partnerId },
-        data: { deliveriesToday: { increment: 1 }, lastDeliveryCompletedAt: now },
       });
     });
     await this.afterTrip(partnerId);
     return this.view(userId, deliveryId);
+  }
+
+  /** T15/D07 and everything that follows a handover: COD cash, settlement, pay and stats. */
+  private async finish(
+    tx: Tx,
+    d: Delivery,
+    order: Order,
+    input: {
+      actor: { type: 'PARTNER' | 'ADMIN'; id: string };
+      at?: Point | null;
+      reason?: string;
+      patch: Prisma.DeliveryUncheckedUpdateInput;
+    },
+  ) {
+    const partnerId = d.partnerId!;
+    const cod = order.paymentMethod === 'COD';
+    const now = this.now();
+    const { order: delivered } = await this.transitions.apply(tx, {
+      orderId: d.orderId,
+      to: 'DELIVERED',
+      actor: input.actor,
+      ...(input.reason ? { reason: input.reason } : {}),
+    });
+    const done = await moveDelivery(tx, d, 'DELIVERED', {
+      actor: input.actor,
+      now,
+      at: input.at ?? null,
+      patch: input.patch,
+    });
+    if (cod) {
+      // FR-DEL-032: the partner now holds the customer's cash.
+      await tx.payment.updateMany({
+        where: { orderId: d.orderId, method: 'COD', status: 'PENDING' },
+        data: {
+          status: 'COLLECTED',
+          capturedAmount: order.payableAmount,
+          capturedAt: now,
+          version: { increment: 1 },
+        },
+      });
+      await this.ledger.post(tx, {
+        type: 'COD_COLLECTION',
+        referenceType: 'order',
+        referenceId: d.orderId,
+        description: `Cash collected for order ${order.number}`,
+        entries: [
+          {
+            ownerType: 'PARTNER',
+            ownerId: partnerId,
+            type: 'PARTNER_CASH_IN_HAND',
+            amount: order.payableAmount,
+          },
+          {
+            ownerType: 'ORDER',
+            ownerId: d.orderId,
+            type: 'CUSTOMER_ORDER_LIABILITY',
+            amount: -order.payableAmount,
+          },
+        ],
+      });
+    }
+    await this.settlement.settle(tx, delivered);
+    await this.earnings.recordDelivered(tx, done);
+    await tx.partnerStats.update({
+      where: { partnerId },
+      data: { deliveriesToday: { increment: 1 }, lastDeliveryCompletedAt: now },
+    });
+  }
+
+  /** The order of an admin action, locked with its delivery (which must be on its way). */
+  private async onTheWay(tx: Tx, orderId: string) {
+    const d0 = await tx.delivery.findUnique({ where: { orderId }, select: { id: true } });
+    if (!d0)
+      throw new AppError('ORDER_STATE_CONFLICT', { message: 'This order has no delivery yet.' });
+    const d = await lockDelivery(tx, d0.id);
+    if (!['EN_ROUTE_TO_CUSTOMER', 'AT_CUSTOMER'].includes(d.status) || !d.partnerId)
+      throw new AppError('ORDER_STATE_CONFLICT', {
+        message: 'Only an order that has been picked up can be closed this way.',
+      });
+    return { d, order: await this.transitions.lock(tx, orderId) };
+  }
+
+  /**
+   * API-ADM-063 (T15 by A ★, D07): ops closes the handover for the partner with
+   * an evidence note; settlement and pay are the same as a partner completion.
+   */
+  async completeByAdmin(
+    adminUserId: string,
+    orderId: string,
+    input: { note: string; cashCollected?: boolean | undefined },
+  ) {
+    const partnerId = await this.prisma.$transaction(async (tx) => {
+      const { d, order } = await this.onTheWay(tx, orderId);
+      if (order.paymentMethod === 'COD' && !input.cashCollected)
+        throw new AppError('VALIDATION_ERROR', {
+          details: [
+            {
+              path: 'cashCollected',
+              code: 'REQUIRED',
+              message: 'Confirm the partner collected the cash for this order.',
+            },
+          ],
+        });
+      await this.finish(tx, d, order, {
+        actor: { type: 'ADMIN', id: adminUserId },
+        reason: input.note,
+        patch: { proofType: 'ADMIN' },
+      });
+      return d.partnerId!;
+    });
+    await this.afterTrip(partnerId);
+    return { orderId, status: 'DELIVERED' as const };
+  }
+
+  /**
+   * API-ADM-064 (T16 by A ★, D10): the delivery failed after pickup. COD is not
+   * collected; the money side (refund per cause, BR-REFUND-001) is the orders
+   * module's `onFailed`; the partner is paid for the trip (BR-EARN-007).
+   * Returns the refunds to submit once committed.
+   */
+  async failByAdmin(
+    adminUserId: string,
+    orderId: string,
+    input: { cause: 'DELIVERY_FAILED' | 'CUSTOMER_UNREACHABLE'; note: string },
+  ): Promise<{ refundIds: string[] }> {
+    if (!this.onFailed) throw new Error('failed-delivery handler not registered');
+    const onFailed = this.onFailed;
+    const actor = { type: 'ADMIN' as const, id: adminUserId };
+    let refundIds: string[] = [];
+    const partnerId = await this.prisma.$transaction(async (tx) => {
+      const { d, order } = await this.onTheWay(tx, orderId);
+      await this.transitions.apply(tx, {
+        orderId,
+        to: 'FAILED',
+        actor,
+        reason: input.note,
+        failureReason: input.cause,
+      });
+      await moveDelivery(tx, d, 'FAILED', {
+        actor,
+        now: this.now(),
+        patch: { failureReason: `${input.cause}: ${input.note}`.slice(0, 300) },
+      });
+      await tx.payment.updateMany({
+        where: { orderId, method: 'COD', status: 'PENDING' },
+        data: { status: 'CANCELLED', version: { increment: 1 } },
+      });
+      refundIds = await onFailed(tx, order, input.cause, actor);
+      await this.dispatch.onCompensate?.(tx, d, 'AFTER_PICKUP');
+      return d.partnerId!;
+    });
+    await this.afterTrip(partnerId);
+    return { refundIds };
   }
 
   /** FR-DEL-030: 4-digit code, at most 5 tries per order, then support takes over. */

@@ -17,6 +17,7 @@ import {
   type Paid,
 } from './cancellation-policy';
 import type { OrderEffects } from './order-effects';
+import { OrderSettlement } from './settlement';
 import type { OrderTransitions } from './transition.service';
 import type { OrderActor } from './transitions';
 
@@ -280,8 +281,12 @@ export class OrderCancellationService {
         fault = 'CUSTOMER';
       } else {
         if (!input.fault) throw new Error('fault is required for non-customer cancellations');
-        // Everyone but the customer cancels with a full refund (BR-REFUND-001).
-        allocation = allocate(await this.paid(tx, order), 0);
+        // Everyone but the customer cancels with a full refund (BR-REFUND-001), unless ops
+        // attributes the cancellation to the customer: then the customer's policy fee applies.
+        allocation = allocate(
+          await this.paid(tx, order),
+          input.fault === 'CUSTOMER' ? terms.policyFee : 0,
+        );
         fault = input.fault;
       }
 
@@ -413,6 +418,98 @@ export class OrderCancellationService {
     if (pausedBranch)
       this.logger.warn({ orderId: input.orderId }, 'branch auto-paused (BR-REST-009)');
     return result;
+  }
+
+  /**
+   * T16 money (BR-REFUND-001), in the caller's transaction. Customer unreachable
+   * on a prepaid order: the restaurant and platform are paid as if delivered and
+   * only the tip goes back. A partner/platform failure: everything paid goes back
+   * and the platform pays the restaurant for the food. COD collected nothing, so
+   * any wallet part goes back and the platform pays for the food. Partner-fault
+   * costs stay with the platform until a dispute review (FR-REFUND-009).
+   * Returns the refunds to submit after commit.
+   */
+  async failedDelivery(
+    tx: Tx,
+    order: Order,
+    cause: 'DELIVERY_FAILED' | 'CUSTOMER_UNREACHABLE',
+    actor: { type: OrderActor; id?: string | null },
+  ): Promise<string[]> {
+    const paid = await this.paid(tx, order);
+    const { food } = await this.foodValue(tx, order);
+    const keep = cause === 'CUSTOMER_UNREACHABLE' && order.paymentMethod !== 'COD';
+    if (keep) {
+      await new OrderSettlement(this.ledger).settle(tx, order);
+      // The tip leaves the liability now, so its refund (charged to the platform once settled) nets to zero.
+      if (order.tipAmount > 0)
+        await this.ledger.post(tx, {
+          type: 'ADJUSTMENT',
+          referenceType: 'order_failure',
+          referenceId: order.id,
+          description: `Tip returned for undelivered order ${order.number}`,
+          entries: [
+            {
+              ownerType: 'ORDER',
+              ownerId: order.id,
+              type: 'CUSTOMER_ORDER_LIABILITY',
+              amount: order.tipAmount,
+            },
+            {
+              ownerType: 'PLATFORM',
+              ownerId: null,
+              type: 'PLATFORM_REFUND_EXPENSE',
+              amount: -order.tipAmount,
+            },
+          ],
+        });
+    } else if (food > 0) {
+      await this.ledger.post(tx, {
+        type: 'ADJUSTMENT',
+        referenceType: 'order_failure',
+        referenceId: order.id,
+        description: `Food compensation for undelivered order ${order.number}`,
+        entries: [
+          { ownerType: 'PLATFORM', ownerId: null, type: 'PLATFORM_REFUND_EXPENSE', amount: food },
+          {
+            ownerType: 'RESTAURANT',
+            ownerId: order.restaurantId,
+            type: 'RESTAURANT_PAYABLE',
+            amount: -food,
+          },
+        ],
+      });
+    }
+    const total = paid.online.reduce((s, p) => s + p.amount, 0) + paid.wallet;
+    const allocation = allocate(paid, keep ? total - paid.tip : 0);
+    const refundIds: string[] = [];
+    const base = {
+      orderId: order.id,
+      reasonCode: `FAILED_${cause}`,
+      initiatorType: actor.type,
+      initiatorId: actor.id ?? null,
+      costBearer: 'PLATFORM' as const,
+    };
+    for (const r of allocation.toSource) {
+      const refund = await this.refunds.create(tx, {
+        ...base,
+        paymentId: r.paymentId,
+        amount: r.amount,
+        destination: 'SOURCE',
+      });
+      refundIds.push(refund.id);
+    }
+    if (allocation.toWallet > 0) {
+      const refund = await this.refunds.create(tx, {
+        ...base,
+        paymentId: null,
+        amount: allocation.toWallet,
+        destination: 'WALLET',
+      });
+      refundIds.push(refund.id);
+    }
+    if (refundIds.length > 0)
+      await tx.order.update({ where: { id: order.id }, data: { refundStatus: 'PENDING' } });
+    return refundIds;
   }
 
   /** JOB-ORD-002 timeout (T08b): full refund, fault RESTAURANT. */
