@@ -83,6 +83,12 @@ describe('worker', () => {
       files: { cleanupOrphans: async () => 0 },
       branchOps: { sweep: async () => ({ resumed: 0, reopened: 0 }) },
       partners: { sweep: async () => ({ offline: 0, resumed: 0 }) },
+      dispatch: {
+        start: async () => {},
+        expire: async () => {},
+        retry: async () => {},
+        sweep: async () => 0,
+      },
       logger: silent,
     }).find((r) => r.queue === 'notifications');
     const message: Message = {
@@ -139,6 +145,12 @@ describe('worker', () => {
       files: { cleanupOrphans: async () => 0 },
       branchOps: { sweep: async () => ({ resumed: 0, reopened: 0 }) },
       partners: { sweep: async () => ({ offline: 0, resumed: 0 }) },
+      dispatch: {
+        start: async () => {},
+        expire: async () => {},
+        retry: async () => {},
+        sweep: async () => 0,
+      },
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: ANONYMIZE_DUE_USERS_JOB } as never);
@@ -168,6 +180,12 @@ describe('worker', () => {
       files: { cleanupOrphans: async () => 0 },
       branchOps: { sweep: async () => ({ resumed: 0, reopened: 0 }) },
       partners: { sweep: async () => ({ offline: 0, resumed: 0 }) },
+      dispatch: {
+        start: async () => {},
+        expire: async () => {},
+        retry: async () => {},
+        sweep: async () => 0,
+      },
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: EXPIRE_IDLE_CARTS_JOB } as never);
@@ -194,6 +212,12 @@ describe('worker', () => {
       files: { cleanupOrphans: async () => 0 },
       branchOps: { sweep: async () => ({ resumed: 0, reopened: 0 }) },
       partners: { sweep: async () => ({ offline: 0, resumed: 0 }) },
+      dispatch: {
+        start: async () => {},
+        expire: async () => {},
+        retry: async () => {},
+        sweep: async () => 0,
+      },
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await expect(maintenance!.processor({ name: VERIFY_LEDGER_JOB } as never)).rejects.toThrow(
@@ -224,6 +248,12 @@ describe('worker', () => {
       files: { cleanupOrphans: async () => 0 },
       branchOps: { sweep: async () => ({ resumed: 0, reopened: 0 }) },
       partners: { sweep: async () => ({ offline: 0, resumed: 0 }) },
+      dispatch: {
+        start: async () => {},
+        expire: async () => {},
+        retry: async () => {},
+        sweep: async () => 0,
+      },
       logger: silent,
     }).find((r) => r.queue === 'orders')!;
     await orders.processor({ name: 'payment-ttl', data: { orderId: 'o1' } } as never);

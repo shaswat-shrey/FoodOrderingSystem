@@ -1,3 +1,4 @@
+import { DispatchService, registerDispatchConsumers } from './modules/dispatch';
 import type { PrismaClient } from '@fos/db';
 import type { Env } from './config/env';
 import { appOrigins } from './config/env';
@@ -270,6 +271,27 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  const dispatch = new DispatchService(
+    prisma,
+    redis.core,
+    presence,
+    partnerAvailability,
+    ledger,
+    settings,
+    jobs,
+    clock,
+    logger,
+  );
+  partnerAvailability.onLeave = (partnerId) => dispatch.withdrawFor(partnerId);
+  partnerAvailability.onIdle = (partnerId) => dispatch.partnerIdle(partnerId);
+  // BR-DEL-003: nobody would deliver it — cancel as a platform fault with a full refund.
+  dispatch.onNoPartner = (orderId) =>
+    orderCancellation
+      .cancel({ orderId, actor: { type: 'SYSTEM' }, reasonCode: 'NO_PARTNER', fault: 'PLATFORM' })
+      .then(() => undefined)
+      .catch((error: unknown) =>
+        logger.warn({ err: error, orderId }, 'no-partner cancellation skipped'),
+      );
   const restaurantOrders = new RestaurantOrdersService(
     prisma,
     orderTransitions,
@@ -281,6 +303,7 @@ export function createContainer(input: ContainerInput) {
   );
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
   registerNotificationConsumers(outboxRelay, { prisma, notifications });
+  registerDispatchConsumers(outboxRelay, dispatch);
   return {
     env,
     prisma,
@@ -344,6 +367,7 @@ export function createContainer(input: ContainerInput) {
     partnerOnboarding,
     presence,
     partnerAvailability,
+    dispatch,
     restaurantOrders,
     outboxRelay,
     appOrigins: appOrigins(env),

@@ -15,6 +15,7 @@ import { supportRouter } from './modules/support';
 import { notificationsRouter } from './modules/notifications';
 import { branchRouter, menuRouter, merchantRouter, staffRouter } from './modules/merchant';
 import { partnerRouter } from './modules/partners';
+import { partnerOfferRouter } from './modules/dispatch';
 import { fileUploadRouter, filesRouter, localMediaRouter } from './modules/files';
 import { usersRouter } from './modules/users';
 
@@ -55,6 +56,7 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use(menuRouter(container));
   api.use(staffRouter(container));
   api.use(partnerRouter(container));
+  api.use(partnerOfferRouter(container));
   api.use(merchantOrdersRouter(container));
   api.use('/checkout/sessions', checkoutRouter(container));
   api.use('/payments/methods', paymentMethodsRouter(container));

@@ -7,6 +7,8 @@ import {
   BranchOpsService,
   BranchRepository,
   CartExpiry,
+  DispatchService,
+  registerDispatchConsumers,
   EstimatedRouting,
   createStorageProvider,
   FilesService,
@@ -113,6 +115,37 @@ async function main(): Promise<void> {
     prisma,
     notifications: new NotificationService(prisma, jobs, clock, logger),
   });
+  const presence = new PresenceStore(core);
+  const partnerAvailability = new PartnerAvailabilityService(
+    prisma,
+    presence,
+    new ServiceabilityService(prisma, new BranchRepository(prisma), routing, settings, clock),
+    ledger,
+    settings,
+    clock,
+    logger,
+  );
+  const dispatch = new DispatchService(
+    prisma,
+    core,
+    presence,
+    partnerAvailability,
+    ledger,
+    settings,
+    jobs,
+    clock,
+    logger,
+  );
+  partnerAvailability.onLeave = (partnerId) => dispatch.withdrawFor(partnerId);
+  partnerAvailability.onIdle = (partnerId) => dispatch.partnerIdle(partnerId);
+  dispatch.onNoPartner = (orderId) =>
+    cancellations
+      .cancel({ orderId, actor: { type: 'SYSTEM' }, reasonCode: 'NO_PARTNER', fault: 'PLATFORM' })
+      .then(() => undefined)
+      .catch((error: unknown) =>
+        logger.warn({ err: error, orderId }, 'no-partner cancellation skipped'),
+      );
+  registerDispatchConsumers(outbox, dispatch);
   const registrations = buildRegistrations({
     sink,
     anonymizer,
@@ -122,15 +155,8 @@ async function main(): Promise<void> {
     refunds,
     orderJobs,
     outbox,
-    partners: new PartnerAvailabilityService(
-      prisma,
-      new PresenceStore(core),
-      new ServiceabilityService(prisma, new BranchRepository(prisma), routing, settings, clock),
-      ledger,
-      settings,
-      clock,
-      logger,
-    ),
+    partners: partnerAvailability,
+    dispatch,
     branchOps: new BranchOpsService(
       prisma,
       new BranchRepository(prisma),

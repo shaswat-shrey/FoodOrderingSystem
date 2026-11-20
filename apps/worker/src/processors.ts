@@ -16,6 +16,8 @@ import {
   type AccountAnonymizer,
   type CartExpiry,
   type BranchOpsService,
+  DISPATCH_JOBS,
+  type DispatchService,
   type FilesService,
   type PartnerAvailabilityService,
   type LedgerService,
@@ -56,6 +58,7 @@ export const OUTBOX_HEALTH_JOB = 'outbox-health';
 export const CLEANUP_ORPHAN_FILES_JOB = 'cleanup-orphan-files';
 export const SWEEP_BRANCH_STATUS_JOB = 'sweep-branch-status';
 export const SWEEP_PARTNERS_JOB = 'sweep-partners';
+export const SWEEP_DISPATCH_JOB = 'sweep-dispatch';
 
 /** Repeatable jobs (BullMQ job schedulers), registered idempotently at boot. */
 export const SCHEDULES = [
@@ -81,6 +84,8 @@ export const SCHEDULES = [
   { queue: 'maintenance', id: SWEEP_BRANCH_STATUS_JOB, everyMs: 5 * 60 * 1000 },
   // JOB-DP-001 (BR-DEL-006): silent or out-of-zone partners go offline; breaks end.
   { queue: 'maintenance', id: SWEEP_PARTNERS_JOB, everyMs: 60 * 1000 },
+  // Self-healing dispatch: lost start/timeout jobs (cf. JOB-ORD-007).
+  { queue: 'maintenance', id: SWEEP_DISPATCH_JOB, everyMs: 60 * 1000 },
 ] as const satisfies { queue: QueueName; id: string; everyMs: number }[];
 
 export interface JobServices {
@@ -96,6 +101,7 @@ export interface JobServices {
   files: Pick<FilesService, 'cleanupOrphans'>;
   branchOps: Pick<BranchOpsService, 'sweep'>;
   partners: Pick<PartnerAvailabilityService, 'sweep'>;
+  dispatch: Pick<DispatchService, 'start' | 'expire' | 'retry' | 'sweep'>;
   logger: Logger;
 }
 
@@ -113,6 +119,7 @@ export function buildRegistrations({
   files,
   branchOps,
   partners,
+  dispatch,
   logger,
 }: JobServices): ProcessorRegistration[] {
   const maintenance: Record<string, () => Promise<void>> = {
@@ -144,6 +151,9 @@ export function buildRegistrations({
     [EXPIRE_CHECKOUT_SESSIONS_JOB]: async () => {
       const count = await cartExpiry.expireSessions();
       if (count > 0) logger.info({ count }, 'expired checkout sessions');
+    },
+    [SWEEP_DISPATCH_JOB]: async () => {
+      await dispatch.sweep();
     },
     [SWEEP_PARTNERS_JOB]: async () => {
       await partners.sweep();
@@ -183,6 +193,19 @@ export function buildRegistrations({
           return;
         }
         await orderJobs.run(job.name, String((job.data as { orderId: string }).orderId));
+      },
+    },
+    {
+      // JOB-DISP-001…003: dispatch start, offer timeout, escalated re-search.
+      queue: 'dispatch',
+      concurrency: 20,
+      processor: async (job) => {
+        const data = job.data as { deliveryId?: string; assignmentId?: string };
+        if (job.name === DISPATCH_JOBS.start) return dispatch.start(String(data.deliveryId));
+        if (job.name === DISPATCH_JOBS.offerTimeout)
+          return dispatch.expire(String(data.assignmentId));
+        if (job.name === DISPATCH_JOBS.retry) return dispatch.retry(String(data.deliveryId));
+        throw new Error(`Unknown dispatch job: ${job.name}`);
       },
     },
     {
