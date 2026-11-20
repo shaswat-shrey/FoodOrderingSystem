@@ -60,7 +60,9 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['../*/*', '!../*/index', '!../*/index.js'],
+              // ../<other-module>/<anything but index> — the shared ../../platform and
+              // ../../config layers stay importable.
+              regex: '^\\.\\./(?!\\.\\.)[^/]+/(?!index(\\.js)?$).+',
               message: "Use the other module's public index.ts (NFR-MAINT-001).",
             },
             { group: ['@fos/*/src/*'], message: 'Import from the package entry point.' },
