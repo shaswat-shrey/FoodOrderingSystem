@@ -9,5 +9,12 @@ export {
 } from './serviceability.service';
 export { catalogRouter } from './catalog.routes';
 export { favoriteRestaurantIds } from './favorites';
-export { MenuService, toCard, type ItemCard, type RawMenu } from './menu.service';
+export {
+  blocked,
+  MenuService,
+  toCard,
+  type ItemCard,
+  type RawItem,
+  type RawMenu,
+} from './menu.service';
 export { branchCard, ratingView } from './views';

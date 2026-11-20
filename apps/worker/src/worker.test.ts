@@ -4,11 +4,12 @@ import { loadWorkerEnv } from './env';
 import { createHealthServer } from './health-server';
 import {
   ANONYMIZE_DUE_USERS_JOB,
+  EXPIRE_IDLE_CARTS_JOB,
   buildRegistrations,
   createMessageSink,
   SCHEDULES,
 } from './processors';
-import type { AccountAnonymizer } from '@fos/api/jobs';
+import type { AccountAnonymizer, CartExpiry } from '@fos/api/jobs';
 import { createLogger } from '@fos/api/platform';
 import type { Message, MessageSink } from '@fos/api/notifications';
 
@@ -62,6 +63,7 @@ describe('worker', () => {
     const notifications = buildRegistrations({
       sink,
       anonymizer: fakeAnonymizer(0),
+      cartExpiry: { run: async () => 0 } as unknown as CartExpiry,
       logger: silent,
     }).find((r) => r.queue === 'notifications');
     const message: Message = {
@@ -87,13 +89,34 @@ describe('worker', () => {
     const maintenance = buildRegistrations({
       sink: { deliver: async () => {} },
       anonymizer,
+      cartExpiry: { run: async () => 0 } as unknown as CartExpiry,
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: ANONYMIZE_DUE_USERS_JOB } as never);
     expect(runs).toBe(1);
+    await expect(maintenance!.processor({ name: 'no-such-job' } as never)).rejects.toThrow(
+      /Unknown/,
+    );
     expect(SCHEDULES).toContainEqual({
       queue: 'maintenance',
       id: ANONYMIZE_DUE_USERS_JOB,
+      everyMs: 3_600_000,
+    });
+  });
+
+  it('JOB-CART-001: expires idle carts hourly', async () => {
+    let runs = 0;
+    const maintenance = buildRegistrations({
+      sink: { deliver: async () => {} },
+      anonymizer: fakeAnonymizer(0),
+      cartExpiry: { run: async () => (runs += 1) } as unknown as CartExpiry,
+      logger: silent,
+    }).find((r) => r.queue === 'maintenance');
+    await maintenance!.processor({ name: EXPIRE_IDLE_CARTS_JOB } as never);
+    expect(runs).toBe(1);
+    expect(SCHEDULES).toContainEqual({
+      queue: 'maintenance',
+      id: EXPIRE_IDLE_CARTS_JOB,
       everyMs: 3_600_000,
     });
   });

@@ -155,7 +155,7 @@ suite('menu (API-MENU-001…007, FR-MENUC-002…008)', () => {
       .get(`/branches/${koramangala}/menu`)
       .set('If-None-Match', etag);
     expect(again.status).toBe(304);
-    expect(await ctx.redis.cache.keys(`menu:v1:${koramangala}:*`)).toHaveLength(1);
+    expect(await ctx.redis.cache.keys(`menu:v2:${koramangala}:*`)).toHaveLength(1);
   });
 
   it('greys out unavailable items and brings them back when the hold expires (FR-MENUC-005, BR-MENU-007)', async () => {

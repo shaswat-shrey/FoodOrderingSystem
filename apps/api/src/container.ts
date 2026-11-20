@@ -9,7 +9,9 @@ import { AuditService } from './modules/audit';
 import { BranchRepository, MenuService, ServiceabilityService } from './modules/catalog';
 import { SettingsService } from './modules/config';
 import { AddressService, FavoritesService, ProfileService } from './modules/customers';
+import { CartService, noOffers, QuoteBuilder } from './modules/checkout';
 import { DiscoveryService } from './modules/discovery';
+import { PricingConfigService } from './modules/pricing';
 import { SearchService } from './modules/search';
 import {
   EstimatedRouting,
@@ -85,6 +87,9 @@ export function createContainer(input: ContainerInput) {
   );
   const search = new SearchService(prisma, discovery, menus, settings, clock);
   const favorites = new FavoritesService(prisma, discovery, branches, menus, clock);
+  const pricingConfig = new PricingConfigService(prisma);
+  const quotes = new QuoteBuilder(serviceability, routing, pricingConfig, clock);
+  const cart = new CartService(prisma, branches, menus, quotes, noOffers, settings, clock);
   return {
     env,
     prisma,
@@ -110,6 +115,9 @@ export function createContainer(input: ContainerInput) {
     discovery,
     search,
     favorites,
+    pricingConfig,
+    quotes,
+    cart,
     appOrigins: appOrigins(env),
   };
 }

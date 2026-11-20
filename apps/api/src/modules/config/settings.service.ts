@@ -33,6 +33,17 @@ export const SETTING_DEFINITIONS = {
   'address.maxPerUser': { schema: z.number().int().min(1).max(100), default: 20 },
   /** FR-ADDR-006: warn when the typed address geocodes this far from the pin. */
   'address.pinWarningMeters': { schema: z.number().int().min(50).max(5000), default: 500 },
+  /** BR-PRICE-011: platform cap on an order's total (paise). */
+  'order.maxOrderAmount': {
+    schema: z.number().int().min(10_000).max(100_000_000),
+    default: 1_000_000,
+  },
+  /** BR-ORDER-001: checkout session lifetime. */
+  'checkout.sessionTtlSeconds': { schema: z.number().int().min(60).max(3600), default: 600 },
+  /** BR-PAY-002 */
+  'cod.maxOrderAmount': { schema: z.number().int().min(0).max(10_000_000), default: 150_000 },
+  /** BR-CART-002 */
+  'cart.expiryDays': { schema: z.number().int().min(1).max(90), default: 7 },
   /** FR-SRCH-005. */
   'search.historyLimit': { schema: z.number().int().min(0).max(100), default: 20 },
 } as const;

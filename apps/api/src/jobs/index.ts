@@ -2,3 +2,4 @@
 // business logic lives in one place (SYSTEM-ARCHITECTURE §14).
 export { AccountAnonymizer } from '../modules/auth/account-anonymizer';
 export { AuditService } from '../modules/audit';
+export { CartExpiry } from '../modules/checkout/cart-expiry';

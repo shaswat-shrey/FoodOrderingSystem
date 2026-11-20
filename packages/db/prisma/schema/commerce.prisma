@@ -116,15 +116,17 @@ model Cart {
 /// Line identity = config_hash of (item, variant, sorted options, instructions) — BR-CART-004.
 /// SQL: CHECK quantity 1–20.
 model CartItem {
-  id           String   @id @default(uuid(7)) @db.Uuid
-  cartId       String   @map("cart_id") @db.Uuid
-  foodItemId   String   @map("food_item_id") @db.Uuid
-  variantId    String?  @map("variant_id") @db.Uuid
-  quantity     Int
-  instructions String?  @db.VarChar(250)
-  configHash   String   @map("config_hash") @db.Char(64)
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id             String   @id @default(uuid(7)) @db.Uuid
+  cartId         String   @map("cart_id") @db.Uuid
+  foodItemId     String   @map("food_item_id") @db.Uuid
+  variantId      String?  @map("variant_id") @db.Uuid
+  quantity       Int
+  instructions   String?  @db.VarChar(250)
+  configHash     String   @map("config_hash") @db.Char(64)
+  /// Unit price the customer last saw, to flag PRICE_CHANGED instead of silently repricing (BR-CART-005).
+  unitAmountSeen Int?     @map("unit_amount_seen")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   cart     Cart             @relation(fields: [cartId], references: [id], onDelete: Cascade)
   foodItem FoodItem         @relation(fields: [foodItemId], references: [id])

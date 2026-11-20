@@ -33,7 +33,7 @@ interface RawGroup {
   options: RawOption[];
 }
 
-interface RawItem {
+export interface RawItem {
   id: string;
   categoryId: string;
   name: string;
@@ -48,6 +48,8 @@ interface RawItem {
   isRecommended: boolean;
   isTodaysSpecial: boolean;
   isCombo: boolean;
+  /** Per-item packaging override (BR-PRICE-006). */
+  packagingFeeAmount: number | null;
   tags: string[];
   allergens: string[];
   ingredients: string[];
@@ -103,7 +105,7 @@ export class MenuService {
 
   /** FR-MENUC-008: served from cache keyed by branch + menu version; database on miss or cache outage. */
   async raw(branch: BranchRecord): Promise<RawMenu> {
-    const key = `menu:v1:${branch.id}:${branch.menuVersion}`;
+    const key = `menu:v2:${branch.id}:${branch.menuVersion}`;
     try {
       const hit = await this.cache.get(key);
       if (hit) return JSON.parse(hit) as RawMenu;
@@ -186,6 +188,7 @@ export class MenuService {
         isRecommended: i.isRecommended,
         isTodaysSpecial: i.isTodaysSpecial,
         isCombo: i.isCombo,
+        packagingFeeAmount: i.packagingFeeAmount,
         tags: i.tags.map((t) => t.tag).sort(),
         allergens: i.allergens.map((a) => a.allergen).sort(),
         ingredients: i.ingredients.map((x) => x.name),
@@ -221,7 +224,8 @@ export class MenuService {
  * Resolution (pure)
  * ------------------------------------------------------------------------- */
 
-const blocked = (a: RawAvailability | null, now: Date) =>
+/** Marked unavailable and not yet back (BR-MENU-007). */
+export const blocked = (a: RawAvailability | null, now: Date) =>
   Boolean(a && !a.isAvailable && (!a.unavailableUntil || new Date(a.unavailableUntil) > now));
 
 /** BR-MENU-007 at read time. Item schedules (CORE) are not applied yet. */

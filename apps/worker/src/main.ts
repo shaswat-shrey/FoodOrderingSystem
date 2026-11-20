@@ -1,6 +1,6 @@
 import { Queue } from 'bullmq';
 import { createPrismaClient, pingDatabase } from '@fos/db';
-import { AccountAnonymizer, AuditService } from '@fos/api/jobs';
+import { AccountAnonymizer, AuditService, CartExpiry } from '@fos/api/jobs';
 import { closeRedis, connectRedis, createLogger, pingRedis } from '@fos/api/platform';
 import { loadWorkerEnv } from './env';
 import { createHealthServer } from './health-server';
@@ -23,6 +23,7 @@ async function main(): Promise<void> {
   const registrations = buildRegistrations({
     sink: createMessageSink(env, logger),
     anonymizer,
+    cartExpiry: new CartExpiry(prisma, clock),
     logger,
   });
   const workers = startWorkers(registrations, core, logger);

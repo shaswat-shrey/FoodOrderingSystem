@@ -2,6 +2,7 @@ import type { Router } from 'express';
 import type { Container } from './container';
 import { authRouter } from './modules/auth';
 import { catalogRouter, geoRouter } from './modules/catalog';
+import { cartRouter } from './modules/checkout';
 import { addressesRouter, favoritesRouter } from './modules/customers';
 import { discoveryRouter } from './modules/discovery';
 import { searchHistoryRouter, searchRouter } from './modules/search';
@@ -25,5 +26,6 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use('/geo', geoRouter(container));
   api.use('/discovery', discoveryRouter(container));
   api.use('/search', searchRouter(container));
+  api.use('/cart', cartRouter(container));
   api.use(catalogRouter(container));
 }
