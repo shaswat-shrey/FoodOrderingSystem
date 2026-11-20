@@ -161,13 +161,18 @@ export class WalletService {
       ],
     });
     if (posted.duplicate) return;
+    await this.consumeLots(tx, input.userId, input.amount);
+  }
+
+  /** Spends credit lots, earliest-expiring first (BR-WALLET-003). */
+  private async consumeLots(tx: Tx, userId: string, amount: number): Promise<void> {
     const lots = await tx.$queryRaw<{ id: string; remaining: number }[]>`
       SELECT l.id, l.remaining FROM wallet_credit_lots l
       JOIN ledger_accounts a ON a.id = l.account_id
-      WHERE a.owner_type = 'CUSTOMER' AND a.owner_id = ${input.userId}::uuid AND a.type = 'CUSTOMER_WALLET' AND l.remaining > 0
+      WHERE a.owner_type = 'CUSTOMER' AND a.owner_id = ${userId}::uuid AND a.type = 'CUSTOMER_WALLET' AND l.remaining > 0
       ORDER BY l.expires_at ASC NULLS LAST, l.created_at ASC
       FOR UPDATE OF l`;
-    let left = input.amount;
+    let left = amount;
     for (const lot of lots) {
       if (left === 0) break;
       const take = Math.min(lot.remaining, left);
@@ -177,6 +182,57 @@ export class WalletService {
       });
       left -= take;
     }
+  }
+
+  /**
+   * Admin wallet adjustment (FR-ADMIN-010, API-ADM-016): a positive amount is a
+   * goodwill credit (expiring like other goodwill credit unless `expiresAt` is
+   * given); a negative amount takes money back, never below zero.
+   */
+  async adjust(
+    tx: Tx,
+    input: {
+      userId: string;
+      amount: number;
+      referenceId: string;
+      description: string;
+      createdBy: string;
+      expiresAt?: Date | null | undefined;
+    },
+  ): Promise<void> {
+    if (input.amount > 0) {
+      await this.credit(tx, {
+        userId: input.userId,
+        amount: input.amount,
+        source: 'GOODWILL',
+        referenceType: 'wallet_adjustment',
+        referenceId: input.referenceId,
+        description: input.description,
+        createdBy: input.createdBy,
+        ...(input.expiresAt !== undefined ? { expiresAt: input.expiresAt } : {}),
+      });
+      return;
+    }
+    const amount = -input.amount;
+    if (amount <= 0)
+      throw new AppError('VALIDATION_ERROR', { message: 'Adjustment must not be zero.' });
+    await tx.$queryRaw`SELECT id FROM ledger_accounts WHERE owner_type = 'CUSTOMER' AND owner_id = ${input.userId}::uuid AND type = 'CUSTOMER_WALLET' FOR UPDATE`;
+    if ((await this.available(input.userId, tx)) < amount)
+      throw new AppError('INSUFFICIENT_WALLET_BALANCE', {
+        message: 'The wallet holds less than this amount.',
+      });
+    await this.ledger.post(tx, {
+      type: 'ADJUSTMENT',
+      referenceType: 'wallet_adjustment',
+      referenceId: input.referenceId,
+      description: input.description,
+      createdBy: input.createdBy,
+      entries: [
+        { ...wallet(input.userId), amount },
+        { ownerType: 'PLATFORM', ownerId: null, type: 'PLATFORM_REFUND_EXPENSE', amount: -amount },
+      ],
+    });
+    await this.consumeLots(tx, input.userId, amount);
   }
 
   /** Order failed or cancelled before payment: the hold returns to the wallet. */

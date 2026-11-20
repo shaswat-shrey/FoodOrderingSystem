@@ -96,6 +96,7 @@ export const ERROR_CODES = {
   NOT_FOUND: 404,
   ITEM_NOT_FOUND: 404,
   CONFLICT_STALE_VERSION: 409,
+  ACCOUNT_STATE_CONFLICT: 409,
   IDEMPOTENCY_KEY_REUSED: 409,
   PAYLOAD_TOO_LARGE: 413,
   UNSUPPORTED_MEDIA_TYPE: 415,
@@ -161,6 +162,7 @@ export const DEFAULT_ERROR_MESSAGES: Partial<Record<ErrorCode, string>> = {
   ACCOUNT_DELETION_BLOCKED:
     'Your account can’t be deleted while you have open orders or a balance.',
   CONFLICT_STALE_VERSION: 'Someone else changed this. Reload and try again.',
+  ACCOUNT_STATE_CONFLICT: 'This account is already in that state.',
   IDEMPOTENCY_KEY_REUSED: 'This request was already sent with different details.',
   PAYLOAD_TOO_LARGE: 'The request is too large.',
   UNSUPPORTED_MEDIA_TYPE: 'This content type is not supported.',

@@ -89,6 +89,7 @@ import {
   PresenceStore,
 } from './modules/partners';
 import { fieldCipherFrom } from './platform/crypto';
+import { AdminMerchantsService, AdminPartnersService, AdminUsersService } from './modules/admin';
 import {
   NotificationService,
   registerNotificationConsumers,
@@ -389,6 +390,29 @@ export function createContainer(input: ContainerInput) {
     },
   };
   registerReviewConsumers(outboxRelay, reviews);
+  const adminPartners = new AdminPartnersService(
+    prisma,
+    partnerOnboarding,
+    partnerAvailability,
+    partnerFinance,
+    presence,
+    ledger,
+    audit,
+  );
+  const adminUsers = new AdminUsersService(prisma, sessions, wallet, adminPartners, audit, clock);
+  const adminMerchants = new AdminMerchantsService(
+    prisma,
+    onboarding,
+    restaurantProfile,
+    pricingConfig,
+    permissionChanges,
+    orderCancellation,
+    files,
+    fieldCipher,
+    audit,
+    clock,
+    logger,
+  );
   return {
     env,
     prisma,
@@ -463,6 +487,9 @@ export function createContainer(input: ContainerInput) {
     liveTracking,
     partnerSocket,
     restaurantOrders,
+    adminUsers,
+    adminMerchants,
+    adminPartners,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

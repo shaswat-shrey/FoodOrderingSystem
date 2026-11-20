@@ -303,7 +303,13 @@ export class PartnerOnboardingService {
   async decide(
     reviewerId: string,
     partnerId: string,
-    input: { decision: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED'; reason?: string },
+    input: {
+      decision: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED';
+      reason?: string;
+      /** Document type → what to fix (shown on the document). */
+      documentNotes?: Partial<Record<PartnerDocumentType, string>>;
+    },
+    meta: { sessionId?: string | null; actorRoles?: string[] } = {},
   ) {
     const userId = await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM delivery_partners WHERE id = ${partnerId}::uuid FOR UPDATE`;
@@ -339,9 +345,15 @@ export class PartnerOnboardingService {
           where: { id: partnerId },
           data: {
             onboardingStatus: input.decision,
-            ...(input.decision === 'REJECTED' ? { rejectedReason: input.reason ?? null } : {}),
+            // The applicant sees why (rejected) or what to change (changes requested).
+            rejectedReason: input.reason ?? null,
           },
         });
+        for (const [type, note] of Object.entries(input.documentNotes ?? {}))
+          await tx.partnerDocument.updateMany({
+            where: { partnerId, type: type as PartnerDocumentType },
+            data: { reviewerNote: note },
+          });
       }
       await writeOutbox(tx, {
         aggregateType: 'partner',
@@ -356,7 +368,13 @@ export class PartnerOnboardingService {
           targetType: 'partner',
           targetId: partnerId,
           actorUserId: reviewerId,
+          actorRoles: meta.actorRoles ?? [],
+          sessionId: meta.sessionId ?? null,
+          reason: input.reason ?? null,
+          before: { status: p.onboardingStatus },
           after: { decision: input.decision },
+          // ★ approve/reject (API-ADM-043/044); change requests are routine.
+          sensitivity: input.decision === 'CHANGES_REQUESTED' ? 'NORMAL' : 'HIGH',
         },
         tx,
       );
@@ -426,7 +444,52 @@ export class PartnerOnboardingService {
       guidelines: { required: GUIDELINES_VERSION, acknowledged: p.guidelinesVersionAck },
       missing: editable ? (await this.missing(this.prisma, p.id)).out : [],
       rejectedReason: p.onboardingStatus === 'REJECTED' ? p.rejectedReason : null,
+      changesRequested: p.onboardingStatus === 'CHANGES_REQUESTED' ? p.rejectedReason : null,
     };
+  }
+
+  /** API-ADM-054 (FR-DP-005): a reviewer verifies or rejects a vehicle. */
+  async verifyVehicle(
+    reviewerId: string,
+    vehicleId: string,
+    input: { decision: 'VERIFIED' | 'REJECTED'; reason: string },
+    meta: { sessionId?: string | null; actorRoles?: string[] } = {},
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      const v = await tx.partnerVehicle.findFirst({ where: { id: vehicleId, deletedAt: null } });
+      if (!v) throw new AppError('NOT_FOUND', { message: "We couldn't find that vehicle." });
+      if (input.decision === 'REJECTED' && v.isActive)
+        throw new AppError('APPLICATION_STATE_CONFLICT', {
+          message: 'This is the partner’s active vehicle. Ask them to switch vehicles first.',
+        });
+      const updated = await tx.partnerVehicle.update({
+        where: { id: vehicleId },
+        data: { status: input.decision },
+      });
+      await this.audit.record(
+        {
+          action: 'partner.vehicle_verified',
+          targetType: 'partner_vehicle',
+          targetId: vehicleId,
+          actorUserId: reviewerId,
+          actorRoles: meta.actorRoles ?? [],
+          sessionId: meta.sessionId ?? null,
+          reason: input.reason,
+          before: { status: v.status },
+          after: { status: input.decision, partnerId: v.partnerId },
+          sensitivity: 'HIGH',
+        },
+        tx,
+      );
+      return {
+        id: updated.id,
+        partnerId: updated.partnerId,
+        type: updated.type,
+        registrationNumber: updated.registrationNumber,
+        status: updated.status,
+        isActive: updated.isActive,
+      };
+    });
   }
 
   /** API-DP-008: editable after approval — emergency contact and preferred zone; legal fields are locked. */

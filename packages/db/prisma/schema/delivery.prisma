@@ -35,6 +35,8 @@ enum OnlineSessionEndReason {
   CASH_CAP
   SUSPENDED
   DOCUMENT_EXPIRED
+  /// FR-ADMIN-031: an admin forced the partner offline.
+  ADMIN_FORCED
 }
 
 enum DeliveryStatus {

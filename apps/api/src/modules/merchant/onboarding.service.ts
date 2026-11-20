@@ -439,6 +439,7 @@ export class OnboardingService {
       comments?: Record<string, string>;
       reason?: string;
     },
+    meta: { sessionId?: string | null; actorRoles?: string[] } = {},
   ) {
     const ownerId = await this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM restaurants WHERE id = ${id}::uuid FOR UPDATE`;
@@ -502,6 +503,22 @@ export class OnboardingService {
         eventType: `restaurant.application_${input.decision.toLowerCase()}`,
         payload: { restaurantId: id, ownerId: owner.userId, reason: input.reason ?? null },
       });
+      await this.audit.record(
+        {
+          action: `restaurant.application_${input.decision.toLowerCase()}`,
+          targetType: 'restaurant',
+          targetId: id,
+          actorUserId: reviewerId,
+          actorRoles: meta.actorRoles ?? [],
+          sessionId: meta.sessionId ?? null,
+          reason: input.reason ?? null,
+          before: { status: r.onboardingStatus },
+          after: { status: input.decision, submissionNo: r.submissionCount },
+          // ★ approve/reject (API-ADM-023/024); change requests are routine.
+          sensitivity: input.decision === 'CHANGES_REQUESTED' ? 'NORMAL' : 'HIGH',
+        },
+        tx,
+      );
       return owner.userId;
     });
     // Membership now counts: refresh the owner's permissions everywhere (FR-AUTH-024).
@@ -521,9 +538,95 @@ export class OnboardingService {
     return taken ? `${base}-${id.slice(-6)}` : base;
   }
 
+  /** API-ADM-022: a reviewer claims a submitted application (SUBMITTED → UNDER_REVIEW). */
+  async startReview(
+    reviewerId: string,
+    id: string,
+    meta: { sessionId?: string | null; actorRoles?: string[] } = {},
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM restaurants WHERE id = ${id}::uuid FOR UPDATE`;
+      const r = await tx.restaurant.findUnique({ where: { id } });
+      if (!r) throw new AppError('NOT_FOUND', { message: "We couldn't find that application." });
+      if (r.onboardingStatus !== 'SUBMITTED')
+        throw new AppError('APPLICATION_STATE_CONFLICT', {
+          message: 'Only a submitted application can be taken for review.',
+        });
+      await tx.restaurant.update({ where: { id }, data: { onboardingStatus: 'UNDER_REVIEW' } });
+      await this.audit.record(
+        {
+          action: 'restaurant.application_review_started',
+          targetType: 'restaurant',
+          targetId: id,
+          actorUserId: reviewerId,
+          actorRoles: meta.actorRoles ?? [],
+          sessionId: meta.sessionId ?? null,
+          before: { status: 'SUBMITTED' },
+          after: { status: 'UNDER_REVIEW' },
+        },
+        tx,
+      );
+    });
+    return this.adminView(id);
+  }
+
+  /** API-ADM-021: any application, for a reviewer — full checklist and every review so far. */
+  async adminView(id: string) {
+    const r = await this.prisma.restaurant.findUnique({ where: { id } });
+    if (!r) throw new AppError('NOT_FOUND', { message: "We couldn't find that application." });
+    const [base, reviews, owner, duplicates] = await Promise.all([
+      this.render(r, true),
+      this.prisma.restaurantApplicationReview.findMany({
+        where: { restaurantId: id },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          submissionNo: true,
+          decision: true,
+          comments: true,
+          createdAt: true,
+          reviewer: { select: { id: true, fullName: true } },
+        },
+      }),
+      this.prisma.restaurantMember.findFirst({
+        where: { restaurantId: id, role: 'OWNER' },
+        select: { user: { select: { id: true, fullName: true } } },
+      }),
+      r.fssaiNumber || r.gstin
+        ? this.prisma.restaurant.findMany({
+            where: {
+              id: { not: id },
+              OR: [
+                ...(r.fssaiNumber ? [{ fssaiNumber: r.fssaiNumber }] : []),
+                ...(r.gstin ? [{ gstin: r.gstin }] : []),
+              ],
+            },
+            select: { fssaiNumber: true, gstin: true },
+          })
+        : Promise.resolve([]),
+    ]);
+    return {
+      ...base,
+      owner: owner?.user ?? null,
+      reviews,
+      flags: [
+        ...(r.fssaiNumber && duplicates.some((d) => d.fssaiNumber === r.fssaiNumber)
+          ? ['DUPLICATE_FSSAI']
+          : []),
+        ...(r.gstin && duplicates.some((d) => d.gstin === r.gstin) ? ['DUPLICATE_GSTIN'] : []),
+      ],
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    };
+  }
+
   /** API-MER-002: the application with its checklist and the latest review comments. */
   async view(userId: string, id: string) {
-    const r = await this.own(this.prisma, userId, id);
+    return this.render(await this.own(this.prisma, userId, id));
+  }
+
+  /** The application as its owner sees it; `staff` adds the checklist at any stage. */
+  private async render(r: Restaurant, staff = false) {
+    const id = r.id;
     const [branch, bank, docs, cuisines, reviews] = await Promise.all([
       this.prisma.branch.findFirst({
         where: { restaurantId: id },
@@ -614,7 +717,7 @@ export class OnboardingService {
         expiresOn: d.expiresOn?.toISOString().slice(0, 10) ?? null,
         reviewerNote: d.reviewerNote,
       })),
-      missing: editable ? await this.missing(this.prisma, r, true) : [],
+      missing: editable || staff ? await this.missing(this.prisma, r, true) : [],
       review: reviews[0]
         ? {
             decision: reviews[0].decision,

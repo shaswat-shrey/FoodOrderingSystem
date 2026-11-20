@@ -178,6 +178,38 @@ export class FilesService {
     };
   }
 
+  /**
+   * API-ADM-040 (FR-FILE-004): a signed URL for platform staff. The caller has
+   * already checked the platform permission (e.g. `document:read`); the grant is
+   * audited against what was viewed (`subject`), not only the file.
+   */
+  async signedUrlForStaff(
+    who: { userId: string; sessionId?: string | null; roles?: string[] },
+    fileId: string,
+    subject: { type: string; id: string; reason?: string | null },
+  ) {
+    const file = await this.prisma.file.findUnique({ where: { id: fileId } });
+    if (!file || file.status === 'DELETED')
+      throw new AppError('NOT_FOUND', { message: "We couldn't find that file." });
+    const expiresAt = new Date(this.clock.now().getTime() + SIGNED_URL_SECONDS * 1000);
+    const url =
+      file.bucket === 'public'
+        ? this.storage.publicUrl(file.objectKey)
+        : await this.storage.signedUrl(file.objectKey, SIGNED_URL_SECONDS, this.clock.now());
+    await this.audit.record({
+      action: 'file.signed_url',
+      targetType: subject.type,
+      targetId: subject.id,
+      actorUserId: who.userId,
+      actorRoles: who.roles ?? [],
+      sessionId: who.sessionId ?? null,
+      reason: subject.reason ?? null,
+      after: { fileId: file.id, purpose: file.purpose },
+      sensitivity: 'HIGH',
+    });
+    return { url, expiresAt: file.bucket === 'public' ? null : expiresAt };
+  }
+
   /** API-FILE-003: only uploads not yet attached to anything. */
   async remove(userId: string, fileId: string) {
     const file = await this.prisma.file.findFirst({ where: { id: fileId, ownerUserId: userId } });
