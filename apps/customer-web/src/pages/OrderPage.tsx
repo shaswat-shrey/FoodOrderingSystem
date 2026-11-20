@@ -15,6 +15,7 @@ import {
   type PartnerCard,
 } from '@fos/api-client';
 import { Alert, Button, DietaryMarker, EmptyState, ErrorState, Spinner, cn } from '@fos/ui';
+import { OrderAfterCare } from '../components/OrderAfterCare';
 import { Dialog, Row, Section, Select, ServerError } from '../components/ui';
 import { customer } from '../lib/customer';
 import { ago, clock, rupees, VEHICLE_LABEL } from '../lib/format';
@@ -351,6 +352,13 @@ export function OrderPage() {
             <Row label="Paid" value={rupees(details.data.breakdown.payable)} strong />
           </dl>
         </Section>
+      )}
+
+      {details.data && t.status !== 'PAYMENT_PENDING' && (
+        <OrderAfterCare
+          order={details.data}
+          hasPartner={Boolean(t.partner || t.delivery?.deliveredAt)}
+        />
       )}
     </div>
   );

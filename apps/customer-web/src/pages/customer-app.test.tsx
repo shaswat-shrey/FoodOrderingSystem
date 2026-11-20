@@ -444,6 +444,7 @@ beforeEach(() => {
   socket.subscribed.length = 0;
   setDeliveryLocation({ lat: 12.935, lng: 77.624, label: 'Koramangala' });
   vi.spyOn(customer.cart, 'get').mockResolvedValue(emptyCart);
+  vi.spyOn(customer.notifications, 'unreadCount').mockResolvedValue({ unread: 0 });
 });
 
 describe('customer ordering journey', () => {

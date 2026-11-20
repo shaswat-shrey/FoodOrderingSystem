@@ -5,7 +5,9 @@ import type {
   SearchQuery,
   UpdateAddressBody,
 } from '@fos/validation';
-import type { ApiClient } from './client';
+import type { ApiSuccess } from '@fos/types';
+import { toClientError, type ApiClient } from './client';
+import type { FileUrls, UploadedFile } from './merchant-api';
 
 /* Response shapes of the Phase 5 customer APIs (SRS §14: API-GEO, ADDR, REST, MENU, DISC, SRCH, FAV, USER). */
 
@@ -555,6 +557,142 @@ export interface CancellationResult {
 }
 export type MockPaymentScenario = 'success' | 'fail' | 'authorize_only' | 'amount_mismatch';
 
+/* Phase 12 account area: history, reviews, issues, wallet, inbox, support (SRS §14). */
+
+export type OrderHistoryFilter = 'ACTIVE' | 'DELIVERED' | 'CANCELLED';
+export interface ReorderResult {
+  added: string[];
+  skipped: { itemName: string; reason: string }[];
+  cart: Cart;
+}
+export type OrderIssueType =
+  'MISSING_ITEM' | 'WRONG_ITEM' | 'QUALITY' | 'SPILLAGE' | 'LATE' | 'PAYMENT' | 'OTHER';
+export interface OrderIssueBody {
+  type: OrderIssueType;
+  description: string;
+  items?: { orderItemId: string; quantity: number }[];
+  requestRefund?: boolean;
+  /** SUPPORT_ATTACHMENT uploads (the issue's ticket carries them). */
+  photoFileIds?: string[];
+}
+export interface OrderIssue {
+  id: string;
+  type: OrderIssueType;
+  status: string;
+  description: string;
+  items: { orderItemId: string; quantity: number }[];
+  refund: { amount: number; status: 'APPROVED' | 'UNDER_REVIEW'; destination: string } | null;
+  resolution: string | null;
+  ticket: { id: string; number: string | null } | null;
+  createdAt: string;
+}
+export type RestaurantReviewTag = 'TASTE' | 'PORTION' | 'PACKAGING' | 'VALUE';
+export type PartnerReviewTag = 'POLITE' | 'ON_TIME' | 'FOLLOWED_INSTRUCTIONS' | 'RUDE' | 'LATE';
+export interface ReviewSubmission {
+  restaurant?: {
+    rating: number;
+    text?: string;
+    tags?: RestaurantReviewTag[];
+    photoFileIds?: string[];
+  };
+  partner?: { rating: number; text?: string; tags?: PartnerReviewTag[] };
+}
+export interface MyReview {
+  id: string;
+  orderId: string;
+  target: 'RESTAURANT' | 'PARTNER';
+  rating: number;
+  text: string | null;
+  tags: string[];
+  photos: { id: string; urls: FileUrls | null }[];
+  status: string;
+  /** BR-REVIEW-003: false once the 48 h edit window has passed. */
+  editable: boolean;
+  editableUntil: string;
+  response: { text: string; at: string } | null;
+  createdAt: string;
+  orderNumber?: string;
+  restaurant?: string;
+}
+export interface WalletSummary {
+  currency: string;
+  availableAmount: number;
+  heldAmount: number;
+  expiringCredits: { amount: number; source: string; expiresAt: string }[];
+}
+export interface WalletTransaction {
+  id: string;
+  type: string;
+  description: string;
+  /** > 0: money into the wallet. */
+  amount: number;
+  reference: { type: string; id: string };
+  createdAt: string;
+}
+export interface InboxNotification {
+  id: string;
+  category: string;
+  title: string;
+  body: string;
+  deepLink: string | null;
+  data: unknown;
+  read: boolean;
+  readAt: string | null;
+  createdAt: string;
+}
+export type SupportCategory =
+  'ORDER_ISSUE' | 'PAYMENT' | 'REFUND' | 'ACCOUNT' | 'DELIVERY' | 'FEEDBACK' | 'OTHER';
+export type SupportTicketStatus =
+  'OPEN' | 'PENDING_CUSTOMER' | 'PENDING_INTERNAL' | 'RESOLVED' | 'CLOSED';
+export interface SupportTicketSummary {
+  id: string;
+  number: string;
+  category: SupportCategory;
+  subject: string;
+  status: SupportTicketStatus;
+  priority: string;
+  orderId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface SupportTicketThread extends Omit<SupportTicketSummary, 'updatedAt'> {
+  resolvedAt: string | null;
+  csat: number | null;
+  canReopen: boolean;
+  messages: {
+    id: string;
+    from: 'YOU' | 'SUPPORT' | 'SYSTEM';
+    body: string;
+    attachments: string[];
+    at: string;
+  }[];
+}
+export interface NewSupportTicket {
+  category: SupportCategory;
+  subject?: string;
+  description: string;
+  orderId?: string;
+  attachmentFileIds?: string[];
+}
+export interface FavoriteRestaurant {
+  restaurantId: string;
+  serviceable: boolean;
+  card: BranchCard | null;
+}
+/** GET/PATCH /me (API-USER-001/002). */
+export interface CustomerProfile {
+  id: string;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+  emailVerified: boolean;
+  phoneVerified: boolean;
+  avatarUrl: string | null;
+  locale: string;
+  createdAt: string;
+}
+export type AccountUploadPurpose = 'REVIEW_PHOTO' | 'SUPPORT_ATTACHMENT';
+
 type Query = Record<string, string | number | boolean | undefined>;
 /** Header for endpoints guarded by `idempotent(...)` (FR-ORDER-002, FR-PAY-007). */
 const once = (key: string) => ({ 'Idempotency-Key': key });
@@ -579,6 +717,25 @@ const listQuery = (q: Partial<DiscoveryListQuery>): Query => ({
 
 /** Typed wrappers for the customer app (Phase 5 APIs). */
 export function createCustomerApi(client: ApiClient) {
+  /** PATCH / DELETE carrying an Idempotency-Key (the review routes use `idempotent(...)`). */
+  async function sendOnce<T>(
+    method: 'patch' | 'delete',
+    path: string,
+    body: unknown,
+    idempotencyKey: string,
+  ): Promise<T> {
+    try {
+      const response = await client.http.request<ApiSuccess<T>>({
+        method,
+        url: `/api/v1${path}`,
+        data: body,
+        headers: once(idempotencyKey),
+      });
+      return response.data.data;
+    } catch (error) {
+      throw toClientError(error);
+    }
+  }
   return {
     geo: {
       autocomplete: (q: string, bias?: LatLng, sessionToken?: string) =>
@@ -594,7 +751,11 @@ export function createCustomerApi(client: ApiClient) {
         client.get<Serviceability>('/geo/serviceability', withLocation(point, { branchId })),
     },
     profile: {
-      update: (body: { fullName?: string; locale?: string }) => client.patch('/me', body),
+      get: () => client.get<CustomerProfile>('/me'),
+      update: (body: { fullName?: string; locale?: string }) =>
+        client.patch<CustomerProfile>('/me', body),
+      /** API-USER-006: sends a verification link to the new address. */
+      changeEmail: (email: string) => client.post<null>('/me/email/change', { email }),
       preferences: () => client.get<Preferences>('/me/preferences'),
       updatePreferences: (body: Partial<Preferences>) =>
         client.patch<Preferences>('/me/preferences', body),
@@ -649,7 +810,7 @@ export function createCustomerApi(client: ApiClient) {
     },
     favorites: {
       restaurants: (point?: LatLng) =>
-        client.get<{ restaurantId: string; serviceable: boolean; card: BranchCard | null }[]>(
+        client.get<FavoriteRestaurant[]>(
           '/me/favorites/restaurants',
           point ? withLocation(point) : {},
         ),
@@ -730,6 +891,79 @@ export function createCustomerApi(client: ApiClient) {
         body: { quoteId: string; reasonCode: CancelReasonCode; note?: string },
         idempotencyKey: string,
       ) => client.post<CancellationResult>(`/orders/${orderId}/cancel`, body, once(idempotencyKey)),
+      /** API-ORD-001: newest first, cursor-paginated. */
+      history: (q: { status?: OrderHistoryFilter; cursor?: string; limit?: number } = {}) =>
+        client.getPage<CustomerOrderSummary[]>('/me/orders', q),
+      /** API-ORD-008: a new cart at current prices; unavailable lines come back in `skipped`. */
+      reorder: (orderId: string, replaceCart = false) =>
+        client.post<ReorderResult>(`/orders/${orderId}/reorder`, { replaceCart }),
+      /** API-ORD-009: the tax invoice PDF (needs the bearer token, so not a plain link). */
+      invoice: async (orderId: string) => {
+        try {
+          const response = await client.http.get<Blob>(`/api/v1/orders/${orderId}/invoice`, {
+            responseType: 'blob',
+          });
+          return response.data;
+        } catch (error) {
+          throw toClientError(error);
+        }
+      },
+      reportIssue: (orderId: string, body: OrderIssueBody, idempotencyKey: string) =>
+        client.post<OrderIssue>(`/orders/${orderId}/issues`, body, once(idempotencyKey)),
+      issues: (orderId: string) => client.get<OrderIssue[]>(`/orders/${orderId}/issues`),
+    },
+    reviews: {
+      /** API-REV-001 */
+      submit: (orderId: string, body: ReviewSubmission, idempotencyKey: string) =>
+        client.post<MyReview[]>(`/orders/${orderId}/reviews`, body, once(idempotencyKey)),
+      /** API-REV-004 */
+      mine: (cursor?: string) => client.getPage<MyReview[]>('/me/reviews', { cursor }),
+      /** API-REV-002: within the edit window only (REVIEW_EDIT_WINDOW_CLOSED otherwise). */
+      edit: (
+        reviewId: string,
+        body: { rating?: number; text?: string | null; tags?: string[] },
+        idempotencyKey: string,
+      ) => sendOnce<MyReview>('patch', `/reviews/${reviewId}`, body, idempotencyKey),
+      remove: (reviewId: string, idempotencyKey: string) =>
+        sendOnce<null>('delete', `/reviews/${reviewId}`, undefined, idempotencyKey),
+    },
+    files: {
+      /** API-FILE-001: multipart upload; returns the id to attach. */
+      upload: async (file: Blob, purpose: AccountUploadPurpose, filename = 'photo') => {
+        const form = new FormData();
+        form.append('purpose', purpose);
+        form.append('file', file, filename);
+        try {
+          const res = await client.http.post<ApiSuccess<UploadedFile>>('/api/v1/files', form);
+          return res.data.data;
+        } catch (error) {
+          throw toClientError(error);
+        }
+      },
+    },
+    wallet: {
+      summary: () => client.get<WalletSummary>('/me/wallet'),
+      transactions: (cursor?: string) =>
+        client.getPage<WalletTransaction[]>('/me/wallet/transactions', { cursor }),
+    },
+    notifications: {
+      list: (q: { unread?: boolean; cursor?: string } = {}) =>
+        client.getPage<InboxNotification[]>('/me/notifications', {
+          unread: q.unread ? 'true' : undefined,
+          cursor: q.cursor,
+        }),
+      unreadCount: () => client.get<{ unread: number }>('/me/notifications/unread-count'),
+      markRead: (id: string) => client.post<InboxNotification>(`/me/notifications/${id}/read`),
+      markAllRead: () => client.post<{ updated: number }>('/me/notifications/read-all'),
+    },
+    support: {
+      tickets: (cursor?: string) =>
+        client.getPage<SupportTicketSummary[]>('/support/tickets', { cursor }),
+      ticket: (ticketId: string) => client.get<SupportTicketThread>(`/support/tickets/${ticketId}`),
+      create: (body: NewSupportTicket) =>
+        client.post<SupportTicketThread>('/support/tickets', body),
+      reply: (ticketId: string, body: { body: string; attachmentFileIds?: string[] }) =>
+        client.post<SupportTicketThread>(`/support/tickets/${ticketId}/messages`, body),
     },
     tracking: {
       snapshot: (orderId: string) => client.get<OrderTracking>(`/orders/${orderId}/tracking`),

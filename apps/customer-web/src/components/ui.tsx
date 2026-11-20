@@ -5,25 +5,88 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
 } from 'react';
 import { isApiClientError } from '@fos/api-client';
 import { Alert, Button, cn } from '@fos/ui';
 import { rupees } from '../lib/format';
 
+/** Hint and error sit outside the <label> so the accessible name stays the label alone. */
+function Described({
+  id,
+  hint,
+  error,
+}: {
+  id: string;
+  hint?: string | undefined;
+  error?: string | undefined;
+}) {
+  return (
+    <>
+      {hint && <span className="mt-1 block text-xs text-gray-500">{hint}</span>}
+      {error && (
+        <span id={id} className="mt-1 block text-xs text-danger-600">
+          {error}
+        </span>
+      )}
+    </>
+  );
+}
+
 export function Field({
   label,
   hint,
+  error,
   ...props
-}: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
+}: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string; error?: string }) {
+  const errorId = useId();
   return (
-    <label className="block text-sm">
-      <span className="font-medium text-gray-800">{label}</span>
-      <input
-        {...props}
-        className="mt-1 block h-11 w-full rounded-md border border-gray-300 px-3 text-base focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-200"
-      />
-      {hint && <span className="mt-1 block text-xs text-gray-500">{hint}</span>}
-    </label>
+    <div className="text-sm">
+      <label className="block">
+        <span className="font-medium text-gray-800">{label}</span>
+        <input
+          {...props}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className={cn(
+            'mt-1 block h-11 w-full rounded-md border border-gray-300 px-3 text-base focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-200',
+            error && 'border-danger-600',
+          )}
+        />
+      </label>
+      <Described id={errorId} hint={hint} error={error} />
+    </div>
+  );
+}
+
+export function TextArea({
+  label,
+  hint,
+  error,
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  label: string;
+  hint?: string;
+  error?: string;
+}) {
+  const errorId = useId();
+  return (
+    <div className="text-sm">
+      <label className="block">
+        <span className="font-medium text-gray-800">{label}</span>
+        <textarea
+          rows={3}
+          {...props}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className={cn(
+            'mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-base focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-200',
+            error && 'border-danger-600',
+          )}
+        />
+      </label>
+      <Described id={errorId} hint={hint} error={error} />
+    </div>
   );
 }
 

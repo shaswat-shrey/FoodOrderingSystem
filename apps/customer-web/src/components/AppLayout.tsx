@@ -1,11 +1,21 @@
 import { Link, Outlet, useLocation } from 'react-router';
-import { AccountActions } from '@fos/auth-web';
 import { APP_INFO } from '../app-info';
 import { useCart } from '../lib/cart';
 import { rupees } from '../lib/format';
 import { useDeliveryLocation } from '../lib/location';
+import { AccountMenu } from './AccountMenu';
 
-const NO_CART_BAR = ['/cart', '/checkout', '/orders', '/sign-in', '/sign-up', '/location'];
+const NO_CART_BAR = [
+  '/cart',
+  '/checkout',
+  '/orders',
+  '/sign-in',
+  '/sign-up',
+  '/location',
+  '/account',
+  '/notifications',
+  '/help',
+];
 
 /** Sticky "View cart" bar on browsing screens (UI §17.1.1 restaurant page). */
 function CartBar() {
@@ -60,7 +70,7 @@ export function AppLayout() {
               <span className="truncate">{location ? location.label : 'Set location'}</span>
             </Link>
           </div>
-          <AccountActions />
+          <AccountMenu />
         </div>
       </header>
       <main id="main" className="mx-auto max-w-2xl px-4 py-5">

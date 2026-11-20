@@ -60,3 +60,20 @@ const CLOSED_REASON: Record<string, string> = {
 };
 export const closedReason = (reason: string | null | undefined) =>
   (reason && CLOSED_REASON[reason]) ?? 'Closed now';
+
+/** "21 Nov 2026" (India time). */
+export function day(iso: string | Date | null | undefined): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
+}
+
+/** "21 Nov 2026, 12:05" (India time). */
+export function dayTime(iso: string | Date | null | undefined): string {
+  if (!iso) return '—';
+  return `${day(iso)}, ${clock(iso)}`;
+}
