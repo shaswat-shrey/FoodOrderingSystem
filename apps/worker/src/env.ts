@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { paymentEnvFields, paymentEnvProblems } from '@fos/api/jobs';
+import {
+  paymentEnvFields,
+  paymentEnvProblems,
+  storageEnvFields,
+  storageEnvProblems,
+} from '@fos/api/jobs';
 
 export const workerEnvSchema = z
   .object({
@@ -18,9 +23,10 @@ export const workerEnvSchema = z
     DEV_MESSAGE_SINK: z.enum(['log', 'file']).default('file'),
     DEV_MESSAGE_FILE: z.string().default('.local/dev-messages.log'),
     ...paymentEnvFields,
+    ...storageEnvFields,
   })
   .superRefine((env, ctx) => {
-    for (const [path, message] of paymentEnvProblems(env))
+    for (const [path, message] of [...paymentEnvProblems(env), ...storageEnvProblems(env)])
       ctx.addIssue({ code: 'custom', path: [path], message });
   });
 

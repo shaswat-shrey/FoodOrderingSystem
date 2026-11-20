@@ -80,6 +80,7 @@ describe('worker', () => {
       orderJobs: fakeOrderJobs,
       outbox: fakeOutbox,
       deliverer: { deliver: async () => {} },
+      files: { cleanupOrphans: async () => 0 },
       logger: silent,
     }).find((r) => r.queue === 'notifications');
     const message: Message = {
@@ -92,6 +93,18 @@ describe('worker', () => {
     expect(delivered).toEqual([message]);
   });
 
+  it('requires S3 storage settings in production', () => {
+    expect(() =>
+      loadWorkerEnv({
+        ...baseEnv,
+        NODE_ENV: 'production',
+        RAZORPAY_KEY_ID: 'k',
+        RAZORPAY_KEY_SECRET: 's',
+        RAZORPAY_WEBHOOK_SECRETS: 'w',
+      }),
+    ).toThrow(/STORAGE_ACCESS_KEY/);
+  });
+
   it('refuses dev sinks in production', () => {
     const env = loadWorkerEnv({
       ...baseEnv,
@@ -99,6 +112,9 @@ describe('worker', () => {
       RAZORPAY_KEY_ID: 'k',
       RAZORPAY_KEY_SECRET: 's',
       RAZORPAY_WEBHOOK_SECRETS: 'w',
+      STORAGE_ACCESS_KEY: 'a',
+      STORAGE_SECRET_KEY: 's',
+      API_PUBLIC_URL: 'https://api.example.com',
     });
     expect(() =>
       createMessageSink(env, createLogger({ level: 'silent', service: 'worker' })),
@@ -118,6 +134,7 @@ describe('worker', () => {
       orderJobs: fakeOrderJobs,
       outbox: fakeOutbox,
       deliverer: { deliver: async () => {} },
+      files: { cleanupOrphans: async () => 0 },
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: ANONYMIZE_DUE_USERS_JOB } as never);
@@ -144,6 +161,7 @@ describe('worker', () => {
       orderJobs: fakeOrderJobs,
       outbox: fakeOutbox,
       deliverer: { deliver: async () => {} },
+      files: { cleanupOrphans: async () => 0 },
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: EXPIRE_IDLE_CARTS_JOB } as never);
@@ -167,6 +185,7 @@ describe('worker', () => {
       orderJobs: fakeOrderJobs,
       outbox: fakeOutbox,
       deliverer: { deliver: async () => {} },
+      files: { cleanupOrphans: async () => 0 },
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await expect(maintenance!.processor({ name: VERIFY_LEDGER_JOB } as never)).rejects.toThrow(
@@ -194,6 +213,7 @@ describe('worker', () => {
       },
       outbox: fakeOutbox,
       deliverer: { deliver: async () => {} },
+      files: { cleanupOrphans: async () => 0 },
       logger: silent,
     }).find((r) => r.queue === 'orders')!;
     await orders.processor({ name: 'payment-ttl', data: { orderId: 'o1' } } as never);

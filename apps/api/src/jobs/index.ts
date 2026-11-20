@@ -33,3 +33,9 @@ export {
   NotificationService,
   registerNotificationConsumers,
 } from '../modules/notifications';
+export {
+  createStorageProvider,
+  FilesService,
+  storageEnvFields,
+  storageEnvProblems,
+} from '../modules/files';

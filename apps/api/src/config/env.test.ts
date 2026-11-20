@@ -58,6 +58,9 @@ describe('loadEnv (NFR-SEC-011)', () => {
       APP_URL_RESTAURANT: 'https://partner.example.com',
       APP_URL_DELIVERY: 'https://rider.example.com',
       APP_URL_ADMIN: 'https://admin.example.com',
+      STORAGE_ACCESS_KEY: 'access',
+      STORAGE_SECRET_KEY: 'secret',
+      API_PUBLIC_URL: 'https://api.example.com',
     });
     expect(prod.COOKIE_SECURE).toBe(true);
     expect(prod.GEO_PROVIDER).toBe('none'); // degraded address search, never the fictional mock
@@ -66,6 +69,11 @@ describe('loadEnv (NFR-SEC-011)', () => {
     );
     expect(() => loadEnv({ ...valid, NODE_ENV: 'production', COOKIE_SECURE: 'false' })).toThrow(
       /COOKIE_SECURE/,
+    );
+    // FR-FILE-005: production files go to S3-compatible storage with credentials.
+    expect(() => loadEnv({ ...valid, NODE_ENV: 'production' })).toThrow(/STORAGE_ACCESS_KEY/);
+    expect(() => loadEnv({ ...valid, NODE_ENV: 'production', STORAGE_DRIVER: 'local' })).toThrow(
+      /STORAGE_DRIVER/,
     );
   });
 });

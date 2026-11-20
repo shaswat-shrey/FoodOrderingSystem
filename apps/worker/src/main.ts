@@ -5,6 +5,8 @@ import {
   AuditService,
   BullJobQueue,
   CartExpiry,
+  createStorageProvider,
+  FilesService,
   createPaymentProvider,
   InvoiceService,
   LedgerService,
@@ -110,6 +112,13 @@ async function main(): Promise<void> {
     refunds,
     orderJobs,
     outbox,
+    files: new FilesService(
+      prisma,
+      createStorageProvider(env, env.AUTH_HMAC_SECRET),
+      audit,
+      clock,
+      logger,
+    ),
     deliverer: new NotificationDeliverer(prisma, sink, new LogPushSender(logger), clock, logger),
     logger,
   });

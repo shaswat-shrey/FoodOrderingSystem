@@ -1,3 +1,6 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Writable } from 'node:stream';
 import { Redis } from 'ioredis';
 import request from 'supertest';
@@ -6,6 +9,7 @@ import { PrismaClient, type OrderStatus } from '@fos/db';
 import { loadEnv } from '../src/config/env';
 import { createContainer, type Container } from '../src/container';
 import { hashPassword } from '../src/modules/auth/password';
+import { LocalStorageProvider } from '../src/modules/files';
 import type { GeocodingProvider } from '../src/modules/geo';
 import { RecordingDispatcher } from '../src/modules/notifications';
 import { ManualClock } from '../src/platform/clock';
@@ -78,6 +82,11 @@ export async function createTestContext(
     messages,
     ...(options.geocoder ? { geocoder: options.geocoder } : {}),
     jobs: new RecordingJobQueue(),
+    storage: new LocalStorageProvider(
+      mkdtempSync(join(tmpdir(), 'fos-files-')),
+      'http://localhost:4000',
+      'test-file-signing-secret',
+    ),
   });
   const app = createApp({
     logger,
@@ -363,3 +372,21 @@ export async function placeOrder(
     addressId: home.id as string,
   };
 }
+
+/** Signs a seeded user into an app with a known password (staff, partners, admins without MFA). */
+export async function signInAs(ctx: TestContext, phone: string, app: App = 'RESTAURANT') {
+  const user = await ctx.prisma.user.findFirstOrThrow({ where: { phone } });
+  const password = 'kitchen pass phrase 42';
+  await setPassword(ctx.prisma, user.id, password);
+  const b = browser(ctx, app);
+  const res = b.remember(await b.post('/auth/login', { identifier: phone, password }));
+  if (res.status !== 200) throw new Error(`sign-in failed: ${JSON.stringify(res.body)}`);
+  return { browser: b, userId: user.id };
+}
+
+/** Seeded Saffron Handi Biryani staff (packages/db seed). */
+export const SAFFRON_STAFF = {
+  owner: '+919000000201',
+  manager: '+919000000301',
+  kitchen: '+919000000302',
+} as const;

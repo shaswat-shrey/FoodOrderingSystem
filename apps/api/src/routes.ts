@@ -13,6 +13,7 @@ import type { Express } from 'express';
 import { searchHistoryRouter, searchRouter } from './modules/search';
 import { supportRouter } from './modules/support';
 import { notificationsRouter } from './modules/notifications';
+import { fileUploadRouter, filesRouter, localMediaRouter } from './modules/files';
 import { usersRouter } from './modules/users';
 
 /**
@@ -46,6 +47,7 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use(ordersRouter(container));
   api.use(supportRouter(container));
   api.use(notificationsRouter(container));
+  api.use(filesRouter(container));
   api.use('/checkout/sessions', checkoutRouter(container));
   api.use('/payments/methods', paymentMethodsRouter(container));
   api.use(paymentsRouter(container));
@@ -55,4 +57,6 @@ export function mountRoutes(api: Router, container: Container): void {
 /** Raw-body routes (provider webhooks), mounted before JSON parsing. */
 export function mountRawRoutes(app: Express, container: Container): void {
   mountPaymentWebhooks(app, container);
+  // Multipart uploads stream through busboy, so they skip the JSON-only guard.
+  app.use('/api/v1', fileUploadRouter(container), localMediaRouter(container));
 }

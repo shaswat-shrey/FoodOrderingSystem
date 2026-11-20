@@ -8,6 +8,7 @@ import type { RedisClients } from './platform/redis';
 import { AuditService } from './modules/audit';
 import { BranchRepository, MenuService, ServiceabilityService } from './modules/catalog';
 import { SettingsService } from './modules/config';
+import { createStorageProvider, FilesService, type StorageProvider } from './modules/files';
 import { AddressService, FavoritesService, ProfileService } from './modules/customers';
 import { CartService, CheckoutService, QuoteBuilder } from './modules/checkout';
 import { DiscoveryService } from './modules/discovery';
@@ -66,6 +67,7 @@ export interface ContainerInput {
   geocoder?: GeocodingProvider;
   paymentProvider?: PaymentProvider;
   jobs?: JobQueue;
+  storage?: StorageProvider;
 }
 
 /** Composition root: builds every service once per process (SYSTEM-ARCHITECTURE §3). */
@@ -94,6 +96,13 @@ export function createContainer(input: ContainerInput) {
     },
   );
   const settings = new SettingsService(prisma, logger);
+  const files = new FilesService(
+    prisma,
+    input.storage ?? createStorageProvider(env, env.AUTH_HMAC_SECRET),
+    audit,
+    clock,
+    logger,
+  );
   const geocoder =
     input.geocoder ??
     (env.GEO_PROVIDER === 'mock' ? new MockGeocoder() : new UnavailableGeocoder());
@@ -219,6 +228,7 @@ export function createContainer(input: ContainerInput) {
     otp,
     auth,
     settings,
+    files,
     profiles,
     geo,
     routing,

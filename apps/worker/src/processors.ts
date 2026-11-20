@@ -15,6 +15,7 @@ import {
   SUBMIT_REFUND_JOB,
   type AccountAnonymizer,
   type CartExpiry,
+  type FilesService,
   type LedgerService,
   type NotificationDeliverer,
   type OrderTimerJobs,
@@ -50,6 +51,7 @@ export const RESOLVE_STUCK_PAYMENTS_JOB = 'resolve-stuck-payments';
 export const SWEEP_ORDER_TIMERS_JOB = 'sweep-order-timers';
 export const EXPIRE_CHECKOUT_SESSIONS_JOB = 'expire-checkout-sessions';
 export const OUTBOX_HEALTH_JOB = 'outbox-health';
+export const CLEANUP_ORPHAN_FILES_JOB = 'cleanup-orphan-files';
 
 /** Repeatable jobs (BullMQ job schedulers), registered idempotently at boot. */
 export const SCHEDULES = [
@@ -69,6 +71,8 @@ export const SCHEDULES = [
   { queue: 'maintenance', id: EXPIRE_CHECKOUT_SESSIONS_JOB, everyMs: 5 * 60 * 1000 },
   // JOB-OUTBOX-001: stale-event alert.
   { queue: 'maintenance', id: OUTBOX_HEALTH_JOB, everyMs: 60 * 1000 },
+  // JOB-FILE-002 (FR-FILE-006): uploads never attached to anything.
+  { queue: 'maintenance', id: CLEANUP_ORPHAN_FILES_JOB, everyMs: 60 * 60 * 1000 },
 ] as const satisfies { queue: QueueName; id: string; everyMs: number }[];
 
 export interface JobServices {
@@ -81,6 +85,7 @@ export interface JobServices {
   orderJobs: Pick<OrderTimerJobs, 'run' | 'sweep'>;
   outbox: Pick<OutboxRelay, 'checkStale'>;
   deliverer: Pick<NotificationDeliverer, 'deliver'>;
+  files: Pick<FilesService, 'cleanupOrphans'>;
   logger: Logger;
 }
 
@@ -95,6 +100,7 @@ export function buildRegistrations({
   orderJobs,
   outbox,
   deliverer,
+  files,
   logger,
 }: JobServices): ProcessorRegistration[] {
   const maintenance: Record<string, () => Promise<void>> = {
@@ -126,6 +132,10 @@ export function buildRegistrations({
     [EXPIRE_CHECKOUT_SESSIONS_JOB]: async () => {
       const count = await cartExpiry.expireSessions();
       if (count > 0) logger.info({ count }, 'expired checkout sessions');
+    },
+    [CLEANUP_ORPHAN_FILES_JOB]: async () => {
+      const count = await files.cleanupOrphans();
+      if (count > 0) logger.info({ count }, 'deleted orphan uploads');
     },
     [OUTBOX_HEALTH_JOB]: async () => {
       await outbox.checkStale();
