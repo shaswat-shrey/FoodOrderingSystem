@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). **Status of every row: `Planned`** — no implementation exists yet (Phase 1).
+> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; platform requirements delivered in Phase 2 are listed in §22.1a.
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -70,6 +70,31 @@
 | FR-DELV-001…003 | Delivery verification & proof | deliveries | API-DPDEL-009 | deliveries, delivery_otp_attempts, files | Drop-off | TC-DELV-001…012 | AC-DEL-006 | Planned |
 | FR-RT-001…028 | Real-time gateway | realtime | Socket namespaces, EVT-* | outbox_events | All apps (socket client) | TC-RT-001…040 | AC-RT-001…004 | Planned |
 
+## 22.1a Platform requirements implemented in Phase 2
+
+These rows are at single-requirement granularity because code and tests exist. "Verified" = automated tests pass locally; container-level verification is pending a Docker host (PROJECT_STATUS.md).
+
+| Requirement | Summary | Code | Tests | Status |
+|---|---|---|---|---|
+| API-SYS-001 | Liveness probe | `apps/api/src/platform/health/health.routes.ts`, `apps/worker/src/health-server.ts` | `apps/api/src/platform/http/app.test.ts`, `apps/worker/src/worker.test.ts` | Verified |
+| API-SYS-002 | Readiness probe (DB critical, Redis degradable) | `apps/api/src/platform/health/readiness.ts` | `app.test.ts`, `readiness.test.ts`, `worker.test.ts` | Verified |
+| NFR-AVAIL-004 / 005 / 006 | Degraded vs unavailable readiness semantics | `readiness.ts`, `apps/api/src/server.ts` | `app.test.ts` | Verified |
+| NFR-REL-007 | Graceful shutdown (API, worker) | `apps/api/src/server.ts`, `apps/worker/src/main.ts`, `closeRedis` | `apps/api/src/platform/redis.test.ts` + manual SIGTERM smoke | Verified |
+| NFR-SEC-004 | Strict JSON bodies, 100 KB limit, 415 for non-JSON | `apps/api/src/platform/http/app.ts`, `require-json.ts` | `app.test.ts` | Verified |
+| NFR-SEC-005 | Ban `$queryRawUnsafe` / `$executeRawUnsafe` | `eslint.config.js` | Lint rule exercised manually (Phase 2) | Implemented |
+| NFR-SEC-008 / 009 | Helmet headers, CORS allowlist | `app.ts` | `app.test.ts` | Verified |
+| NFR-SEC-011 | Env validated at boot, no secret echo | `apps/api/src/config/env.ts`, `apps/worker/src/env.ts` | `env.test.ts`, `worker.test.ts` | Verified |
+| NFR-SEC-013 / ERR-004 | No internals in error responses | `error-handler.ts` | `app.test.ts` | Verified |
+| NFR-SEC-014 | Log redaction of secrets | `apps/api/src/platform/logger.ts` | `logger.test.ts` | Verified |
+| NFR-SEC-020 (partial) | Socket gateway deny-by-default until auth | `socket-server.ts` | `socket-server.test.ts` | Verified (auth itself: Phase 4) |
+| NFR-OBS-001 / 002 | Structured logs, request IDs | `logger.ts`, `request-id.ts`, `request-logger.ts` | `app.test.ts` | Verified |
+| NFR-MAINT-001 | Module boundaries enforced by lint | `eslint.config.js` | Lint rule exercised manually (Phase 2) | Implemented |
+| ERR-001 / 002 | Standard error envelope, single error boundary | `envelope.ts`, `errors.ts`, `error-handler.ts` | `app.test.ts` | Verified |
+| BR-PRICE-002 (helper) | Integer-paise, half-up basis-point rounding | `packages/shared/src/money.ts` | `money.test.ts` | Verified (pricing engine: Phase 6) |
+| UI-DS-005 / NFR-ACCESS-004 | Dietary marker by shape + label | `packages/ui/src/components/DietaryMarker.tsx` | `components.test.tsx`, E2E | Verified |
+| NFR-ACCESS-002 / 007 (partial) | Skip link, focus styles, axe scan | app shells, `packages/ui/src/styles.css` | `tests/e2e/specs/customer-shell.spec.ts` | Verified (customer shell) |
+| FR-FE-005 (partial) | Loading / error / empty states with retry | app shells, `@fos/ui` | app `HomePage.test.tsx` | Verified (shells) |
+
 ## 22.2 Non-functional requirements
 
 | Requirement IDs | Verification method | Test / evidence | Status |
@@ -96,3 +121,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | Date | Version | Change |
 |---|---|---|
 | 2026-11-20 | 0.1.0 | Initial matrix (group-level, all rows Planned). |
+| 2026-11-20 | 0.2.1 | Phase 2: added §22.1a with platform requirements implemented and verified. |

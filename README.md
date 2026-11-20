@@ -1,34 +1,114 @@
 # FoodOrderSystem — Online Food Ordering & Delivery Platform
 
-A production-oriented food delivery ecosystem: customer, restaurant (incl. kitchen display), delivery-partner and admin applications on a shared Node.js/TypeScript modular-monolith backend (Express, Socket.IO, PostgreSQL + PostGIS, Prisma, Redis, BullMQ).
+A production-oriented food delivery ecosystem: customer, restaurant (including kitchen display), delivery-partner and admin applications on a shared Node.js/TypeScript modular-monolith backend (Express, Socket.IO, PostgreSQL + PostGIS, Prisma, Redis, BullMQ).
 
-> **Status:** Phase 1 (requirements & architecture) approved on 2026-11-20; Phase 2 (repository & infrastructure) in progress — see [PROJECT_STATUS.md](PROJECT_STATUS.md).
+> **Status:** Phase 2 (repository & infrastructure) complete — the platform skeleton builds, runs and is tested; no business features yet. See [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
-## Start here
+## Repository layout
 
-- **Review pack:** [docs/PHASE-1-REVIEW.md](docs/PHASE-1-REVIEW.md) — summary, assumptions and decisions needing approval
+| Path                  | What it is                                                                 |
+| --------------------- | -------------------------------------------------------------------------- |
+| `apps/api`            | REST API (`/api/v1`) + Socket.IO gateway — modular monolith                |
+| `apps/worker`         | BullMQ background job worker                                               |
+| `apps/customer-web`   | Customer web app (port 5173)                                               |
+| `apps/restaurant-web` | Restaurant dashboard & kitchen display (port 5174)                         |
+| `apps/delivery-web`   | Delivery partner mobile web app (port 5175)                                |
+| `apps/admin-web`      | Admin console (port 5176)                                                  |
+| `packages/shared`     | Framework-free domain helpers: integer-paise money, error codes, constants |
+| `packages/validation` | Zod schemas shared by API validation and web forms                         |
+| `packages/types`      | API contract types (response envelope, readiness report)                   |
+| `packages/db`         | Prisma schema, migrations, client factory                                  |
+| `packages/ui`         | Design system: Tailwind theme tokens + React components                    |
+| `packages/api-client` | Axios client + TanStack Query helpers for the web apps                     |
+| `packages/config`     | Shared TypeScript presets                                                  |
+| `tests/e2e`           | Playwright end-to-end tests                                                |
+| `infrastructure/`     | Dockerfiles, service configuration                                         |
+| `docs/`               | SRS, architecture, ADRs, ERD, roadmap                                      |
+
+## Prerequisites
+
+- **Node.js 22+** (`.nvmrc`) — `nvm use`
+- **pnpm 10** via Corepack:
+
+```bash
+corepack enable
+```
+
+- **Docker** with Compose v2, for PostgreSQL/PostGIS, Redis, S3-compatible storage (SeaweedFS) and Mailpit.
+
+## Getting started
+
+1. Install dependencies:
+
+```bash
+pnpm install
+```
+
+2. Create your local environment file (all variables are validated at startup; see `.env.example` for descriptions):
+
+```bash
+cp .env.example .env
+```
+
+3. Start the infrastructure (Postgres + PostGIS, Redis core and cache, SeaweedFS S3, Mailpit):
+
+```bash
+pnpm infra:up
+```
+
+4. Apply database migrations:
+
+```bash
+pnpm --filter @fos/db db:deploy
+```
+
+5. Run the API, worker and all four web apps with hot reload:
+
+```bash
+pnpm dev
+```
+
+| Service                                       | URL                                                                    |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| API liveness / readiness                      | http://localhost:4000/health/live · http://localhost:4000/health/ready |
+| Worker health                                 | http://localhost:4001/health/ready                                     |
+| Customer / Restaurant / Delivery / Admin apps | http://localhost:5173 · 5174 · 5175 · 5176                             |
+| Mailpit (captured email)                      | http://localhost:8025                                                  |
+| S3 endpoint (SeaweedFS)                       | http://localhost:8333                                                  |
+
+To run the API and worker in containers instead of on the host:
+
+```bash
+docker compose --profile app up -d --build
+```
+
+## Quality checks
+
+Everything CI runs (format, lint, typecheck, unit tests, SRS ID check):
+
+```bash
+pnpm check
+```
+
+End-to-end smoke tests (first run downloads Chromium):
+
+```bash
+pnpm --filter @fos/e2e e2e:install
+```
+
+```bash
+pnpm --filter @fos/e2e e2e
+```
+
+## Documentation
+
 - **SRS (source of truth):** [docs/requirements/SRS-Online-Food-Ordering-and-Delivery-Platform.md](docs/requirements/SRS-Online-Food-Ordering-and-Delivery-Platform.md)
 - **Architecture:** [docs/architecture/SYSTEM-ARCHITECTURE.md](docs/architecture/SYSTEM-ARCHITECTURE.md) · [ADRs](docs/architecture/adr/README.md)
 - **Roadmap & risks:** [docs/ROADMAP.md](docs/ROADMAP.md)
+- **Phase 1 review pack:** [docs/PHASE-1-REVIEW.md](docs/PHASE-1-REVIEW.md)
 
-## Documentation layout
-
-```
-docs/
-  requirements/   SRS sections, business rules, NFRs, API spec, acceptance criteria, traceability, index
-  architecture/   system architecture, state machines, events & jobs, dispatch, payments, testing, ADRs
-  database/       ERD
-  tools/          requirements-index.mjs (generates the index, checks IDs)
-```
-
-Regenerate / check the requirements index after editing any SRS file:
+After editing any SRS file, regenerate the requirements index:
 
 ```bash
-node docs/tools/requirements-index.mjs
+pnpm docs:index
 ```
-
-```bash
-node docs/tools/requirements-index.mjs --check
-```
-
-Setup instructions, demo accounts and deployment docs arrive with Phases 2 and 14.
