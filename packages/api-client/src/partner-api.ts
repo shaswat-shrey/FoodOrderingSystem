@@ -258,6 +258,19 @@ export function createPartnerApi(client: ApiClient) {
       acknowledgeGuidelines: (version: string) =>
         client.post('/partner/me/guidelines/ack', { version }),
     },
+    /** API-DP-007…012: the approved partner's own profile and vehicles. */
+    profile: {
+      get: () => client.get<PartnerApplication>('/partner/me'),
+      update: (body: {
+        emergencyContact?: { name: string; relation: string; phone: string };
+        homeZoneId?: string;
+      }) => client.patch<PartnerApplication>('/partner/me', body),
+      vehicles: () => client.get<PartnerApplication['vehicles']>('/partner/me/vehicles'),
+      addVehicle: (body: { type: VehicleType; registrationNumber?: string | null }) =>
+        client.post<PartnerApplication>('/partner/me/vehicles', body),
+      activateVehicle: (id: string) =>
+        client.post<PartnerApplication>(`/partner/me/vehicles/${id}/activate`),
+    },
     availability: () => client.get<Availability>('/partner/me/availability'),
     dashboard: () => client.get<PartnerDashboard>('/partner/me/dashboard'),
     goOnline: (fix: Fix) => client.post<Availability>('/partner/me/online', fix, idem()),

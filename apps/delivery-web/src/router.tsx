@@ -8,6 +8,7 @@ import { EarningsPage } from './pages/EarningsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { RouteErrorPage } from './pages/RouteErrorPage';
 
 export const routes: RouteObject[] = [
@@ -24,6 +25,7 @@ export const routes: RouteObject[] = [
           { path: 'earnings', element: <EarningsPage /> },
           { path: 'history', element: <HistoryPage /> },
           { path: 'account/bank', element: <BankPage /> },
+          { path: 'account/profile', element: <ProfilePage /> },
         ],
       },
       ...authRoutes({ allowSignUp: AUTH_CONFIG.allowSignUp }),

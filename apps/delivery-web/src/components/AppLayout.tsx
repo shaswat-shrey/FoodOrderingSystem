@@ -2,12 +2,14 @@ import { Link, NavLink, Outlet } from 'react-router';
 import { AccountActions, useAuth } from '@fos/auth-web';
 import { cn } from '@fos/ui';
 import { APP_INFO } from '../app-info';
+import { LiveNotices } from './LiveNotices';
 
 const TABS = [
   { to: '/', label: 'Shift', end: true },
   { to: '/earnings', label: 'Earnings', end: false },
   { to: '/history', label: 'Trips', end: false },
   { to: '/account/bank', label: 'Bank', end: false },
+  { to: '/account/profile', label: 'Profile', end: false },
 ];
 
 export function AppLayout() {
@@ -28,6 +30,7 @@ export function AppLayout() {
           <AccountActions />
         </div>
       </header>
+      {signedIn && <LiveNotices />}
       <main id="main" className="mx-auto max-w-xl px-4 py-6">
         <Outlet />
       </main>
@@ -36,7 +39,7 @@ export function AppLayout() {
           aria-label="Main"
           className="fixed inset-x-0 bottom-0 border-t border-gray-200 bg-white"
         >
-          <ul className="mx-auto grid max-w-xl grid-cols-4">
+          <ul className="mx-auto grid max-w-xl grid-cols-5">
             {TABS.map((t) => (
               <li key={t.to}>
                 <NavLink
