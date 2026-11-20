@@ -46,6 +46,8 @@ export interface CancelInput {
   fault?: CancellationFault;
   /** Customer cancellations must echo the preview's quote (FR-ORDER-020). */
   quoteId?: string;
+  /** T07: a restaurant rejection ends in REJECTED with the same full refund. */
+  to?: 'CANCELLED' | 'REJECTED';
 }
 
 export interface CancellationResult {
@@ -286,7 +288,7 @@ export class OrderCancellationService {
       const previous = order.status;
       const { order: cancelled } = await this.transitions.apply(tx, {
         orderId: order.id,
-        to: 'CANCELLED',
+        to: input.to ?? 'CANCELLED',
         actor: { type: input.actor.type, id: input.actor.id ?? null },
         reason: input.reasonCode,
         metadata: { fault, fee: allocation.fee, refund: allocation.total },

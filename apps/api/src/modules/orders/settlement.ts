@@ -1,4 +1,4 @@
-import type { Order, OrderPriceComponent, Prisma } from '@fos/db';
+import type { Order, OrderPriceComponent, Prisma, PrismaClient } from '@fos/db';
 import { money, percentOf } from '@fos/shared';
 import type { AccountRef, LedgerService } from '../ledger';
 
@@ -72,7 +72,14 @@ export function settlementSplit(input: SettlementInput): SettlementSplit {
 export class OrderSettlement {
   constructor(private readonly ledger: LedgerService) {}
 
-  async settle(tx: Tx, order: Order): Promise<{ duplicate: boolean; split: SettlementSplit }> {
+  /** The split a delivered order would post (restaurant share shown in the merchant app). */
+  async estimate(
+    tx: Tx | PrismaClient,
+    order: Pick<
+      Order,
+      'id' | 'checkoutSessionId' | 'commissionRateBps' | 'totalAmount' | 'tipAmount'
+    >,
+  ): Promise<SettlementSplit> {
     const [components, session] = await Promise.all([
       tx.orderPriceComponent.findMany({ where: { orderId: order.id } }),
       tx.checkoutSession.findUnique({
@@ -97,6 +104,11 @@ export class OrderSettlement {
       totalAmount: order.totalAmount,
       tipAmount: order.tipAmount,
     });
+    return split;
+  }
+
+  async settle(tx: Tx, order: Order): Promise<{ duplicate: boolean; split: SettlementSplit }> {
+    const split = await this.estimate(tx, order);
     const platform = (type: AccountRef['type']): AccountRef => ({
       ownerType: 'PLATFORM',
       ownerId: null,

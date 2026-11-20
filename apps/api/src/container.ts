@@ -21,6 +21,7 @@ import {
   OrderQueryService,
   OrderSettlement,
   ReorderService,
+  RestaurantOrdersService,
   OrderCreationService,
   OrderEffects,
   OrderPaymentReactions,
@@ -235,6 +236,15 @@ export function createContainer(input: ContainerInput) {
   const branchOps = new BranchOpsService(prisma, branches, settings, audit, clock, logger);
   const restaurantProfile = new RestaurantProfileService(prisma, files, audit, fieldCipher, clock);
   const menuAdmin = new MenuAdminService(prisma, files, audit, clock);
+  const restaurantOrders = new RestaurantOrdersService(
+    prisma,
+    orderTransitions,
+    orderCancellation,
+    orderTimers,
+    orderSettlement,
+    audit,
+    clock,
+  );
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
   registerNotificationConsumers(outboxRelay, { prisma, notifications });
   return {
@@ -295,6 +305,7 @@ export function createContainer(input: ContainerInput) {
     branchOps,
     restaurantProfile,
     menuAdmin,
+    restaurantOrders,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

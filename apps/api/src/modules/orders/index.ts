@@ -22,3 +22,5 @@ export { OrderQueryService, STATUS_GROUPS, type StatusGroup } from './order-quer
 export { ReorderService } from './reorder.service';
 export { OrderSettlement, settlementSplit } from './settlement';
 export { OrderIssueService, type ReportInput } from './issues.service';
+export { merchantOrdersRouter } from './merchant-orders.routes';
+export { QUEUE_TABS, RestaurantOrdersService, shortName } from './restaurant-orders.service';
