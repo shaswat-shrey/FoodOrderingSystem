@@ -228,6 +228,22 @@ export function partnerRouter(deps: PartnerRouterDeps): Router {
     ),
   );
 
+  /** Zones an applicant can choose as their preferred zone (API-DP-002 support). */
+  router.get(
+    '/partner/zones',
+    ...applicant,
+    handle({}, async ({ res }) =>
+      sendOk(
+        res,
+        await deps.prisma.zone.findMany({
+          where: { status: 'ACTIVE', deletedAt: null },
+          select: { id: true, name: true, city: true },
+          orderBy: [{ city: 'asc' }, { name: 'asc' }],
+        }),
+      ),
+    ),
+  );
+
   /* availability (approved partners, delivery app) */
   const partner: RequestHandler[] = [
     requireClientApp(),

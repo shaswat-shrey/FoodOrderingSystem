@@ -44,6 +44,8 @@ async function application(
   const a = await signUpCustomer(ctx, { app: 'DELIVERY' });
   const b = a.browser;
   expect((await b.post('/partner/applications')).status).toBe(201);
+  const zones = (await b.get('/partner/zones')).body.data as { id: string }[];
+  expect(zones.map((z) => z.id)).toContain(zoneId);
   const pic = (await uploadFile(ctx, b, 'DELIVERY', 'PARTNER_PHOTO', await photo(), 'me.jpg')).body
     .data;
   const saved = await b.patch('/partner/applications/me', {
