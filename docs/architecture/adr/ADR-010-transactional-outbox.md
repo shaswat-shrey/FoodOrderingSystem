@@ -1,6 +1,6 @@
 # ADR-010: Transactional outbox for events, jobs and real-time
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 State changes must reliably trigger notifications, jobs and socket events. Emitting directly after commit can lose events on crash; emitting inside the transaction can announce changes that roll back.

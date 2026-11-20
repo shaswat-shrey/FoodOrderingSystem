@@ -1,6 +1,6 @@
 # SRS Sections 10–12 — Order Management, Payments, Delivery Assignment
 
-> Part of FOS-SRS-001 v0.1.0 (DRAFT). Diagrams of all state machines: `docs/architecture/STATE-MACHINES.md`. Design rationale: ADR-006 (separate state machines), ADR-008 (dispatch), ADR-011 (ledger).
+> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). Diagrams of all state machines: `docs/architecture/STATE-MACHINES.md`. Design rationale: ADR-006 (separate state machines), ADR-008 (dispatch), ADR-011 (ledger).
 
 ---
 

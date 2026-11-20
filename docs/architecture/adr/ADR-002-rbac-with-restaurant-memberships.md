@@ -1,6 +1,6 @@
 # ADR-002: RBAC with platform roles, restaurant-scoped memberships and resource policies
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 Authorization must cover platform staff, customers, partners, and restaurant staff whose rights depend on *which restaurant and branch* they belong to. Roles alone cannot express "manager of branch X only". The owner requires RBAC + permission-based + resource-level checks.

@@ -2,7 +2,7 @@
 
 A production-oriented food delivery ecosystem: customer, restaurant (incl. kitchen display), delivery-partner and admin applications on a shared Node.js/TypeScript modular-monolith backend (Express, Socket.IO, PostgreSQL + PostGIS, Prisma, Redis, BullMQ).
 
-> **Status:** Phase 1 (requirements & architecture) drafted and awaiting approval. There is no application code yet — see [PROJECT_STATUS.md](PROJECT_STATUS.md).
+> **Status:** Phase 1 (requirements & architecture) approved on 2026-11-20; Phase 2 (repository & infrastructure) in progress — see [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
 ## Start here
 - **Review pack:** [docs/PHASE-1-REVIEW.md](docs/PHASE-1-REVIEW.md) — summary, assumptions and decisions needing approval

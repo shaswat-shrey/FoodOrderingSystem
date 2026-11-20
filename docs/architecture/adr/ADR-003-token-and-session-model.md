@@ -1,6 +1,6 @@
 # ADR-003: Token and session model
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 Requirements: short-lived access tokens, refresh rotation with reuse detection, revocable device sessions, logout-all, no long-lived tokens in localStorage, four browser apps.

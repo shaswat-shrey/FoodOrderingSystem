@@ -1,6 +1,6 @@
 # SRS Sections 4–9 — Functional Requirements
 
-> Part of FOS-SRS-001 v0.1.0 (DRAFT). Master: [SRS-Online-Food-Ordering-and-Delivery-Platform.md](SRS-Online-Food-Ordering-and-Delivery-Platform.md).
+> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). Master: [SRS-Online-Food-Ordering-and-Delivery-Platform.md](SRS-Online-Food-Ordering-and-Delivery-Platform.md).
 > Business rules (`BR-*`) are defined in [BUSINESS-RULES.md](BUSINESS-RULES.md); error codes in [ERROR-HANDLING.md](ERROR-HANDLING.md); APIs in [API-SPECIFICATION.md](API-SPECIFICATION.md).
 
 ---

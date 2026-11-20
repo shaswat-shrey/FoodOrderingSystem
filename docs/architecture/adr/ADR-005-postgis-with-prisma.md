@@ -1,6 +1,6 @@
 # ADR-005: PostGIS with Prisma
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 Serviceability, nearby discovery, zones and dispatch need geospatial queries and GiST indexes. Prisma does not support PostGIS types natively.

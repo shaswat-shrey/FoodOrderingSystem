@@ -1,6 +1,6 @@
 # ADR-009: PostgreSQL full-text + trigram search
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 Search over restaurants and dishes within serviceable branches for one city: tens of thousands of documents.

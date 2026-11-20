@@ -1,6 +1,6 @@
 # ADR-007: Money as integer minor units
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 JavaScript floats cannot represent decimal currency exactly; financial totals must reconcile to the paisa.

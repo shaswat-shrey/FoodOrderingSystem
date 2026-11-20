@@ -1,6 +1,6 @@
 # ADR-011: Double-entry ledger for all money movement
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 Money flows between customers, the gateway, restaurants, partners, tax authorities and the platform, including refunds, partial refunds, COD cash, wallet credits, commissions and payouts. Balances must be auditable and reconcilable.

@@ -1,6 +1,6 @@
 # ADR-014: Delivery partner app as an installable PWA first
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 The required stack is React web. Partners need GPS, push, camera and reliability on Android phones.

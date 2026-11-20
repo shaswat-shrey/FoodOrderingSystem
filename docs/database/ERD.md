@@ -1,6 +1,6 @@
 # Initial Entity-Relationship Diagrams
 
-> Companion to SRS §15 ([DATABASE-REQUIREMENTS.md](../requirements/DATABASE-REQUIREMENTS.md)). Status: **Initial ERD, v0.1.0 (DRAFT)**. Column lists are abbreviated to keys and the most important attributes; the entity inventory in §15.3 is authoritative for columns and constraints. One diagram per domain keeps each readable; cross-domain links are shown as references at the edges.
+> Companion to SRS §15 ([DATABASE-REQUIREMENTS.md](../requirements/DATABASE-REQUIREMENTS.md)). Status: **Initial ERD, v0.2.0 (APPROVED 2026-11-20)**. Column lists are abbreviated to keys and the most important attributes; the entity inventory in §15.3 is authoritative for columns and constraints. One diagram per domain keeps each readable; cross-domain links are shown as references at the edges.
 
 ## 1. Identity, access & sessions
 

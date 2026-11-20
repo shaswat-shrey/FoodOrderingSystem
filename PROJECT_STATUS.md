@@ -5,16 +5,16 @@ _Last updated: 2026-11-20_
 ## Summary
 | Item | Status |
 |---|---|
-| Current phase | **Phase 1 — Product requirements & architecture: complete, awaiting owner approval** |
-| Next phase | Phase 2 — Repository & infrastructure (blocked on approval) |
-| SRS version | FOS-SRS-001 v0.1.0 (DRAFT) |
+| Current phase | **Phase 2 — Repository & infrastructure (in progress)** |
+| Next phase | Phase 3 — Database |
+| SRS version | FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20) |
 | Application code | None yet (by design) |
 
 ## Phases
 | Phase | Status |
 |---|---|
-| 1 Requirements & architecture | ✅ Drafted · ⏳ Awaiting approval |
-| 2 Repository & infrastructure | ⛔ Not started (blocked) |
+| 1 Requirements & architecture | ✅ Approved 2026-11-20 (defaults adopted for OD-01…OD-16) |
+| 2 Repository & infrastructure | 🔄 In progress |
 | 3 Database | Not started |
 | 4 Auth & security | Not started |
 | 5 Core customer backend | Not started |
@@ -63,7 +63,7 @@ _Last updated: 2026-11-20_
 - None.
 
 ## Technical decisions
-- ADR-001…014 (Proposed) — see `docs/architecture/adr/README.md`.
+- ADR-001…014 (Accepted 2026-11-20) — see `docs/architecture/adr/README.md`.
 
 ## Blockers
 - Owner approval of SRS and Phase 1 architecture.

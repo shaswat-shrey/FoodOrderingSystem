@@ -1,6 +1,6 @@
 # SRS Section 13 — Real-Time Requirements
 
-> Part of FOS-SRS-001 v0.1.0 (DRAFT). Architecture: `docs/architecture/SYSTEM-ARCHITECTURE.md` §8, ADR-010.
+> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). Architecture: `docs/architecture/SYSTEM-ARCHITECTURE.md` §8, ADR-010.
 
 ## 13.1 Principles
 

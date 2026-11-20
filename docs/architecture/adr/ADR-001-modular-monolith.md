@@ -1,6 +1,6 @@
 # ADR-001: Modular monolith with a separate worker process
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 The platform has ~30 business domains with heavy transactional coupling (checkout touches cart, pricing, coupons, orders, payments, wallet). The team is small and the pilot load (SRS A-12) fits easily on a few instances. The owner explicitly requires a modular monolith first, with modules extractable later.

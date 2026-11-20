@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.1.0 (DRAFT). **Status of every row: `Planned`** — no implementation exists yet (Phase 1).
+> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). **Status of every row: `Planned`** — no implementation exists yet (Phase 1).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >

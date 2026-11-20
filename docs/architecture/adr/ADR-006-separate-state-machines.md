@@ -1,6 +1,6 @@
 # ADR-006: Separate order, payment and delivery state machines
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 The suggested single order status list mixes three lifecycles. Partner assignment usually happens *during* preparation, so `DELIVERY_PARTNER_ASSIGNED` cannot be a step between `READY_FOR_PICKUP` and `PICKED_UP` without lying about state. Refund progress can continue after an order is terminal.

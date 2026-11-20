@@ -1,6 +1,6 @@
 # ADR-012: pnpm + Turborepo monorepo; Zustand for client state
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 Four frontends and two backend processes share types, validation schemas, money logic, state machine definitions and UI components.

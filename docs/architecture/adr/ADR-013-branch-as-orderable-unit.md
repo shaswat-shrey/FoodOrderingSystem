@@ -1,6 +1,6 @@
 # ADR-013: Branch is the orderable unit; menu at brand level with branch overrides
 
-- **Status:** Proposed · **Date:** 2026-11-20
+- **Status:** Accepted (2026-11-20) · **Date:** 2026-11-20
 
 ## Context
 Restaurants may have multiple outlets with different locations, hours, radius and stock, but usually one menu.

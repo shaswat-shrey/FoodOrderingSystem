@@ -1,6 +1,6 @@
 # SRS Section 23 — Acceptance Criteria
 
-> Part of FOS-SRS-001 v0.1.0 (DRAFT). Criteria are written as verifiable statements (Given/When/Then where useful). A module is accepted when all its P0 criteria pass in automated tests (unit/integration/E2E as indicated: **U**, **I**, **E**) in CI and are demonstrated in staging.
+> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). Criteria are written as verifiable statements (Given/When/Then where useful). A module is accepted when all its P0 criteria pass in automated tests (unit/integration/E2E as indicated: **U**, **I**, **E**) in CI and are demonstrated in staging.
 
 ## AC-AUTH — Authentication & sessions
 

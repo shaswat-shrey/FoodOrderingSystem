@@ -15,12 +15,12 @@
 | Project name | FoodOrderSystem — Online Food Ordering and Delivery Platform (working name; product brand name TBD — see OD-01) |
 | Document title | Software Requirements Specification (SRS) |
 | Document identifier | FOS-SRS-001 |
-| Document version | 0.1.0 |
-| Document status | **DRAFT — Pending stakeholder review and approval** |
+| Document version | 0.2.0 |
+| Document status | **APPROVED — Baseline for implementation** |
 | Date of creation | 2026-11-20 |
 | Author | Engineering (prepared with Claude Code acting as architecture partner) |
 | Owner / Approver | Project owner (Shaswat Shrey) |
-| Approval status | Not approved. Phase 2 implementation is blocked until this SRS and the Phase 1 architecture are approved. |
+| Approval status | Approved by the project owner on 2026-11-20 ("Approve with defaults"): SRS, Phase 1 architecture and ADRs accepted; all open decisions OD-01…OD-16 resolved with their proposed defaults; all assumptions marked for confirmation are confirmed. Legal/tax review items (§20.4) remain open and must be closed before public launch. |
 | Intended audience | See §2.4 |
 
 ### 1.2 Revision History
@@ -28,6 +28,7 @@
 | Version | Date | Author | Change summary | Approved by |
 |---|---|---|---|---|
 | 0.1.0 | 2026-11-20 | Engineering | Initial complete draft of all 28 SRS sections, Phase 1 architecture, ADRs, API inventory, ERD, roadmap. | — |
+| 0.2.0 | 2026-11-20 | Engineering | Owner approval recorded. OD-01…OD-16 resolved with proposed defaults; assumptions A-01…A-20 confirmed; ADR-001…014 Accepted; documents re-labelled APPROVED. No requirement text changed. | Project owner |
 
 Versioning rule: MAJOR = approved baseline change that alters scope; MINOR = requirements added/changed; PATCH = editorial fixes. Every change to a requirement ID's text is recorded here and in the Traceability Matrix change log (§27).
 
@@ -473,7 +474,7 @@ A single user account **may** hold multiple platform roles (e.g., a restaurant o
 
 ### 3.7 Assumptions and Dependencies
 
-`Confirm?` = **Y** means the assumption needs owner confirmation (listed again in the Phase 1 review).
+`Confirm?` = **Y** marked assumptions that needed owner confirmation; **all were confirmed on 2026-11-20 (v0.2.0)**.
 
 | ID | Assumption | Impact if false | Confirm? |
 |---|---|---|---|
@@ -541,9 +542,11 @@ Each has an ADR in `docs/architecture/adr/`.
 | D-12 | One frontend monorepo with four apps + shared packages; Prisma schema lives in `packages/db`. | ADR-012 |
 | D-13 | Delivery partner app is an installable PWA (mobile-first web) in initial releases. | ADR-014 |
 
-### 3.10 Open Decisions (require owner input)
+### 3.10 Open Decisions (resolved)
 
-| ID | Question | Proposed default (used throughout this SRS until decided) |
+All decisions below were resolved on 2026-11-20 by adopting the proposed default (v0.2.0). They remain configurable where marked ⚙ in §18; OD-06 (tax) and OD-15 (legal pages) still require legal/tax review before launch.
+
+| ID | Question | Decision (approved default) |
 |---|---|---|
 | OD-01 | Product/brand name? | "FoodOrderSystem" (working name). |
 | OD-02 | Customer cancellation policy after restaurant acceptance? | Free before acceptance and within 60 s after acceptance; later in `ACCEPTED` fee = 50 % of food value; in `PREPARING` fee = 100 % of food value + packaging (restaurant compensated; tip and delivery/platform fees refunded); not allowed by the customer once `READY_FOR_PICKUP` or later — only via support. (BR-ORDER-010..013) |
