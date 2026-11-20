@@ -546,7 +546,7 @@ Each has an ADR in `docs/architecture/adr/`.
 | ID | Question | Proposed default (used throughout this SRS until decided) |
 |---|---|---|
 | OD-01 | Product/brand name? | "FoodOrderSystem" (working name). |
-| OD-02 | Customer cancellation policy after restaurant acceptance? | Free before acceptance; after acceptance and up to `PREPARING` (inclusive) allowed with a cancellation fee of 50 % of food value (restaurant compensated); not allowed by the customer once `READY_FOR_PICKUP` or later — only via support. (BR-ORDER-010..013) |
+| OD-02 | Customer cancellation policy after restaurant acceptance? | Free before acceptance and within 60 s after acceptance; later in `ACCEPTED` fee = 50 % of food value; in `PREPARING` fee = 100 % of food value + packaging (restaurant compensated; tip and delivery/platform fees refunded); not allowed by the customer once `READY_FOR_PICKUP` or later — only via support. (BR-ORDER-010..013) |
 | OD-03 | Restaurant acceptance timeout? | 5 min, reminder at 2 min, auto-cancel + full refund at timeout. |
 | OD-04 | Platform fee, delivery fee slabs, packaging fee caps, small-order fee, surge caps? | §18 BR-PRICE-*: platform fee ₹5; delivery fee slab by distance; small-order fee ₹15 below ₹149; surge ≤ ₹40. |
 | OD-05 | Commission rate model? | Per-restaurant configurable %, default 20 % of food subtotal after restaurant-funded discounts. |
