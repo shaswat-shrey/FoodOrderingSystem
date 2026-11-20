@@ -158,6 +158,8 @@ export class ServiceabilityService {
       smallOrderFeeAmount: row.smallOrderFeeAmount,
       platformFeeAmount: row.platformFeeAmount,
       surgeCapAmount: row.surgeCapAmount,
+      packagingCapPerItemAmount: row.packagingCapPerItemAmount,
+      packagingCapPerOrderAmount: row.packagingCapPerOrderAmount,
     };
     this.feeCache.set(zoneId, { value, expiresAt: nowMs + FEE_CACHE_MS });
     return value;

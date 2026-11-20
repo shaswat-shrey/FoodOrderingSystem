@@ -150,6 +150,8 @@ const schedule: FeeScheduleView = {
   smallOrderFeeAmount: 1500,
   platformFeeAmount: 500,
   surgeCapAmount: 4000,
+  packagingCapPerItemAmount: 1000,
+  packagingCapPerOrderAmount: 5000,
 };
 
 describe('delivery quote (BR-PRICE-003, BR-PRICE-007, FR-DISC-010)', () => {

@@ -4,27 +4,14 @@
  * the same fee schedule.
  */
 
-export interface FeeScheduleView {
-  id: string;
-  slabs: { fromM: number; toM: number; feeAmount: number }[];
-  perKmBeyondSlabsAmount: number;
-  smallOrderThresholdAmount: number;
-  smallOrderFeeAmount: number;
-  platformFeeAmount: number;
-  surgeCapAmount: number;
-}
+import { slabFee, type FeeConfig } from '../pricing';
 
-/** BR-PRICE-003: slab fee; beyond the last slab, last fee + per started km. */
+/** The effective fee schedule: the same view the pricing engine uses. */
+export type FeeScheduleView = FeeConfig;
+
+/** BR-PRICE-003 (shared with the pricing engine). */
 export function deliveryFeeFor(distanceM: number, schedule: FeeScheduleView): number {
-  const slabs = [...schedule.slabs].sort((a, b) => a.fromM - b.fromM);
-  const slab = slabs.find((s) => distanceM >= s.fromM && distanceM < s.toM);
-  if (slab) return slab.feeAmount;
-  const last = slabs.at(-1);
-  if (!last) return 0;
-  if (distanceM < (slabs[0]?.fromM ?? 0)) return slabs[0]?.feeAmount ?? 0;
-  return (
-    last.feeAmount + Math.ceil((distanceM - last.toM) / 1000) * schedule.perKmBeyondSlabsAmount
-  );
+  return slabFee(distanceM, schedule);
 }
 
 /** BR-PRICE-007: zone surge while active, never above the schedule's cap. */
