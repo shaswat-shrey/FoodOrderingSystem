@@ -1,0 +1,1357 @@
+# Requirements Index
+
+> **Generated file — do not edit by hand.** Run `node docs/tools/requirements-index.mjs` after changing any SRS file.
+> Lists every requirement-family ID defined in the SRS with its source file, priority and release.
+
+| Family | Defined IDs |
+|---|---|
+| Functional requirements (`FR-*`) | 408 |
+| Non-functional requirements (`NFR-*`) | 104 |
+| Business rules (`BR-*`) | 161 |
+| Acceptance criteria (`AC-*`) | 96 |
+| API endpoints (`API-*`) | 494 |
+| Real-time events (`EVT-*`) | 49 |
+
+Integrity: **3** duplicate definitions, **0** references to undefined IDs.
+
+## Functional requirements
+
+| ID | Title / summary | Priority | Release | Defined in |
+|---|---|---|---|---|
+| FR-ADDR-001 | Create address | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADDR-002 | List / get addresses | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADDR-003 | Update address | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADDR-004 | Delete address | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADDR-005 | Default address | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADDR-006 | Address validation | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-001 | Admin login | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-002 | Dashboard | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-003 | Live operations map | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-010 | Customer management | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-020 | Restaurant applications | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-021 | Restaurant management | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-022 | Restaurant verification of changes | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-023 | Restaurant suspension | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-030 | Partner applications | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-031 | Partner management | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-040 | Order management | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-041 | Order interventions | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-042 | Disputes | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-050 | Payments | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-051 | Refunds | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-052 | Reconciliation | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-060 | Coupons | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-061 | Promotions & banners | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-070 | Zones | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-071 | Fees & taxes | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-072 | Commission | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-073 | Partner pay config | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-080 | Support desk | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-081 | Complaints | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-082 | Review moderation | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-090 | Analytics | P1 | CORE (basic in MVP) | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-091 | Reports | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-100 | Platform settings | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-101 | Feature flags | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-110 | Roles & permissions | P0 | MVP (assign) / CORE (custom roles) | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-111 | Admin accounts | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-120 | Audit logs | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-121 | Payouts | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-122 | Content management | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ADMIN-123 | Broadcast notifications | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUDIT-001 | Audit capture | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUDIT-002 | Immutability | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUDIT-003 | Audit query | P1 | MVP (search) / CORE (export) | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-001 | Register with email and password | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-002 | Register / sign in with phone and OTP | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-003 | Login with email/phone and password | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-004 | OAuth sign-in (Google, Apple) | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-005 | Logout (current session) | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-006 | Logout from all devices | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-007 | List and revoke device sessions | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-008 | Email verification | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-009 | Phone verification | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-010 | OTP generation, delivery and verification | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-011 | Forgot password | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-012 | Reset password | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-013 | Change password | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-014 | Account recovery | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-020 | Session creation and token issuance | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-021 | Access token validation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-022 | Refresh token rotation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-023 | Session expiry | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-024 | Permission version / role change propagation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-030 | Brute-force and abuse protection | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-031 | Step-up re-authentication | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-032 | Admin MFA | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-040 | Account suspension | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-041 | Account deletion | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-AUTH-042 | Account reactivation | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-001 | Add item to cart | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-002 | Get cart | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-003 | Update quantity | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-004 | Update customization | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-005 | Remove line | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-006 | Clear cart | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-007 | Cart instructions | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-008 | Pricing preview | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-009 | Apply / remove coupon | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-010 | Validate cart | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-011 | Guest cart merge | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-012 | Persistence & expiry | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CART-013 | Limits | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CFG-001 | Typed settings | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CFG-002 | Effective-dated config | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CFG-003 | Feature flags | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CFG-004 | Config caching | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CHK-001 | Create checkout session | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CHK-002 | Confirm checkout and create order | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CHK-003 | Tip | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CHK-004 | Delivery ETA quote | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CHK-005 | Contact details | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CHK-006 | Delivery instructions | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CHK-007 | Payment method selection | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CHK-008 | Order confirmation screen | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-001 | Active orders | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-002 | Order history | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-003 | Order details | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-004 | Live tracking | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-005 | Tracking map | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-006 | Delivery OTP display | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-007 | Cancel order | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-008 | Reorder | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-009 | Invoice | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-010 | Report issue | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-011 | Refund request | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CORD-012 | Delivery confirmation | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-COUP-001 | List coupons | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-COUP-002 | Validate coupon | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-COUP-003 | Coupon details | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-COUP-004 | Reservation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-COUP-005 | Expiry during checkout | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CPAY-001 | Pay online | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CPAY-002 | Payment pending UX | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CPAY-003 | Retry payment | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CPAY-004 | Payment history | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CPAY-005 | Wallet | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CSUP-001 | Help center | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CSUP-002 | Create ticket | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CSUP-003 | Ticket conversation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CSUP-004 | Close / reopen | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CSUP-005 | CSAT | P3 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CSUP-006 | Grievance officer | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CUST-001 | View profile | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CUST-002 | Update profile | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CUST-003 | Change email | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CUST-004 | Change phone | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CUST-005 | Avatar | P2 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CUST-006 | Preferences | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CUST-007 | Account status | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-CUST-008 | Data export | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-001 | Receive offer | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-002 | Accept offer | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-003 | Reject offer | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-004 | Offer timeout | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-005 | Offer withdrawn | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-010 | Active delivery screen | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-020 | Arrived at restaurant | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-025 | Pickup confirmation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-026 | Arrived at customer | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-030 | Delivery OTP verification | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-031 | Contactless proof | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-032 | COD collection | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-033 | Mark delivered | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-034 | Customer unreachable | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-035 | Partner cancels after accept | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-036 | SOS | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DEL-037 | Delivery history | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DELV-001 | Every order shall get a random 4-digit delivery code at placement (stored hashed; shown to customer). OTP veri | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DELV-002 | Photo proof shall be captured in-app, EXIF-stripped, stored privately, linked to delivery, retained 30 days (§ | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DELV-003 | Delivery completion requests carry an idempotency key; repeated submissions are safe (E20). | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISC-001 | Serviceable restaurant listing | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-002 | Filters | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-003 | Sorting | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-004 | Pagination | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-005 | Collections | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-006 | Banners | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-007 | Cuisine browse | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-008 | Veg-only toggle | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-009 | Branch delivery info | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-010 | ETA estimate (listing) | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-011 | Recommended ranking | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-012 | Recommended for you | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISC-013 | Restaurants by offer | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DISP-001 | **Dispatch timing.** On order acceptance the system shall create the delivery and schedule search start at `ma | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-002 | **Candidate discovery.** The system shall find partners using Redis `GEOSEARCH` on the zone's online-partner g | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-003 | **Ranking.** Candidates shall be ranked by a score combining: estimated time to restaurant (dominant), idle ti | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-004 | **Sequential offers.** The system shall offer the delivery to one partner at a time; each offer expires after  | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-005 | **Rounds & radius expansion.** Round 1 radius 3 km (max 5 offers), round 2 radius 5 km (max 5 offers), round 3 | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-006 | **Exactly-once assignment.** Acceptance shall: acquire Redis lock `lock:delivery:{id}` (TTL 5 s, token-checked | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-007 | **Partner single-offer constraint.** A partner shall hold at most one OFFERED assignment at a time and at most | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-008 | **No-repeat rule.** A partner who rejected, let expire, or was released from a delivery shall not be offered t | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-009 | **Escalation & retries.** After all rounds without acceptance, the delivery is flagged `escalated`, ops alerte | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-010 | **No-partner deadline.** If no partner is assigned by `readyAt + cfg.dispatch.noPartnerCancelAfter` (30 min) ( | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-011 | **Manual assignment.** Admins (`dispatch:assign`) shall assign a specific eligible partner (bypassing ranking  | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-012 | **Reassignment.** Admins shall reassign an ASSIGNED delivery to another partner ★; previous assignment REVOKED | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-013 | **Assignment history.** Every offer shall be recorded (`delivery_assignments`): partner, round, rank, score br | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-014 | **Partner unavailable after assignment.** Handled per E12: heartbeat loss 3 min → ping + ops alert; 5 min → au | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-015 | **Dispatch pause.** If Redis (geo/state) is unavailable, dispatch shall pause (deliveries remain SEARCHING), o | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DISP-016 | **Batching.** (ADV) The engine may offer a second order to a partner already heading to the same branch if its | P3 | ADV | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-DP-001 | Partner registration & application | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-002 | Verification status | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-003 | Approval effect | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-004 | Profile | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-005 | Vehicles | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-006 | Document expiry | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-007 | Training acknowledgment | P2 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-010 | Go online | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-011 | Go offline | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-012 | Pause | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-013 | Availability tracking | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-014 | Auto-offline | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-DP-015 | Session time | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-EARN-001 | Per-delivery earnings | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-EARN-002 | Earnings views | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-EARN-003 | Incentives | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-EARN-004 | Adjustments | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-EARN-005 | Cash-in-hand | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-EARN-006 | Payouts | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-EARN-007 | Ratings & performance | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-EARN-008 | Partner support | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FAV-001 | Favorite restaurant | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FAV-002 | Favorite food | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FAV-003 | List favorites | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-001 | Route protection | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-002 | Token handling | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-003 | Single-flight refresh | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-004 | Role-based navigation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-005 | State feedback | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-006 | Forms | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-007 | Socket lifecycle | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-008 | Offline awareness | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-009 | PWA (delivery app) | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FE-010 | Deep links | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FILE-001 | Upload intake | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FILE-002 | Content validation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FILE-003 | Image derivatives | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FILE-004 | Private documents | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FILE-005 | Storage abstraction | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FILE-006 | Orphan cleanup | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-FILE-007 | Malware scanning | P2 | ADV if infra cost too high in MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-LOC-001 | Detect location | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-LOC-002 | Reverse geocode | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-LOC-003 | Address search | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-LOC-004 | Map pin | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-LOC-005 | Session location | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-LOC-006 | Serviceability check | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-001 | Categories CRUD | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-002 | Reorder categories | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-003 | Create item | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-004 | Edit item | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-005 | Delete item | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-006 | Variants | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-007 | Customization groups | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-008 | Availability toggle | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-009 | Stock counts | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-010 | Scheduled availability | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-011 | Combos | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-012 | Item discounts | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-013 | Bulk operations | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-014 | Menu import | P3 | ADV | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENU-015 | Menu moderation | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-001 | Restaurant page | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-002 | Menu structure | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-003 | Item card | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-004 | Item details | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-005 | Unavailable items | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-006 | Menu filters | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-007 | Allergen warning | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-008 | Menu caching | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-009 | Restaurant reviews view | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-MENUC-010 | Branches of a brand | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-001 | Central dispatch | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-002 | In-app inbox | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-003 | Read state | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-004 | Delete | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-005 | Templates | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-006 | Preferences | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-007 | Delivery attempts | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-008 | Quiet hours | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-009 | Push subscriptions | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-NOTIF-010 | Event catalog | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-ORDER-001 | Create order | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-002 | Duplicate order prevention | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-003 | Order number & invoice numbering | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-020 | The system shall compute cancellation eligibility and the fee/refund preview (`GET /orders/{id}/cancellation-p | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-021 | The system shall record each cancellation in `order_cancellations`: initiator, reason code, free text, fault a | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-022 | On cancellation the system shall: withdraw outstanding offers; cancel the delivery; release the assigned partn | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-023 | Concurrent cancellation and state advance (e.g., customer cancels while restaurant accepts) shall be serialize | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-030 | The system shall not allow customers to change items, branch or payment method after placement. | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-031 | The customer may update delivery instructions and contact phone until PICKED_UP. | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-ORDER-032 | Delivery address change after placement shall be allowed only via support, only before PICKED_UP, only within  | P2 | CORE | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-001 | **Adapter interface.** The payments module shall depend only on a `PaymentProvider` interface: `createPaymentO | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-002 | **Initiation.** For an order in PAYMENT_PENDING the system shall create (or reuse, if still valid) a provider  | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-003 | **Client callback verification.** On client success callback, the system shall verify the provider signature ( | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-004 | **Webhooks.** The system shall expose `POST /api/v1/payments/webhooks/{provider}`; it shall verify the signatu | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-005 | **Retry.** A customer may retry payment while the order is PAYMENT_PENDING and before TTL; each retry creates  | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-006 | **Timeout.** Payments not captured by the order's payment TTL become EXPIRED after a final provider status che | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-007 | **Idempotency.** Payment initiation, verification and refund endpoints shall require `Idempotency-Key`; provid | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-008 | **Amount integrity.** The system shall reject (and alert on) a capture whose amount or currency differs from t | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-009 | **Status precedence.** Payment status updates shall be monotonic per precedence `CREATED < PENDING < AUTHORIZE | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-010 | **Authorization vs capture.** The Razorpay integration shall use automatic capture. If a payment is AUTHORIZED | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-011 | **COD.** COD orders shall have a payment record (method COD, status PENDING) that becomes COLLECTED when the p | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-012 | **Wallet payment.** Wallet amounts shall be HELD at order creation, DEBITED on T02/T03, and RELEASED on T04/T0 | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-013 | **Transaction history.** All money movements shall be recorded in the ledger (ADR-011) with references to orde | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-014 | **Payment security.** The platform shall use provider-hosted checkout so card data never reaches platform serv | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-015 | **Payment details API.** Customers see their payment's method type and masked instrument (e.g., "UPI • ab***@o | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PAY-016 | **Cancel payment.** When an order in PAYMENT_PENDING is cancelled, the system shall mark the payment CANCELLED | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-PRICE-001 | Price computation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-PRICE-002 | No client prices | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-PRICE-003 | Minimum order | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-PRICE-004 | Maximum order | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-PRICE-005 | Price change notice | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RANL-001 | Dashboard | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RANL-002 | Periodic metrics | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RANL-003 | Top items & categories | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RANL-004 | Peak hours | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RANL-005 | Branch comparison | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RANL-006 | Reports export | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RECON-001 | Daily (02:00 IST) JOB-PAY-003 shall fetch provider payments, refunds and settlements for the previous day and  | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-RECON-002 | Mismatches (missing internally, missing at provider, amount/status mismatch, captured without order) shall be  | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-RECON-003 | Ledger integrity check: sum of all ledger entries per transaction = 0; account balances = sum of entries; runs | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-RECON-004 | Hourly JOB-PAY-004 shall query the provider for payments in PENDING/AUTHORIZED older than 30 min to resolve st | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-001 | The system shall create refund records with: order, payment, amount (≤ refundable remaining = captured − refun | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-002 | **Full refunds** are created automatically for T04-after-capture anomalies, T07, T08*, T10b/c, T12b, T14, and  | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-003 | **Partial refunds** (item-level issues, cancellation with fee, goodwill) shall be supported; the sum of refund | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-004 | For split payments (wallet + online), refunds go first to the online portion up to its captured amount, remain | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-005 | Provider refunds shall be submitted by a worker (JOB-REFUND-001) with an idempotency reference = refund ID; fa | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-006 | Refund status updates via webhook (`refund.processed`, `refund.failed`) and polling (JOB-REFUND-002). | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-007 | COD orders: refunds for issues after delivery are issued as wallet credits (or bank transfer via support — COR | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-008 | Refund approval: system-initiated refunds per policy are auto-approved; support-initiated refunds above `cfg.s | P1 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REFUND-009 | Each refund shall post ledger entries attributing cost to the responsible party (platform, restaurant — recove | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-REST-001 | Restaurant registration | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-002 | Verification status | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-003 | Resubmission | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-004 | Approval effect | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-005 | Rejection | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-006 | Document expiry | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-010 | Update profile | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-011 | Branches | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-012 | Operating hours | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-013 | Holidays | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-014 | Open / close now | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-015 | Pause orders | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-016 | Prep time | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-017 | Delivery settings | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-018 | Status visibility | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-019 | Auto-pause on missed orders | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REST-020 | Closing soon | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REV-001 | Rate restaurant | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REV-002 | Rate delivery | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REV-003 | Rate items | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REV-004 | Edit / delete review | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REV-005 | Report review | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REV-006 | Rating aggregation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-REV-007 | Review prompt | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RFIN-001 | Settlement statements | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RFIN-002 | Order-level earnings | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RFIN-003 | Bank details | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RFIN-004 | Invoices from platform | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RNOT-001 | Restaurant notifications | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-001 | Receive new order | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-002 | Accept order | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-003 | Reject order | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-004 | Start preparing | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-005 | Update prep time | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-006 | Mark ready | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-007 | Handover | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-008 | Order queue views | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-009 | Order details (restaurant) | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-010 | Kitchen Display | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-011 | Print KOT | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-012 | Restaurant cancels after accept | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-013 | Partner delay visibility | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-014 | Order history & search | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RORD-015 | Item issue report response | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RPROMO-001 | Create promotion | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RPROMO-002 | Item offers | P3 | ADV | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RPROMO-003 | Promotion performance | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RREV-001 | View reviews | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RREV-002 | Respond | P2 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RREV-003 | Report review | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RSTAFF-001 | Invite member | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RSTAFF-002 | Manage members | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RSTAFF-003 | Custom permissions | P3 | ADV | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RSTAFF-004 | Activity log | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RSTAFF-005 | Ownership transfer | P3 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RSTAFF-006 | Kitchen device login | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-RT-001 | The server shall expose Socket.IO v4 namespaces per app: `/customer`, `/restaurant`, `/delivery`, `/admin`. A  | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-002 | The access token shall be sent in the handshake `auth.token` field (never in the query string, to keep it out  | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-003 | On access-token refresh the client shall send `auth:refresh {token}`; the server re-validates and extends the  | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-004 | On session revocation, logout, suspension, or permission version change, the server shall disconnect (or re-ev | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-005 | Each socket joins its personal room `user:{userId}` automatically (and `partner:{partnerId}` for delivery, `st | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-006 | Transport: WebSocket preferred, HTTP long-polling fallback allowed for customer/admin; Redis adapter for multi | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-007 | Connection limits: max 5 concurrent sockets per session; max connection attempts 20/min per IP. | P1 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-010 | The server shall reject subscription requests for resources the user is not authorized for with ack `{ok:false | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-011 | When authorization changes (partner released from delivery, member removed from branch, order completed + 30 m | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-012 | Client→server events are limited to: `subscribe`, `unsubscribe`, `auth:refresh`, `partner:location`, `partner: | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-013 | Every client→server event payload shall be validated with Zod; invalid payloads are acknowledged with `VALIDAT | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-014 | Per-socket rate limits: `partner:location` ≤ 1 per 2 s (excess dropped silently, counted); `subscribe` ≤ 30/mi | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-020 | **Reconnection.** Clients shall reconnect with exponential backoff (1 s → 30 s max, jitter), re-send subscript | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-021 | **Disconnection on server side.** On socket disconnect the server shall clean up room memberships; for partner | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-022 | **Event retries.** Server→client delivery is best-effort (no per-client queue). Critical events whose loss is  | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-023 | **Stale data.** Each event carries `aggregate.version`; clients ignore older versions; snapshots fetched after | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-024 | **Ordering.** Events for the same aggregate are emitted in commit order by the outbox relay (ordered by outbox | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-025 | **Duplicate events.** Clients deduplicate by `eventId` (LRU of last 500). | P1 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-026 | **Unauthorized subscriptions** are rejected per FR-RT-010 and logged with user, resource, IP. | P0 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-027 | **Observability.** The gateway shall emit metrics: connected sockets per namespace, joins/sec, events emitted/ | P1 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-RT-028 | **Latency.** Commit-to-client latency for order/delivery events p95 ≤ 1 s; location fan-out p95 ≤ 2 s under no | P1 | MVP | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| FR-SETTLE-001 | On DELIVERED, the system shall post settlement ledger entries: restaurant receivable = food subtotal + packagi | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-SETTLE-002 | Weekly (Monday 00:00 IST, covering previous Mon–Sun) JOB-PAYOUT-001 shall create payout batches for restaurant | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-SETTLE-003 | Payout batch lifecycle: DRAFT → APPROVED (⧉) → PROCESSING → PAID / PARTIALLY_FAILED; each payout line: PENDING | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-SETTLE-004 | Payouts are blocked for accounts with unverified/changed bank details or open financial disputes. | P0 | MVP | [ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md](ORDER-PAYMENT-DELIVERY-REQUIREMENTS.md) |
+| FR-SRCH-001 | Unified search | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-SRCH-002 | Ranking | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-SRCH-003 | Typo tolerance | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-SRCH-004 | Autocomplete | P1 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-SRCH-005 | Search history | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-SRCH-006 | Trending searches | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-SRCH-007 | Dish results | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-SRCH-008 | Search filters | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-TRK-001 | Location updates | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-TRK-002 | No tracking offline | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-TRK-003 | Validation | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-TRK-004 | Last-known location | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-TRK-005 | Stale detection | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-TRK-006 | Customer fan-out | P0 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-TRK-007 | ETA updates | P1 | MVP | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+| FR-TRK-008 | Offline buffering | P2 | CORE | [FUNCTIONAL-REQUIREMENTS.md](FUNCTIONAL-REQUIREMENTS.md) |
+
+## Non-functional requirements
+
+| ID | Title / summary | Priority | Release | Defined in |
+|---|---|---|---|---|
+| NFR-ACCESS-001 | Customer and restaurant apps target WCAG 2.2 Level AA; delivery and admin apps target AA for core flows. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-ACCESS-002 | Full keyboard operability; visible focus indicators (≥ 3:1 contrast); logical tab order; skip-to-content link. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-ACCESS-003 | Screen reader support: semantic HTML landmarks, labeled controls, `aria-live` regions for order status updates |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-ACCESS-004 | Color contrast ≥ 4.5:1 text, ≥ 3:1 UI components; dietary markers convey meaning by shape (square/triangle) +  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-ACCESS-005 | Forms: programmatic labels, error identification with `aria-describedby`, error summary on submit. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-ACCESS-006 | Respect `prefers-reduced-motion`; no auto-playing animations > 5 s without pause. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-ACCESS-007 | Automated checks (axe-core) in component tests and E2E on key pages; zero serious/critical violations to merge |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-AVAIL-001 | Proposed availability objective: 99.5 % monthly for order placement and restaurant order handling during opera |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-AVAIL-002 | Planned maintenance requiring downtime is scheduled 03:00–05:00 IST with in-app notice ≥ 24 h ahead; zero-down |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-AVAIL-003 | **Degraded modes:** maps/geocoding down → manual pin entry, haversine distances, cached geocodes; SMS provider |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-AVAIL-004 | **Redis outage:** session validation falls back to DB; rate limiting falls back to per-instance memory limits  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-AVAIL-005 | **Database outage:** API returns 503 with retryable flag; readiness probe fails so instances are removed from  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-AVAIL-006 | Health endpoints: liveness (process), readiness (DB + Redis + migrations applied) used by orchestrator. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-BACKUP-001 | PostgreSQL: continuous WAL archiving / managed PITR; daily full backup; 35-day PITR window; monthly backup ret |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-BACKUP-002 | Proposed objectives: **RPO ≤ 5 minutes**, **RTO ≤ 2 hours** for the primary database (MVP); RTO ≤ 1 h for CORE |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-BACKUP-003 | Redis is treated as reconstructable: queues are rebuilt from DB state by sweeper jobs; caches are disposable;  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-BACKUP-004 | Object storage: versioning enabled on document buckets; lifecycle rules per retention policy; cross-region rep |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-BACKUP-005 | Restore drills quarterly with documented runbook, measured RTO, ledger integrity verification. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-BACKUP-006 | Disaster recovery: infrastructure as code (CORE) so the stack can be recreated in another region from backups; |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-COMPAT-001 | Browsers per §3.5 (last 2 major versions of Chrome, Edge, Firefox, Safari; Samsung Internet); no IE. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-COMPAT-002 | Responsive breakpoints: 360, 768, 1024, 1280, 1536 px; customer app fully functional from 360 px; restaurant a |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-COMPAT-003 | Delivery PWA works on Android 10+ Chrome and iOS 16.4+ Safari (installed). |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-COMPAT-004 | Server runs on Linux containers (amd64/arm64); local dev on macOS, Linux, Windows (WSL2) via Docker Compose. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-001 | Modular monolith: each module exposes a public interface (`index.ts`); cross-module imports of internals are f |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-002 | TypeScript strict mode; no `any` without justification comment; ESLint + Prettier enforced in CI; conventional |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-003 | Test coverage targets: domain services (pricing, state machines, dispatch, auth) ≥ 90 % lines/branches; overal |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-004 | Dependencies pinned via lockfile; major upgrades through dedicated PRs with changelog review. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-005 | Semantic versioning for releases; CHANGELOG maintained; API versioned by path. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-006 | OpenAPI generated from Zod schemas used at runtime; CI fails if generated spec differs from committed spec. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-007 | Database migrations are reviewed, forward-only in production, follow expand/contract for breaking changes, and |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-008 | Every module has a README describing responsibilities, public API, events emitted/consumed, and jobs. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-MAINT-009 | SRS, traceability matrix and PROJECT_STATUS.md updated in the same PR as the related code change. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-OBS-001 | Structured JSON logs (pino) with level, timestamp, service, module, requestId, correlationId, userId (pseudony |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-OBS-002 | Request ID generated per request (or accepted from client), propagated to jobs, outbox events, socket emits an |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-OBS-003 | Metrics (Prometheus format, OpenTelemetry-ready): HTTP latency/error by route, DB pool usage & query latency,  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-OBS-004 | Tracing: OpenTelemetry instrumentation for HTTP, Prisma, Redis, BullMQ (CORE), exportable to any OTLP backend. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-OBS-005 | Error tracking adapter (Sentry-compatible) for API, worker and frontends, with PII scrubbing. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-OBS-006 | Alerts (initial set): API 5xx > 2 % for 5 min; p95 latency breach for 10 min; queue age > 2 min; dead-letter g |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-OBS-007 | Job logs include job ID, queue, attempt, duration, outcome; payment events logged with provider IDs (no secret |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-001 | Generic authenticated read APIs (server time, excluding network) |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-002 | Generic mutations (non-payment) |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-003 | Restaurant discovery listing (`API-DISC-001`) |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-004 | Menu load (`API-MENU-001`) — cache hit / miss |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-005 | Search autocomplete / full search |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-006 | Checkout session create/update (quote) |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-007 | Order confirmation (excluding payment provider round trip) |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-008 | Real-time: commit → client for order/delivery events; location fan-out |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-009 | Dispatch: order dispatchable → first offer sent |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-010 | Dashboard initial load (restaurant/admin) — time to interactive on broadband desktop |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-011 | Customer web Core Web Vitals on mid-range Android (Moto G-class, 4G): LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1 (75 |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-012 | No query in a P0 flow exceeds 100 ms p95 at peak; every list endpoint is verified free of N+1 queries (query-c |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-013 | Location ingestion sustains 200 updates/s per API instance with < 50 % CPU. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PERF-014 | Background jobs: notification enqueue → provider send p95 ≤ 10 s; webhook receipt → processing p95 ≤ 5 s. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PRIV-001 | Data minimization: each role's API projection exposes only fields needed for its task (e.g., restaurants never |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PRIV-002 | Location data: collected from partners only while online; from customers only on explicit action; partner live |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PRIV-003 | Consent records for terms/privacy; notification marketing consent separately opt-in. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PRIV-004 | Data subject requests: access/export (FR-CUST-008), correction (profile edit), deletion (FR-AUTH-041), grievan |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PRIV-005 | Retention per §20; automated purge/anonymization jobs with audit trail. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PRIV-006 | PII masking in admin UI by default; reveal requires permission & reason (audited). |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-PRIV-007 | No PII in analytics events or third-party scripts; analytics use pseudonymous IDs. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-REL-001 | Financial transaction integrity: every money movement is a balanced ledger transaction committed atomically wi |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-REL-002 | Duplicate prevention: idempotency keys on all P0 mutating endpoints with client retry potential (order creatio |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-REL-003 | Retry policies: external HTTP calls — timeout 5 s (payments 10 s), 3 retries with exponential backoff + jitter |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-REL-004 | Jobs are idempotent and retried per queue policy (default 5 attempts, exponential backoff from 10 s); permanen |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-REL-005 | Outbox relay guarantees at-least-once publication of committed events; consumers dedupe by event ID. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-REL-006 | Timers are recoverable from DB state (JOB-ORD-007 sweeper) — no business deadline depends solely on an in-memo |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-REL-007 | Graceful shutdown: API stops accepting new connections, finishes in-flight requests (≤ 25 s), closes sockets w |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SCALE-001 | API instances are stateless (no in-memory session state, no local file storage) and horizontally scalable behi |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SCALE-002 | Workers scale independently per queue (queue-specific concurrency; separate worker deployments for heavy queue |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SCALE-003 | Socket.IO scales horizontally via the Redis adapter; room fan-out avoids per-socket loops; location broadcasts |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SCALE-004 | Database: read replicas for analytics/reporting (CORE); partitioning for `audit_logs`, `delivery_locations`, ` |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SCALE-005 | Redis: separate logical stores for cache (evictable), queues (noeviction), and realtime/geo (noeviction); can  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SCALE-006 | Geographic expansion: zones, fees, taxes, partner pay and feature flags are zone/city-configurable; adding a c |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SCALE-007 | Module boundaries allow extracting dispatch/tracking into a separate service if location throughput exceeds a  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-001 | **Transport:** TLS 1.2+ everywhere (HSTS max-age 1 year, includeSubDomains); no plaintext HTTP in production e |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-002 | **Authentication:** per Section 5; Argon2id passwords; access JWT 15 min; refresh tokens opaque, hashed, rotat |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-003 | **Authorization:** deny by default; every route declares required permission and resource-scope policy; policy |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-004 | **Input validation:** strict Zod schemas on every REST body/query/param and socket payload; size limits (JSON  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-005 | **Injection:** Prisma parameterized queries only; raw SQL only via tagged templates (`$queryRaw\`…\``) — `$que |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-006 | **XSS:** React escaping; no `dangerouslySetInnerHTML` except sanitized (DOMPurify) CMS content; CSP `default-s |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-007 | **CSRF:** API uses bearer tokens (not cookies) for all endpoints except refresh/logout, which require SameSite |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-008 | **Headers:** Helmet defaults + CSP, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` ( |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-009 | **CORS:** explicit allowlist of the four app origins per environment; credentials allowed only for auth routes |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-010 | **Rate limiting & abuse prevention:** tiers per §14.1; CAPTCHA adapter after suspicious auth patterns (CORE);  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-011 | **Secrets:** never committed; loaded from environment / secrets manager; validated at boot (zod env schema); r |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-012 | **Encryption at rest:** managed DB/storage encryption; additionally application-level AES-256-GCM encryption f |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-013 | **Sensitive data exposure:** API serializers are explicit allowlists (DTOs); password hashes, token hashes, en |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-014 | **Logging hygiene:** structured logs redact `password`, `token`, `otp`, `authorization`, `cookie`, `secret`, c |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-015 | **File uploads:** magic-byte type check, size limits, EXIF stripping, random object keys, private bucket for d |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-016 | **Webhooks:** HMAC signature verification on raw body; timestamp tolerance where provider supports; replay ded |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-017 | **Dependency security:** lockfile committed; automated vulnerability scanning (npm audit / OSV) in CI; critica |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-018 | **Audit logging:** per BR-ADMIN-002; audit logs immutable to application roles. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-019 | **Security testing:** OWASP ASVS L2 checklist review before launch; authenticated DAST scan (OWASP ZAP) in sta |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SEC-020 | **Socket security:** per §13 (handshake auth, room authorization, payload validation, rate limits, revocation  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-001 | **Customers:** a returning customer can reorder in ≤ 4 taps from home; checkout fits on one screen on 360 px w |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-002 | Veg/non-veg markers are consistent across discovery, menu, cart, checkout, order details, and invoices; veg-on |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-003 | Every error message tells the user what happened and what to do next (no raw codes); all blocking states offer |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-004 | **Restaurant staff:** a new order can be accepted in one tap from anywhere in the app; new order alerts are au |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-005 | Restaurant UI usable on 10" tablets with touch targets ≥ 44 px. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-006 | **Kitchen display:** readable from 2 m (min 20 px body text, 32 px ticket numbers), high-contrast theme, no ho |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-007 | **Delivery partners:** one primary action per screen, ≥ 48 px buttons, works one-handed; offer card readable i |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-008 | **Administrators:** data tables support sort, filter, column visibility, keyboard navigation, and saved filter |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-009 | All forms validate inline on blur and on submit with field-level messages. |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-UX-010 | Loading: skeletons for content ≥ 300 ms; optimistic updates only for non-financial toggles (favorites, availab |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+
+## Business rules
+
+| ID | Title / summary | Priority | Release | Defined in |
+|---|---|---|---|---|
+| BR-ADDR-001 | Max 20 saved addresses per customer; at most one HOME and one WORK label. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ADDR-002 | Every address must have map coordinates (pin); text alone is insufficient. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ADMIN-001 | Admins cannot modify their own roles, approve their own maker-checker requests, or refund their own orders. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ADMIN-002 | **Mandatory audit:** all admin mutations; all authentication security events (login success/failure summary, l |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ADMIN-003 | Maker-checker (CORE) applies to: fee/tax/commission/pay-plan changes, wallet/earning adjustments > ₹500/₹1,000 |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ADMIN-004 | Super admin role may be granted only by another super admin; at least 2 super admins must exist; the last supe |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-001 | **Password policy:** 8–128 characters; no composition rules (NIST SP 800-63B); must not appear in a breached-p |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-002 | A customer must have a verified phone before creating a checkout session; restaurant members and partners must |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-003 | **OTP policy:** 6 digits; TTL 5 min ⚙; max 5 verification attempts; resend cooldown 30 s; max 5 sends per dest |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-004 | **Lockout & throttling:** after 5 consecutive failed logins for an account → 15-min lock ⚙ (doubling up to 24  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-005 | Max 10 active sessions per user per app ⚙; creating an 11th revokes the least-recently-active. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-006 | **Token lifetimes:** access token 15 min; refresh/session absolute lifetime: customer & partner 30 d, restaura |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-007 | Refresh-token concurrency grace window = 10 s ⚙. Reuse of a rotated token after the grace window revokes the e |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-008 | Email verification links valid 24 h; password reset links/OTP valid 30 min / 5 min; all single-use. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-009 | Password reset and change revoke sessions as specified (reset: all; change: all others). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-010 | **App–role compatibility:** customer app requires CUSTOMER; restaurant app requires an ACTIVE restaurant membe |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-011 | Account deletion grace period 30 days ⚙ before irreversible anonymization. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-012 | Suspended users cannot authenticate; suspension end date, if set, lifts automatically (JOB-USER-002). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-013 | Deletion is blocked while the user has non-terminal orders, an active delivery, an unsettled positive/negative |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-014 | One account per phone number and per email (case-insensitive) among non-anonymized accounts. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-015 | Registration conflicts are reported generically ("An account with these details may already exist — try signin |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-016 | Credential changes (password reset) revoke all sessions; phone/email changes revoke all other sessions. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-017 | Step-up re-authentication validity: 5 minutes ⚙. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-018 | Admin-app accounts require MFA (TOTP) from CORE; until then email OTP second factor. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-019 | Cookie-authenticated endpoints (`/auth/refresh`, `/auth/logout`) require `Origin` ∈ app allowlist and `X-Clien |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-AUTH-020 | Users must accept the current terms and privacy policy at registration; publishing a *material* new version re |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-CART-001 | A cart contains items from exactly one branch. Adding from another branch requires the customer to explicitly  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-CART-002 | Carts expire after 7 days of inactivity ⚙. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-CART-003 | Max 30 distinct lines, 50 total units, 20 units per line. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-CART-004 | Line identity = (item, variant, sorted option set, instructions); identical lines merge. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-CART-005 | Carts are revalidated on every read; invalid lines are flagged, never silently dropped or repriced. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-CART-006 | Cart and line instructions ≤ 250 characters, plain text (HTML stripped). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COMM-001 | Commission = rate ⚙ (default 20 %) × (items subtotal + packaging − restaurant-funded discounts). Rate snapshot |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COMM-002 | Commission is earned only on DELIVERED orders, and on customer-cancelled orders where the restaurant receives  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COMM-003 | Restaurant net payable per order = food value + packaging − restaurant-funded discounts − commission − GST on  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-001 | At most one coupon per order. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-002 | Eligibility: active window, scope (zone/restaurant/branch), user segment, payment method restriction, minimum  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-003 | Usage limits count RESERVED + REDEEMED redemptions. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-004 | Percentage coupons must have a max discount cap; the discount never exceeds the eligible subtotal; free-delive |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-005 | A coupon stacks with an automatic promotion only if the coupon is `stackable`; otherwise the system applies wh |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-006 | Redemption lifecycle: RESERVED at order creation → REDEEMED at T02/T03 → RELEASED on T04/T05 and on cancellati |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-007 | "New user" = customer with zero DELIVERED orders and no previous redemption of a new-user coupon (also checked |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-008 | Validity is evaluated at checkout-session creation **and** at order confirmation; expiry in between fails conf |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-COUPON-009 | Coupon discount terms are immutable once any redemption exists; changes require a new coupon. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-001 | **Partner eligibility for an offer:** approved & ACTIVE; ONLINE_IDLE; location fresh ≤ 60 s, accuracy ≤ 100 m; |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-002 | Offer timeout 30 s ⚙ (server-authoritative). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-003 | Dispatch rounds 3 km / 5 km / 8 km ⚙, ≤ 5 offers per round; escalation after round 3; re-search every 60 s; no |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-004 | A partner who rejected, ignored, or was released from a delivery is not offered it again (expired-offer partne |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-005 | Acceptance rate (30 d) = accepted / (accepted + rejected + expired); displayed to partner; used in ranking. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-006 | Auto-offline: 3 consecutive expired offers; no location/heartbeat for 5 min while ONLINE_IDLE; outside all zon |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-007 | Dispatch timing per FR-DISP-001 (lead buffer 5 min ⚙). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-008 | **Geofences ⚙:** arrival at restaurant ≤ 200 m; arrival at customer ≤ 150 m; outside → allowed with confirmati |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-009 | **Delivery proof:** OTP (4 digits, 5 attempts) for all orders; contactless prepaid orders use photo proof inst |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-010 | **COD cash:** partner cash-in-hand cap ₹3,000 ⚙; above cap → no COD offers; remittance within 48 h ⚙ or deduct |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-011 | Location update cadence: ON_DELIVERY 5 s (moved > 10 m) / 15 s heartbeat; ONLINE_IDLE 30 s; none when OFFLINE. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-012 | **Location privacy:** customers see partner location only from assignment to delivery completion; restaurants  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-013 | Partner unassign after accept (before pickup): counted as a cancellation; > 3 per week ⚙ → review; abandonment |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-014 | One delivery per order; one active delivery per partner (MVP). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-015 | Spoofing indicators (implied speed > 150 km/h, mock-location flag where detectable, repeated identical coordin |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-016 | Partners must be ≥ 18 years old; motorized vehicles require a valid driving license and RC; insurance required |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-DEL-017 | Bicycles/e-bikes: offered only trips with pickup distance ≤ 3 km and drop distance ≤ 4 km ⚙. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-EARN-001 | **Per-delivery pay ⚙:** base ₹25 + ₹6/km for road distance (pickup → drop) beyond 2 km + ₹1/min waiting at res |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-EARN-002 | Tips are passed 100 % to the partner and shown separately. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-EARN-003 | Incentive programs define eligibility windows, targets, rewards; credited at period end only if partner's comp |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-EARN-004 | Partner payouts weekly (Monday–Sunday) ⚙; same calendar as restaurants. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-EARN-005 | Minimum payout ₹100 ⚙; smaller balances roll over. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-EARN-006 | Payout amount = earnings − unremitted cash-in-hand − approved deductions; if negative, the balance carries ove |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-EARN-007 | **Compensation on cancellation:** if an order is cancelled after the partner accepted and the cancellation is  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-FILE-001 | Allowed types/sizes: images (JPEG, PNG, WebP) ≤ 5 MB for avatars/food/logos/covers/proofs (≤ 10 MB covers); do |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-GEO-001 | **Serviceable** = (a) location inside an ACTIVE zone, (b) branch in the same zone (or zone pair explicitly lin |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-GEO-002 | Branch delivery radius 0.5–15 km; zone may cap it lower ⚙ (default 7 km). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-GEO-003 | Distance used for fees and partner pay = road distance from routing provider; fallback = haversine × 1.3 ⚙ roa |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-001 | Every item and every customization option must have exactly one dietary marker (VEG, NON_VEG, EGG). An item ma |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-002 | Item price ₹1–₹1,00,000 (100–10,000,000 paise); prices in whole paise. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-003 | Customization group: 0 ≤ min ≤ max, max ≥ 1, max ≤ number of options; required ⇔ min ≥ 1. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-004 | If an item has variants, exactly one is default, and the variant price replaces the base price. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-005 | Discounted price must be lower than the price it discounts and ≥ ₹1. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-006 | Stock-tracked items decrement at order creation; stock is restored if the order is cancelled/rejected/failed * |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-007 | An item is orderable only if: not deleted, category active, not marked unavailable for the branch (or `unavail |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-008 | A category can be deleted only when empty or with a target category for its items. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-MENU-009 | Combo components must belong to the same restaurant and be non-combo items. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-NOTIF-001 | Transactional notifications (OTP, order status, payment, refund, security alerts, delivery offers) cannot be d |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-NOTIF-002 | Promotional push/SMS: max 1 per day per user ⚙, never 22:00–08:00 local time; email max 3/week. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-NOTIF-003 | SMS used only for OTP, critical order events (restaurant reminder, order cancelled, out for delivery when push |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-001 | Checkout session TTL 10 min ⚙; order confirmation requires an OPEN, unexpired session. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-002 | Order creation requires `Idempotency-Key`; idempotency records retained 24 h. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-003 | PAYMENT_PENDING TTL 15 min ⚙; then FAILED (`PAYMENT_EXPIRED`). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-004 | Restaurant acceptance timeout 5 min ⚙ with reminders at 2 min (push + SMS) and 4 min (sound escalation); timeo |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-005 | Prep time per order 5–90 min; restaurant may extend once by ≤ 20 min. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-006 | Address changes after placement only via support, before pickup, ≤ 500 m from the original pin, still servicea |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-010 | **Customer cancellation before acceptance** (PAYMENT_PENDING, PLACED): free, full refund. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-011 | **Customer cancellation in ACCEPTED** ⚙: allowed within 60 s of acceptance free of charge; after 60 s, fee = 5 |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-012 | **Customer cancellation in PREPARING** ⚙: allowed with fee = 100 % of food value + packaging (customer refunde |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-013 | **No customer self-cancellation** in READY_FOR_PICKUP, PICKED_UP — support may cancel/fail with fault attribut |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-014 | Restaurant rejection requires a reason code; ITEM_UNAVAILABLE requires the item IDs. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-015 | Restaurant cancellation after acceptance requires OWNER/MANAGER, a reason, and confirmation; full refund to cu |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-016 | Admin/system cancellations must specify fault; refunds and compensations follow BR-REFUND-001. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-017 | Order content (items, branch, payment method) is immutable after creation. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-018 | Reorder uses current menu, current prices and current availability. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-019 | Invoices are issued only for DELIVERED orders; numbering sequential per issuer series per financial year (Apri |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-020 | **Customer unreachable:** partner waits 10 min ⚙ at the drop location with ≥ 2 logged call attempts; then supp |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-021 | Orders cancelled for restaurant/platform fault may grant the customer an apology coupon ⚙ (default off). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-ORDER-022 | (CORE) Delivery later than ETA max + 15 min ⚙ due to platform/partner fault grants a wallet credit of 10 % of  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PAY-001 | Enabled payment methods per zone ⚙; online methods via the configured provider. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PAY-002 | **COD eligibility ⚙:** order payable ≤ ₹1,500; customer not COD-blocked (≥ 2 COD refusals/failed deliveries in |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PAY-003 | Payment success is determined only by server-side verification with the provider (signature + API fetch or ver |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PAY-004 | Each provider webhook event is processed at most once (dedupe on event ID). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PAY-005 | Captures received for terminal (FAILED/CANCELLED) or unknown orders are refunded in full automatically. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PAY-006 | Max 5 payment attempts per order. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PAY-007 | Wallet credits are applied before online payment when the customer opts in; wallet cannot be combined with COD |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-001 | **Order of computation:** (1) line prices with variant & options; (2) item-level discounts; (3) items subtotal |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-002 | **Rounding:** all intermediate values are integer paise; percentage amounts computed as `floor(base × bps / 10 |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-003 | **Delivery fee slabs ⚙ (per zone):** 0–2 km ₹19, 2–4 km ₹29, 4–6 km ₹39, 6–8 km ₹49, > 8 km ₹49 + ₹8/km. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-004 | **Small-order fee ⚙:** ₹15 when items subtotal after discounts < ₹149. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-005 | **Platform fee ⚙:** ₹5 per order. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-006 | **Packaging fee:** set by restaurant per item or per order, capped by admin ⚙ (₹10 per item, ₹50 per order). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-007 | **Surge ⚙:** zone-level flat fee ≤ ₹40, time-boxed (max 3 h per activation), displayed to customers before che |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-008 | **Tip:** ₹0–₹500, whole rupees; 100 % passed to the delivery partner; not subject to commission; not included  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-009 | **Taxes ⚙ (legal/tax review required):** GST on restaurant food & packaging per tax rule (placeholder 5 %, col |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-010 | Branch minimum order amount: ₹0–₹500 ⚙; applied to items subtotal after item discounts, before coupons. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-011 | Maximum order amount: ₹10,000 platform cap ⚙ (branch may set lower); COD cap per BR-PAY-002. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PRICE-012 | Free-delivery benefits (coupon or promotion) waive the base delivery fee only — not surge or small-order fees. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-PROMO-001 | Restaurant promotions with > 50 % discount or with no cap require admin approval. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REFUND-001 | **Refund matrix:** <br>• Rejected / acceptance timeout / restaurant-cancelled / platform-cancelled (no partner |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REFUND-002 | Total refunds ≤ amount captured (online) + wallet applied for the order. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REFUND-003 | Default destination = original method; wallet credit if customer chooses (instant) or provider refund fails pe |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REFUND-004 | Support agents may refund up to ₹500 per order ⚙ without approval; above requires admin approval. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REFUND-005 | Customer-facing refund SLA statement: "5–7 business days to original method; instant to wallet". |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REFUND-006 | **Auto-approval (CORE):** item-issue refund requests ≤ ₹250 ⚙ from customers with < 3 approved issue refunds i |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REFUND-007 | Cost attribution: restaurant-fault refunds are recovered from restaurant settlement; partner-fault refunds are |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-001 | A branch **accepts orders** only if: restaurant APPROVED and ACTIVE; branch ACTIVE; current time within an ope |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-002 | Pause durations: 15, 30, 45, 60 min or "until I resume" (max 4 h ⚙, then auto-resume with notification). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-003 | Max 3 operating slots per weekday; slots may cross midnight; slots on the same day must not overlap. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-004 | **Last-order cutoff:** new orders are not accepted after `slot closing time − default prep time` (min 15 min b |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-005 | Required onboarding documents: FSSAI license (mandatory), PAN (mandatory), bank proof (mandatory), GST certifi |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-006 | **Go-live checklist:** approved, ≥ 1 active category with ≥ 3 available items, operating hours set, verified b |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-007 | Rejected applicants may re-apply after 30 days ⚙ unless admin allows earlier. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-008 | Max 5 resubmissions per application before mandatory admin call. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-009 | 3 consecutive acceptance timeouts ⚙ → branch auto-paused for 30 min ⚙ with SMS to owner/manager. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-010 | FSSAI license number must be displayed on the restaurant page and invoices. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-011 | Expired FSSAI → branch auto-paused until renewed document is verified. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-012 | Changes to legal name, PAN, GSTIN, FSSAI, or bank details require admin verification; payouts are held while a |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-013 | New branches require admin approval before accepting orders. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-014 | Restaurants with rejection rate > 10 % or acceptance-timeout rate > 5 % over 7 days ⚙ are flagged for account- |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REST-015 | Restaurant-initiated cancellation after acceptance: customer fully refunded; restaurant bears the refund cost  |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REVIEW-001 | Only the ordering customer may review, only after DELIVERED, within 7 days ⚙. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REVIEW-002 | One review per order per target (restaurant, partner, each item). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REVIEW-003 | Reviews editable within 48 h; deletable any time (soft). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REVIEW-004 | Text is moderated: profanity filter on submit (masking), PII patterns (phone numbers) removed; reported review |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REVIEW-005 | One public restaurant response per review; editable 24 h. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REVIEW-006 | Partner ratings: partners see averages and tag counts only, never customer identity or per-order rating. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-REVIEW-007 | Restaurant rating displayed = Bayesian average with prior mean 4.0 and weight 10 ⚙; "New" badge until 10 ratin |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-SETTLE-001 | Settlement period Monday 00:00 – Sunday 23:59 IST; payout initiated by Wednesday ⚙. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-SUP-001 | Ticket SLA ⚙: first response — URGENT (active order) 5 min, HIGH 1 h, NORMAL 24 h; resolution targets 1 h / 24 |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-SUP-002 | Post-delivery issue reports accepted within 48 h ⚙ of delivery. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-SUP-003 | Resolved tickets can be reopened within 7 days; then closed permanently. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-SUP-004 | Max 5 customer-created tickets per day ⚙. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-WALLET-001 | Closed-loop: credits usable only for orders on the platform; no top-ups, no withdrawals, no P2P transfer (OD-1 |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-WALLET-002 | Refund credits never expire ⚙ (or 1 year — legal review); promotional/goodwill credits expire per grant (defau |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-WALLET-003 | Consumption order: earliest-expiring lots first. |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+| BR-WALLET-004 | Wallet adjustments by admins > ₹500 require maker-checker (CORE). |  |  | [BUSINESS-RULES.md](BUSINESS-RULES.md) |
+
+## Acceptance criteria
+
+| ID | Title / summary | Priority | Release | Defined in |
+|---|---|---|---|---|
+| AC-ADMIN-001 | Every admin mutation creates an audit entry with reason where required; audit rows cannot be updated/deleted b |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ADMIN-002 | Admin order cancellation with fault attribution produces the refund dictated by BR-REFUND-001. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ADMIN-003 | Support agent refund above limit creates a pending approval instead of executing. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ADMIN-004 | Fee/tax config changes are effective-dated; orders keep the config version they were priced with. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ADMIN-005 | PII is masked in admin views until revealed with reason; reveal is audited. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-001 | A guest can register with phone OTP; a user row (ACTIVE, phone verified), a session, and a hashed refresh toke |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-002 | A user can register with email+password; the password is stored as Argon2id; plaintext never appears in DB or  |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-003 | Login with wrong password and login with unknown identifier return identical status, body and statistically in |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-004 | After 5 failed logins the account is locked for 15 min; a correct password during lock still fails; owner rece |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-005 | Refresh returns a new access token and a new refresh token; the previous refresh token is ROTATED; exactly one |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-006 | Presenting a rotated refresh token > 10 s after rotation revokes the session; subsequent refresh with the newe |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-007 | Two concurrent refreshes with the same token result in one success and one `AUTH_REFRESH_RACE`, and the sessio |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-008 | A revoked session cannot refresh; its access token is rejected within 30 s on REST and its sockets disconnect  |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-009 | Logout-all revokes every session of the user; other devices are forced to log in. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-010 | A user can list sessions and revoke one; revoking another user's session ID returns 404. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-011 | OTP: expires after 5 min; invalid after 5 wrong attempts; single use; resend within 30 s rejected; OTP value n |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-012 | Password reset responds identically for existing and non-existing identifiers; successful reset revokes all se |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-013 | A suspended user cannot log in or refresh; an admin can lift suspension; actions are audit-logged. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-014 | Account deletion is blocked with an active order; otherwise user becomes DEACTIVATED and is anonymized after t |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-AUTH-015 | A token for app A (aud) is rejected by app B's namespace/endpoints that check `aud`. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-CART-001 | Adding an item from a different branch returns `CART_BRANCH_CONFLICT`; with `replaceCart=true` the old cart is |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-CART-002 | Customization min/max/required rules are enforced with per-group error details. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-CART-003 | Identical configurations merge; different option sets create separate lines. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-CART-004 | Cart persists across devices for the same user and expires after 7 days inactivity. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-001 | Partner can go online only when eligible; each blocker returns its reason. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-002 | Offers go only to eligible partners (offline, paused, stale-location, over-cash-cap, excluded partners never r |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-003 | Two partners accepting the same delivery concurrently (simulated by forcing two offers) → exactly one assignme |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-004 | Rejected/expired partner never receives the same delivery again (non-escalated). |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-005 | With no eligible partners, the delivery escalates, ops alert fires, and the order is cancelled + refunded at t |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-006 | Pickup requires READY_FOR_PICKUP or restaurant handover; delivery completion requires valid OTP (or photo for  |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-007 | Customer tracking receives location updates at ≤ 3 s intervals during delivery and none before assignment/afte |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-008 | Earnings computed per pay plan for fixture trips; tips credited 100 %. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DEL-009 | Partner heartbeat loss during an assigned delivery → ops alert at 3 min, auto-reassignment at 5 min. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DISC-001 | Customer can select a location by detection, search, or map pin; the pin coordinates are used for discovery. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DISC-002 | Given branches inside and outside radius/zone, only serviceable ones are returned (fixture with known coordina |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DISC-003 | Closed/paused branches appear only in the trailing "closed" group with `opensAt`, or not at all when `openNow= |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DISC-004 | Each filter and sort option produces correct results on fixtures; pagination returns stable, non-duplicated re |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DISC-005 | Veg-only mode hides NON_VEG and EGG items everywhere (discovery, menu, search). |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DISC-006 | Discovery p95 ≤ 500 ms with 500 branches seeded under normal load test. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-DISC-007 | Search "biriyani" returns "Biryani" items (typo tolerance) (CORE). |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-001 | **Customer happy path** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-002 | **Restaurant flow** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-003 | **Delivery flow** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-004 | **Failure: payment failure & retry** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-005 | **Failure: restaurant rejects** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-006 | **Failure: partner rejects then another accepts** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-007 | **Failure: customer cancels with fee** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-008 | **Failure: no partner** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-E2E-009 | **Security: session theft** |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-MENU-001 | Restaurant can create categories, items with variants and customization groups; customer menu reflects changes |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-MENU-002 | Attaching a NON_VEG option to a VEG item is rejected. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-MENU-003 | Marking an item out of stock makes it non-addable and flags it in existing carts; auto-restore at `until` time |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-MENU-004 | Changing an item price does not change any existing order's stored prices or invoice. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-NFR-001 | Load test at peak profile meets NFR-PERF-001..009 targets in staging. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-NFR-002 | axe-core: zero serious/critical violations on key pages of each app. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-NFR-003 | Logs contain no passwords, tokens, OTPs, or full phone numbers (automated log scan in integration suite). |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-NFR-004 | Redis outage simulation: login/refresh continue (DB fallback), orders can be placed, dispatch pauses with aler |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-NFR-005 | Restore drill recovers DB to a point in time within RTO with ledger invariants intact. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-001 | Customer can place a valid COD order; order PLACED, restaurant receives `order.new` in < 2 s. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-002 | Server recomputes pricing; a stale `expectedPayable` yields `PRICE_CHANGED` and no order. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-003 | Order is created only if all validations pass (each validation has a negative test: closed branch, unavailable |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-004 | 10 concurrent confirm requests with the same idempotency key create exactly one order and all receive the same |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-005 | Every transition in the table T01–T16 is tested; every non-listed transition returns `ORDER_INVALID_TRANSITION |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-006 | No API accepts an arbitrary `status` value from clients (schema review + test). |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-007 | Order history snapshots render correctly after the item is deleted and prices change. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-008 | Cancellation preview equals the actual fee/refund applied; stale quote rejected. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-009 | Acceptance timeout cancels the order, refunds, and the 3rd consecutive timeout auto-pauses the branch (clock-c |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-ORDER-010 | Stuck-order sweeper re-creates missing timers after Redis flush. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PAY-001 | Online payment flow with MockProvider succeeds end-to-end; order moves to PLACED only after server verificatio |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PAY-002 | A forged client callback (bad signature) does not mark payment success. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PAY-003 | Webhook with invalid signature → 401, nothing stored as valid; duplicate valid webhook processed once. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PAY-004 | Out-of-order webhooks (failed after captured) never downgrade a captured payment. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PAY-005 | Late capture after order expiry triggers an automatic full refund. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PAY-006 | Refund sum can never exceed captured amount, including under concurrent refund requests. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PAY-007 | Every financial operation produces balanced ledger transactions; nightly integrity check passes on the test da |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PAY-008 | Partial refund for 1 of 3 items computes item value + proportional tax/packaging and reaches SUCCEEDED via web |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PRICE-001 | Pricing engine produces expected breakdowns for ≥ 40 table-driven scenarios (fees, slabs, small-order fee, cou |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PRICE-002 | Property test: total = Σ components; no component negative except discounts; discounts never exceed eligible b |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PRICE-003 | Any client-supplied price/total field is rejected by validation. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PRICE-004 | Coupon usage limit under 50 concurrent order attempts never exceeds the limit. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-PRICE-005 | Coupon expiring between quote and confirmation causes `COUPON_EXPIRED` and no order. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RBAC-001 | An authorization matrix test enumerates every route × role and asserts allow/deny exactly as the permission ca |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RBAC-002 | Customer A requesting customer B's order, address, payment, or tracking returns 404. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RBAC-003 | A restaurant member scoped to branch X cannot read or act on orders of branch Y of the same restaurant, nor an |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RBAC-004 | KITCHEN role responses contain no prices, customer names, phones or addresses. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RBAC-005 | A partner cannot read deliveries not assigned to them; after release, the previously assigned partner loses ac |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RBAC-006 | Removing a member's role takes effect within 30 s (permission version bump) without requiring logout. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-REST-001 | Restaurant onboarding → admin approval → go-live checklist → branch opens → appears in discovery. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-REST-002 | Restaurant receives orders in real time with audible alert; falls back to 15 s polling when socket disconnecte |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-REST-003 | Accept/reject/preparing/ready transitions work; invalid transitions are prevented; concurrent accept yields on |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-REST-004 | Pause/close makes the branch non-orderable immediately; auto-resume at expiry. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-REST-005 | Dashboard numbers equal sums computed directly from orders for a seeded dataset. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RT-001 | Socket connection without valid token is refused; with token for another app is refused. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RT-002 | Subscribing to another customer's order returns FORBIDDEN and emits nothing to that socket. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RT-003 | Events arrive in commit order per aggregate; duplicate events are ignored by the client store. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| AC-RT-004 | After reconnect, client state matches REST snapshot. |  |  | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+
+## API endpoints
+
+| ID | Title / summary | Priority | Release | Defined in |
+|---|---|---|---|---|
+| API-ADDR-001 | POST `/me/addresses` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADDR-002 | GET `/me/addresses?branchId=` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADDR-003 | GET `/me/addresses/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADDR-004 | PATCH `/me/addresses/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADDR-005 | DELETE `/me/addresses/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADDR-006 | POST `/me/addresses/{id}/default` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-001 | GET `/dashboard` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-002 | GET `/alerts?status&type` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-003 | POST `/alerts/{id}/acknowledge` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-004 | GET `/ops/map?zoneId` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-010 | GET `/users?role&status&q&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-011 | GET `/users/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-012 | POST `/users/{id}/suspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-013 | POST `/users/{id}/unsuspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-014 | POST `/users/{id}/logout-all` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-015 | POST `/users/{id}/pii-reveal` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-016 | POST `/users/{id}/wallet-adjustments` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-017 | POST `/users/{id}/cod-block` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-018 | POST `/users/{id}/recover` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-019 | GET `/users/{id}/sessions` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-020 | GET `/restaurant-applications?status&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-021 | GET `/restaurant-applications/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-022 | POST `/restaurant-applications/{id}/start-review` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-023 | POST `/restaurant-applications/{id}/approve` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-024 | POST `/restaurant-applications/{id}/reject` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-025 | POST `/restaurant-applications/{id}/request-changes` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-026 | GET `/restaurants?status&zone&q&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-027 | GET `/restaurants/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-028 | PATCH `/restaurants/{id}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-029 | POST `/restaurants/{id}/suspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-030 | POST `/restaurants/{id}/unsuspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-031 | POST `/branches/{id}/suspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-032 | POST `/branches/{id}/unsuspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-033 | POST `/branches/{id}/approve` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-034 | GET `/change-requests?type&status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-035 | POST `/change-requests/{id}/approve` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-036 | POST `/change-requests/{id}/reject` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-037 | PUT `/restaurants/{id}/commission` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-038 | PUT `/restaurants/{id}/cod` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-039 | POST `/menu-items/{id}/hide` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-040 | GET `/documents/{id}/url` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-041 | GET `/partner-applications?status&zone&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-042 | GET `/partner-applications/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-043 | POST `/partner-applications/{id}/approve` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-044 | POST `/partner-applications/{id}/reject` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-045 | POST `/partner-applications/{id}/request-changes` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-046 | GET `/partners?status&online&zone&q&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-047 | GET `/partners/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-048 | POST `/partners/{id}/suspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-049 | POST `/partners/{id}/unsuspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-050 | POST `/partners/{id}/force-offline` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-051 | POST `/partners/{id}/cash-deposits` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-052 | POST `/partners/{id}/earning-adjustments` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-053 | GET `/partners/{id}/location-trail?deliveryId` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-054 | POST `/vehicles/{id}/verify` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-060 | GET `/orders?q&status&zone&restaurantId&partnerId&from&to&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-061 | GET `/orders/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-062 | POST `/orders/{id}/cancel` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-063 | POST `/orders/{id}/mark-delivered` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-064 | POST `/orders/{id}/mark-failed` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-065 | POST `/orders/{id}/extend-acceptance` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-066 | POST `/orders/{id}/notifications/resend` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-067 | GET `/orders/{id}/audit` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-068 | PATCH `/orders/{id}/delivery-address` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-070 | GET `/deliveries?status&escalated&zone&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-071 | GET `/deliveries/{id}/candidates` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-072 | POST `/deliveries/{id}/assign` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-073 | POST `/deliveries/{id}/reassign` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-074 | POST `/deliveries/{id}/redispatch` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-075 | POST `/deliveries/{id}/extend-deadline` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-080 | GET `/payments?status&provider&from&to&q&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-081 | GET `/payments/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-082 | POST `/payments/{id}/sync` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-083 | GET `/webhook-events?provider&status&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-084 | GET `/refunds?status&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-085 | POST `/orders/{id}/refunds` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-086 | POST `/refunds/{id}/approve` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-087 | POST `/refunds/{id}/retry` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-088 | GET `/reconciliation/runs` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-089 | GET `/reconciliation/exceptions?status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-090 | POST `/reconciliation/exceptions/{id}/resolve` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-091 | GET `/payout-batches?type&status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-092 | POST `/payout-batches` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-093 | GET `/payout-batches/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-094 | POST `/payout-batches/{id}/approve` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-095 | GET `/payout-batches/{id}/export` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-096 | POST `/payout-batches/{id}/lines/{lineId}/mark-paid` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-097 | POST `/payout-batches/{id}/lines/{lineId}/mark-failed` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-100 | GET `/coupons?status&q&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-101 | POST `/coupons` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-102 | GET `/coupons/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-103 | PATCH `/coupons/{id}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-104 | POST `/coupons/{id}/deactivate` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-105 | GET `/coupons/{id}/redemptions?page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-106 | GET `/promotions?scope&status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-107 | POST `/promotions` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-108 | PATCH `/promotions/{id}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-109 | POST `/promotions/{id}/approve` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-110 | GET `/banners` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-111 | POST `/banners` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-112 | PATCH `/banners/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-113 | DELETE `/banners/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-114 | GET `/collections` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-115 | POST `/collections` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-116 | PATCH `/collections/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-117 | DELETE `/collections/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-120 | GET `/zones` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-121 | POST `/zones` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-122 | GET `/zones/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-123 | PATCH `/zones/{id}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-124 | POST `/zones/{id}/suspend` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-125 | POST `/zones/{id}/activate` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-126 | PUT `/zones/{id}/surge` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-130 | GET `/settings` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-131 | PATCH `/settings/{key}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-132 | GET `/settings/{key}/history` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-133 | GET `/fee-schedules` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-134 | POST `/fee-schedules` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-135 | GET `/tax-rules` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-136 | POST `/tax-rules` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-137 | GET `/commission-plans` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-138 | POST `/commission-plans` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-139 | GET `/partner-pay-plans` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-140 | POST `/partner-pay-plans` ★⧉ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-141 | GET `/incentive-programs` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-142 | POST `/incentive-programs` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-143 | PATCH `/incentive-programs/{id}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-144 | GET `/feature-flags` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-145 | POST `/feature-flags` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-146 | PATCH `/feature-flags/{key}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-147 | GET `/approvals?status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-148 | POST `/approvals/{id}/approve` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-149 | POST `/approvals/{id}/reject` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-150 | GET `/tickets?queue&status&priority&assignee&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-151 | GET `/tickets/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-152 | POST `/tickets/{id}/messages` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-153 | POST `/tickets/{id}/assign` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-154 | PATCH `/tickets/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-155 | POST `/tickets/{id}/escalate` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-156 | GET `/macros` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-157 | POST `/macros` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-158 | GET `/complaints?against&status&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-159 | POST `/complaints` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-160 | PATCH `/complaints/{id}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-161 | GET `/disputes?status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-162 | POST `/disputes/{id}/resolve` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-163 | GET `/reviews/reports?status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-164 | POST `/reviews/{id}/hide` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-165 | POST `/reviews/{id}/unhide` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-170 | GET `/analytics/overview?from&to&zone` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-171 | GET `/analytics/orders?from&to&zone&groupBy` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-172 | GET `/analytics/dispatch?from&to&zone` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-173 | GET `/analytics/restaurants?from&to&sort` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-174 | GET `/analytics/funnel?from&to` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-175 | POST `/reports` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-176 | GET `/reports/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-180 | GET `/roles` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-181 | POST `/roles` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-182 | PATCH `/roles/{id}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-183 | GET `/permissions` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-184 | POST `/users/{id}/roles` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-185 | DELETE `/users/{id}/roles/{role}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-186 | POST `/staff-invitations` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-187 | GET `/audit-logs?actor&target&action&from&to&page` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-188 | POST `/audit-logs/export` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-190 | GET `/faqs` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-191 | POST `/faqs` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-192 | PATCH `/faqs/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-193 | DELETE `/faqs/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-194 | GET `/legal-documents?type` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-195 | POST `/legal-documents` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-196 | GET `/cuisines` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-197 | POST `/cuisines` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-198 | PATCH `/cuisines/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-199 | POST `/broadcasts` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-200 | GET `/notification-templates` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-201 | PUT `/notification-templates/{key}` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-202 | GET `/jobs/failed?queue` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ADM-203 | POST `/jobs/{queue}/{jobId}/retry` ★ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-001 | POST `/auth/register` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-002 | POST `/auth/otp/request` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-003 | POST `/auth/otp/login` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-004 | POST `/auth/login` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-005 | POST `/auth/refresh` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-006 | POST `/auth/logout` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-007 | POST `/auth/logout-all` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-008 | GET `/auth/sessions` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-009 | DELETE `/auth/sessions/{sessionId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-010 | POST `/auth/email/send-verification` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-011 | POST `/auth/email/verify` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-012 | POST `/auth/phone/verify` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-013 | POST `/auth/password/forgot` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-014 | POST `/auth/password/reset` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-015 | POST `/auth/password/change` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-016 | POST `/auth/reauth` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-017 | POST `/auth/oauth/google` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-018 | POST `/auth/oauth/apple` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-019 | POST `/auth/mfa/totp/setup` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-020 | POST `/auth/mfa/totp/confirm` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-021 | POST `/auth/mfa/challenge` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-022 | POST `/auth/account/deletion` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-023 | POST `/auth/account/reactivate` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-AUTH-024 | POST `/auth/recovery-requests` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-001 | GET `/cart` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-002 | POST `/cart/items` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-003 | PATCH `/cart/items/{lineId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-004 | PUT `/cart/items/{lineId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-005 | DELETE `/cart/items/{lineId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-006 | DELETE `/cart` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-007 | PATCH `/cart` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-008 | POST `/cart/validate` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-009 | POST `/cart/coupon` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-010 | DELETE `/cart/coupon` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-011 | GET `/cart/price-preview?addressId\ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CART-012 | POST `/cart/merge` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CHK-001 | POST `/checkout/sessions` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CHK-002 | GET `/checkout/sessions/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CHK-003 | PATCH `/checkout/sessions/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-CHK-004 | POST `/checkout/sessions/{id}/confirm` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-COUP-001 | GET `/coupons?branchId&cartId` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-COUP-002 | GET `/coupons/{code}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-COUP-003 | POST `/coupons/validate` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-001 | GET `/discovery/restaurants?lat&lng&cuisines&minRating&maxEta&maxDeliveryFee&priceMin&priceMax&offers&pureVeg& |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-002 | GET `/discovery/home?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-003 | GET `/discovery/collections/{slug}?lat&lng&cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-004 | GET `/discovery/cuisines?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-005 | GET `/discovery/cuisines/{slug}/restaurants?lat&lng&…` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-006 | GET `/discovery/categories/{slug}/items?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-007 | GET `/discovery/offers/{offerId}/restaurants?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-008 | GET `/discovery/banners?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-009 | GET `/discovery/order-again?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-010 | GET `/discovery/facets?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DISC-011 | GET `/discovery/items/specials?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-001 | POST `/partner/applications` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-002 | GET `/partner/applications/me` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-003 | PATCH `/partner/applications/me` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-004 | POST `/partner/applications/me/documents` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-005 | DELETE `/partner/applications/me/documents/{docId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-006 | POST `/partner/applications/me/submit` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-007 | GET `/partner/me` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-008 | PATCH `/partner/me` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-009 | GET `/partner/me/vehicles` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-010 | POST `/partner/me/vehicles` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-011 | PATCH `/partner/me/vehicles/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-012 | POST `/partner/me/vehicles/{id}/activate` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-013 | POST `/partner/me/guidelines/ack` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-014 | GET `/partner/me/availability` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-015 | POST `/partner/me/online` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-016 | POST `/partner/me/offline` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-017 | POST `/partner/me/pause` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-018 | POST `/partner/me/resume` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-019 | GET `/partner/me/dashboard` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-020 | POST `/partner/me/locations` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DP-021 | POST `/partner/sos` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-001 | GET `/partner/offers/current` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-002 | POST `/partner/offers/{offerId}/accept` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-003 | POST `/partner/offers/{offerId}/reject` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-004 | GET `/partner/deliveries/active` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-005 | GET `/partner/deliveries/{deliveryId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-006 | POST `/partner/deliveries/{deliveryId}/arrived-at-restaurant` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-007 | POST `/partner/deliveries/{deliveryId}/picked-up` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-008 | POST `/partner/deliveries/{deliveryId}/arrived-at-customer` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-009 | POST `/partner/deliveries/{deliveryId}/complete` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-010 | POST `/partner/deliveries/{deliveryId}/customer-unreachable` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-011 | POST `/partner/deliveries/{deliveryId}/unassign` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-012 | POST `/partner/deliveries/{deliveryId}/acknowledge` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-DPDEL-013 | GET `/partner/deliveries?from&to&cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-001 | GET `/partner/me/earnings/summary?period=day\ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-002 | GET `/partner/me/earnings?from&to&cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-003 | GET `/partner/me/earnings/deliveries/{deliveryId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-004 | GET `/partner/me/incentives` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-005 | GET `/partner/me/cash` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-006 | GET `/partner/me/cash/transactions?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-007 | GET `/partner/me/payouts?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-008 | GET `/partner/me/payouts/{payoutId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-009 | GET `/partner/me/performance` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-010 | GET `/partner/me/ratings` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-011 | GET `/partner/me/bank-account` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-EARN-012 | POST `/partner/me/bank-account/change-requests` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FAV-001 | GET `/me/favorites/restaurants?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FAV-002 | PUT `/me/favorites/restaurants/{restaurantId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FAV-003 | DELETE `/me/favorites/restaurants/{restaurantId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FAV-004 | GET `/me/favorites/items?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FAV-005 | PUT `/me/favorites/items/{itemId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FAV-006 | DELETE `/me/favorites/items/{itemId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FILE-001 | POST `/files` (multipart: file, purpose) |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FILE-002 | GET `/files/{fileId}/url` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-FILE-003 | DELETE `/files/{fileId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-GEO-001 | GET `/geo/autocomplete?q&lat&lng&sessionToken` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-GEO-002 | GET `/geo/places/{placeId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-GEO-003 | GET `/geo/reverse?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-GEO-004 | GET `/geo/serviceability?lat&lng&branchId?` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-GEO-005 | POST `/geo/geocode` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MENU-001 | GET `/branches/{branchId}/menu?vegOnly` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MENU-002 | GET `/branches/{branchId}/menu/categories` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MENU-003 | GET `/branches/{branchId}/menu/items?categoryId&diet&flags&q&available` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MENU-004 | GET `/branches/{branchId}/menu/items/{itemId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MENU-005 | GET `/branches/{branchId}/menu/items/{itemId}/customizations` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MENU-006 | GET `/branches/{branchId}/menu/popular` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MENU-007 | GET `/branches/{branchId}/menu/specials` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MENU-008 | GET `/menu/items/{itemId}/reviews` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-001 | POST `/merchant/applications` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-002 | GET `/merchant/applications/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-003 | PATCH `/merchant/applications/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-004 | POST `/merchant/applications/{id}/documents` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-005 | DELETE `/merchant/applications/{id}/documents/{docId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-006 | POST `/merchant/applications/{id}/submit` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-007 | GET `/merchant/me` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-008 | GET `/merchant/restaurants/{rid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-009 | PATCH `/merchant/restaurants/{rid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-010 | POST `/merchant/restaurants/{rid}/change-requests` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-011 | GET `/merchant/restaurants/{rid}/change-requests` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-012 | PUT `/merchant/restaurants/{rid}/logo` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-013 | PUT `/merchant/restaurants/{rid}/cover` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-014 | GET `/merchant/restaurants/{rid}/branches` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-015 | POST `/merchant/restaurants/{rid}/branches` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-016 | GET `/merchant/branches/{bid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-017 | PATCH `/merchant/branches/{bid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-018 | PUT `/merchant/branches/{bid}/hours` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-019 | GET `/merchant/branches/{bid}/holidays` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-020 | POST `/merchant/branches/{bid}/holidays` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-021 | DELETE `/merchant/branches/{bid}/holidays/{hid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-022 | POST `/merchant/branches/{bid}/open` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-023 | POST `/merchant/branches/{bid}/close` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-024 | POST `/merchant/branches/{bid}/pause` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-025 | POST `/merchant/branches/{bid}/resume` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-026 | PATCH `/merchant/branches/{bid}/prep-time` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-MER-027 | GET `/merchant/branches/{bid}/status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-001 | GET `/me/notifications?cursor&unread` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-002 | GET `/me/notifications/unread-count` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-003 | GET `/me/notifications/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-004 | POST `/me/notifications/{id}/read` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-005 | POST `/me/notifications/read-all` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-006 | DELETE `/me/notifications/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-007 | GET `/me/notification-preferences` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-008 | PUT `/me/notification-preferences` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-009 | POST `/me/push-subscriptions` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-NTF-010 | DELETE `/me/push-subscriptions/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-001 | GET `/me/orders?status&from&to&cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-002 | GET `/me/orders/active` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-003 | GET `/orders/{orderId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-004 | GET `/orders/{orderId}/status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-005 | GET `/orders/{orderId}/timeline` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-006 | GET `/orders/{orderId}/cancellation-preview` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-007 | POST `/orders/{orderId}/cancel` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-008 | POST `/orders/{orderId}/reorder` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-009 | GET `/orders/{orderId}/invoice` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-010 | PATCH `/orders/{orderId}/delivery-details` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-011 | POST `/orders/{orderId}/issues` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-012 | GET `/orders/{orderId}/issues` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-ORD-013 | POST `/orders/{orderId}/not-delivered` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-PAY-001 | GET `/payments/methods?branchId&amount` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-PAY-002 | POST `/orders/{orderId}/payments` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-PAY-003 | GET `/payments/{paymentId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-PAY-004 | POST `/payments/{paymentId}/verify` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-PAY-005 | POST `/payments/{paymentId}/cancel` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-PAY-006 | GET `/me/payments?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-PAY-007 | POST `/payments/webhooks/{provider}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-001 | GET `/merchant/restaurants/{rid}/dashboard?branchIds` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-002 | GET `/merchant/restaurants/{rid}/analytics/sales?from&to&granularity&branchIds` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-003 | GET `/merchant/restaurants/{rid}/analytics/items?from&to` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-004 | GET `/merchant/restaurants/{rid}/analytics/categories?from&to` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-005 | GET `/merchant/restaurants/{rid}/analytics/peak-hours?from&to` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-006 | GET `/merchant/restaurants/{rid}/analytics/branches?from&to` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-007 | GET `/merchant/restaurants/{rid}/analytics/operations?from&to` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-008 | POST `/merchant/restaurants/{rid}/reports` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RANL-009 | GET `/merchant/restaurants/{rid}/reports/{reportId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REF-001 | GET `/me/refunds?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REF-002 | GET `/refunds/{refundId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REST-001 | GET `/restaurants/{restaurantId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REST-002 | GET `/restaurants/{restaurantId}/branches?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REST-003 | GET `/branches/{branchId}?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REST-004 | GET `/branches/{branchId}/hours` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REST-005 | GET `/branches/{branchId}/delivery-info?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REST-006 | GET `/branches/{branchId}/offers` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REST-007 | GET `/branches/{branchId}/reviews?rating&sort&cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REST-008 | GET `/branches/{branchId}/rating-summary` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REV-001 | POST `/orders/{orderId}/reviews` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REV-002 | PATCH `/reviews/{reviewId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REV-003 | DELETE `/reviews/{reviewId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REV-004 | GET `/me/reviews` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-REV-005 | POST `/reviews/{reviewId}/reports` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RFIN-001 | GET `/merchant/restaurants/{rid}/settlements?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RFIN-002 | GET `/merchant/restaurants/{rid}/settlements/{sid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RFIN-003 | GET `/merchant/restaurants/{rid}/settlements/{sid}/orders?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RFIN-004 | GET `/merchant/restaurants/{rid}/bank-account` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RFIN-005 | GET `/merchant/restaurants/{rid}/invoices` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-001 | GET `/menu` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-002 | POST `/categories` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-003 | PATCH `/categories/{cid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-004 | DELETE `/categories/{cid}?moveItemsTo=` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-005 | PUT `/categories/order` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-006 | PUT `/categories/{cid}/items/order` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-007 | POST `/items` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-008 | GET `/items/{iid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-009 | PATCH `/items/{iid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-010 | DELETE `/items/{iid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-011 | POST `/items/{iid}/images` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-012 | DELETE `/items/{iid}/images/{imageId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-013 | PUT `/items/{iid}/images/order` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-014 | POST `/items/{iid}/variants` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-015 | PATCH `/items/{iid}/variants/{vid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-016 | DELETE `/items/{iid}/variants/{vid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-017 | GET `/customization-groups` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-018 | POST `/customization-groups` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-019 | PATCH `/customization-groups/{gid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-020 | DELETE `/customization-groups/{gid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-021 | POST `/customization-groups/{gid}/options` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-022 | PATCH `/customization-groups/{gid}/options/{oid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-023 | DELETE `/customization-groups/{gid}/options/{oid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-024 | PUT `/items/{iid}/customization-groups` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-025 | PUT `/merchant/branches/{bid}/items/{iid}/availability` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-026 | PUT `/merchant/branches/{bid}/options/{oid}/availability` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-027 | PUT `/merchant/branches/{bid}/items/{iid}/stock` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-028 | POST `/merchant/branches/{bid}/availability/bulk` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-029 | PUT `/items/{iid}/schedule` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-030 | PUT `/categories/{cid}/schedule` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-031 | POST `/combos` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-032 | PATCH `/combos/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-033 | POST `/items/bulk-price/preview` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-034 | POST `/items/bulk-price/apply` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RMENU-035 | POST `/menu/import` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-001 | GET `/merchant/branches/{bid}/orders?status&date&cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-002 | GET `/merchant/branches/{bid}/orders/counts` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-003 | GET `/merchant/orders/{orderId}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-004 | POST `/merchant/orders/{orderId}/accept` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-005 | POST `/merchant/orders/{orderId}/reject` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-006 | POST `/merchant/orders/{orderId}/preparing` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-007 | POST `/merchant/orders/{orderId}/ready` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-008 | POST `/merchant/orders/{orderId}/prep-time` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-009 | POST `/merchant/orders/{orderId}/handover` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-010 | POST `/merchant/orders/{orderId}/cancel` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-011 | GET `/merchant/branches/{bid}/kds` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-012 | GET `/merchant/orders/{orderId}/kot` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-013 | GET `/merchant/branches/{bid}/complaints` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RORD-014 | POST `/merchant/complaints/{id}/response` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RPROMO-001 | GET `/merchant/restaurants/{rid}/promotions` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RPROMO-002 | POST `/merchant/restaurants/{rid}/promotions` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RPROMO-003 | PATCH `/merchant/restaurants/{rid}/promotions/{pid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RPROMO-004 | POST `/merchant/restaurants/{rid}/promotions/{pid}/deactivate` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RPROMO-005 | GET `/merchant/restaurants/{rid}/promotions/{pid}/performance` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RREV-001 | GET `/merchant/branches/{bid}/reviews?rating&responded&cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RREV-002 | POST `/merchant/reviews/{reviewId}/response` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RREV-003 | PATCH `/merchant/reviews/{reviewId}/response` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RREV-004 | POST `/merchant/reviews/{reviewId}/reports` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-001 | GET `/merchant/restaurants/{rid}/members` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-002 | POST `/merchant/restaurants/{rid}/invitations` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-003 | GET `/merchant/restaurants/{rid}/invitations` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-004 | DELETE `/merchant/restaurants/{rid}/invitations/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-005 | GET `/merchant/invitations/{token}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-006 | POST `/merchant/invitations/{token}/accept` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-007 | PATCH `/merchant/restaurants/{rid}/members/{mid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-008 | DELETE `/merchant/restaurants/{rid}/members/{mid}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-009 | GET `/merchant/restaurants/{rid}/activity?memberId&from&to` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-010 | POST `/merchant/branches/{bid}/kds-devices/pairing` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-RSTAFF-011 | POST `/merchant/restaurants/{rid}/ownership-transfer` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SRCH-001 | GET `/search?q&lat&lng&type=all\ |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SRCH-002 | GET `/search/suggestions?q&lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SRCH-003 | GET `/search/trending?lat&lng` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SRCH-004 | GET `/me/search-history` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SRCH-005 | DELETE `/me/search-history/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SRCH-006 | DELETE `/me/search-history` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-001 | GET `/help/faqs?app&topic` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-002 | POST `/support/tickets` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-003 | GET `/support/tickets?status&cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-004 | GET `/support/tickets/{id}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-005 | POST `/support/tickets/{id}/messages` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-006 | POST `/support/tickets/{id}/close` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-007 | POST `/support/tickets/{id}/reopen` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-008 | POST `/support/tickets/{id}/csat` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SUP-009 | GET `/legal/{documentType}` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SYS-001 | GET `/health/live` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SYS-002 | GET `/health/ready` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SYS-003 | GET `/metrics` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SYS-004 | GET `/api/v1/openapi.json` + `/api/docs` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-SYS-005 | GET `/api/v1/config/public` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-TRK-001 | GET `/orders/{orderId}/tracking` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-TRK-002 | GET `/orders/{orderId}/tracking/location` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-001 | GET `/me` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-002 | PATCH `/me` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-003 | GET `/me/permissions` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-004 | PUT `/me/avatar` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-005 | DELETE `/me/avatar` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-006 | GET `/me/preferences` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-007 | PATCH `/me/preferences` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-008 | GET `/me/account-status` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-009 | POST `/me/email/change` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-010 | POST `/me/phone/change` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-011 | POST `/me/phone/change/confirm` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-012 | POST `/me/data-export` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-013 | GET `/me/consents` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-USER-014 | POST `/me/consents` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-WAL-001 | GET `/me/wallet` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+| API-WAL-002 | GET `/me/wallet/transactions?cursor` |  |  | [API-SPECIFICATION.md](API-SPECIFICATION.md) |
+
+## Real-time events
+
+| ID | Title / summary | Priority | Release | Defined in |
+|---|---|---|---|---|
+| EVT-ADM-001 | `ops.order_activity` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ADM-002 | `ops.approval_requested` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ADM-003 | `ops.partner_activity` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ADM-004 | `ops.alert` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ADM-005 | `ops.pickup_delayed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ADM-006 | `ops.partner_stale` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ADM-007 | `support.ticket_updated` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ADM-008 | `restaurant.activity` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-C-001 | `subscribe` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-C-002 | `unsubscribe` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-C-003 | `auth:refresh` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-C-004 | `partner:location` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-C-005 | `partner:heartbeat` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-C-006 | `offer:ack` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DLV-001 | `delivery.partner_assigned` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DLV-002 | `delivery.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DLV-003 | `delivery.partner_unassigned` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-001 | `offer.created` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-002 | `offer.expired` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-003 | `offer.withdrawn` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-004 | `assignment.confirmed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-005 | `assignment.revoked` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-006 | `assignment.manual` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-010 | `order.ready` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-011 | `order.cancelled` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-012 | `order.prep_delayed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-013 | `delivery.instructions_updated` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-014 | `partner.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-015 | `earnings.updated` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-NTF-001 | `notification.created` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ORD-001 | `order.created` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ORD-002 | `order.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ORD-003 | `order.cancelled` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-ORD-004 | `order.eta_updated` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-PAY-001 | `payment.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REF-001 | `refund.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-001 | `order.new` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-002 | `order.updated` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-003 | `order.cancelled` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-004 | `order.accept_reminder` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-005 | `delivery.partner_assigned` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-006 | `delivery.partner_arrived` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-007 | `delivery.picked_up` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-008 | `branch.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-009 | `dashboard.metrics_updated` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-REST-010 | `menu.item_availability_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-TRK-001 | `tracking.location` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-TRK-002 | `tracking.eta` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-TRK-003 | `tracking.stale` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |

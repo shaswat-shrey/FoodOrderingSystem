@@ -140,7 +140,7 @@ The system shall revoke all sessions of the user (optionally excluding the curre
 - Errors: `AUTH_TOKEN_EXPIRED`, `AUTH_TOKEN_USED`, `AUTH_TOKEN_INVALID`.
 
 #### FR-AUTH-009 — Phone verification  [P0 · MVP]
-The system shall verify phone ownership via OTP purpose `VERIFY_PHONE`; on success set `phoneVerifiedAt`, transition `PENDING_VERIFICATION → ACTIVE`. Changing phone number (FR-USER-004) requires OTP verification of the **new** number and re-auth (BR-AUTH-017) and revokes other sessions.
+The system shall verify phone ownership via OTP purpose `VERIFY_PHONE`; on success set `phoneVerifiedAt`, transition `PENDING_VERIFICATION → ACTIVE`. Changing phone number (FR-CUST-004) requires OTP verification of the **new** number and re-auth (BR-AUTH-017) and revokes other sessions.
 
 #### FR-AUTH-010 — OTP generation, delivery and verification  [P0 · MVP]
 - **Behavior:**
