@@ -1,6 +1,6 @@
 # Payment Architecture
 
-> Phase 1 · v0.3.1 (APPROVED 2026-11-20). Requirements: SRS §11 (FR-PAY-*, FR-REFUND-*, FR-RECON-*, FR-SETTLE-*). Decisions: ADR-007 (money), ADR-011 (ledger).
+> Phase 1 · v0.4.0 (APPROVED 2026-11-20). Requirements: SRS §11 (FR-PAY-*, FR-REFUND-*, FR-RECON-*, FR-SETTLE-*). Decisions: ADR-007 (money), ADR-011 (ledger).
 
 ## 1. Components
 

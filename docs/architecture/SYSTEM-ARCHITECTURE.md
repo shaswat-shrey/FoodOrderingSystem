@@ -1,6 +1,6 @@
 # System Architecture
 
-> Phase 1 deliverable · v0.3.1 (APPROVED 2026-11-20). Requirements: `docs/requirements/`. Decisions: `docs/architecture/adr/`.
+> Phase 1 deliverable · v0.4.0 (APPROVED 2026-11-20). Requirements: `docs/requirements/`. Decisions: `docs/architecture/adr/`.
 > Contents: 1 Context · 2 Containers · 3 Backend module architecture · 4 Request, real-time & job pipelines · 5 Data architecture · 6 Authentication & session architecture · 7 Authorization (RBAC) & permission matrix · 8 Real-time architecture · 9 Security architecture · 10 Caching strategy · 11 Search strategy · 12 Frontend architecture · 13 Infrastructure & environments · 14 Project directory structure · 15 Cross-cutting conventions
 
 ---

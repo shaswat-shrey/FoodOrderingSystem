@@ -4,12 +4,12 @@ _Last updated: 2026-11-20_
 
 ## Summary
 
-| Item              | Status                                                                  |
-| ----------------- | ----------------------------------------------------------------------- |
-| Current phase     | **Phase 4 — Auth & security: complete; Phase 5 awaiting go-ahead**      |
-| Next phase        | Phase 5 — Core customer backend                                         |
-| SRS version       | FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20; v0.3.1 is an editorial update) |
-| Business features | Accounts, sign-in, sessions and permissions (all four apps)             |
+| Item              | Status                                                                       |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Current phase     | **Phase 4 — Auth & security: complete; Phase 5 awaiting go-ahead**           |
+| Next phase        | Phase 5 — Core customer backend                                              |
+| SRS version       | FOS-SRS-001 v0.4.0 (APPROVED 2026-11-20; v0.4.0 adds owner-approved D-4…D-6) |
+| Business features | Accounts, sign-in, sessions and permissions (all four apps)                  |
 
 ## Phases
 
@@ -18,7 +18,7 @@ _Last updated: 2026-11-20_
 | 1 Requirements & architecture | ✅ Approved 2026-11-20 (defaults adopted for OD-01…OD-16) |
 | 2 Repository & infrastructure | ✅ Complete 2026-11-20                                    |
 | 3 Database                    | ✅ Complete 2026-11-20 (SRS changes D-1…D-3 approved)     |
-| 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 await decision)           |
+| 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                 |
 | 5 Core customer backend       | Not started                                               |
 | 6 Cart, pricing, checkout     | Not started                                               |
 | 7 Order management            | Not started                                               |
@@ -35,7 +35,7 @@ _Last updated: 2026-11-20_
 | Area              | Delivered                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Accounts          | Email + phone + password registration with consent; phone-OTP sign-in that creates customer accounts; phone and email verification; verification gate on all other features                                                                                                                                                                                                                                               |
-| Credentials       | Argon2id passwords (m=19 MiB, t=2, p=1); policy checks (length, not email/phone, common-password list — see D-4); forgot/reset by email link or phone code; change password                                                                                                                                                                                                                                               |
+| Credentials       | Argon2id passwords (m=19 MiB, t=2, p=1); policy checks (length, not email/phone, NCSC 100k breached-password list); forgot/reset by email link or phone code; change password                                                                                                                                                                                                                                             |
 | Sessions          | 15-min HS256 access tokens with key rotation (`kid`), audience per app, token/permission versions; opaque refresh tokens (SHA-256 at rest) in `HttpOnly; SameSite=Strict` per-app cookies; rotation with 10 s race grace and family revocation on reuse; idle/absolute expiry per app; 10-session cap; Redis session cache with database fallback                                                                         |
 | Abuse protection  | Lockout (5 failures → 15 min, doubling, 24 h cap); per-IP and per-identifier rate limits (Redis, in-memory fallback); OTP cooldown, hourly caps, 5 attempts, HMAC-stored codes; no account enumeration; trusted-Origin check on cookie endpoints                                                                                                                                                                          |
 | Authorization     | IAM service resolving platform roles and restaurant memberships into permissions; app–role compatibility with onboarding scope for restaurant/delivery applicants; role changes apply on the next request; `/me` and `/me/permissions`                                                                                                                                                                                    |
@@ -52,6 +52,7 @@ _Last updated: 2026-11-20_
 - ✅ Full-stack Playwright journeys (opt-in, `E2E_FULL_STACK=1`) pass on desktop and mobile Chromium: OTP sign-up for a new number, session restored after reload, sign-out ends the session, wrong code rejected, no serious axe violations on sign-in/sign-up.
 - ✅ Manual browser run against the real API and worker: OTP sign-up, password sign-up → phone verification → email link, password sign-in (wrong and right), devices page, sign-out; admin app at phone width shows password-only sign-in with no sign-up. Access token never reaches browser storage; the refresh cookie is not readable from JavaScript.
 - ✅ Secrets never logged: a test scans captured logs for passwords, OTPs and tokens.
+- ✅ The 100k password list is bundled into the API build (no runtime file), and loads under both `tsx` and the built server.
 - Bugs found and fixed during verification: “Send new code” ignored the server's resend cooldown; the primary button colour was 3.55:1 contrast (now ≥ 4.5:1, a Phase 2 design-system bug); reactivation failure returned the wrong error code.
 - ⚠️ CI has still not run (nothing pushed), so §22.1c rows are _Implemented_, not _Verified_.
 - ⚠️ FR-AUTH-023 (idle/absolute expiry) has no dedicated test yet.
@@ -80,15 +81,12 @@ _Last updated: 2026-11-20_
 
 ## Known discrepancies (SRS vs implementation)
 
-Open — awaiting owner decision (SRS §27.3):
-
-| ID  | Requirement                                                         | Observed                                                                                                                                                                                                                                                                                                                       | Proposal                                                                                                                                                                                                                           |
-| --- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D-4 | BR-AUTH-001 (breached-password check against a local top-100k list) | The API embeds an interim list of about 150 very common passwords plus pattern checks (sequences, repeats, app name). The 100k list needs a one-off download of a public list, which needs approval.                                                                                                                           | **Change code:** approve downloading a public top-100k list (e.g. the SecLists 100k file) into the repo as a data file, checked at startup. Alternative: approve the HIBP k-anonymity range API (optional in BR-AUTH-001) instead. |
-| D-5 | SRS §19.2 error catalogue                                           | Two codes the API needs are not in the SRS: `AUTH_TERMS_REQUIRED` (422 — first OTP sign-in for a new number without consent, BR-AUTH-020) and `ACCOUNT_PENDING_DELETION` (403 — sign-in during the deletion grace period, carries the reactivation token).                                                                     | **Change requirement:** add both codes to §19.2 and to API-AUTH-003/004.                                                                                                                                                           |
-| D-6 | API-AUTH-023 (reactivate: “Deactivated user session”)               | No session is issued to a deactivated account. Signing in returns `ACCOUNT_PENDING_DELETION` with a one-time reactivation token (15 min); `POST /auth/account/reactivate {token}` reactivates and signs in. This matches FR-AUTH-042 (“sign in successfully and confirm”) without giving a pending-deletion account a session. | **Change requirement:** update API-AUTH-023 to “one-time reactivation token from sign-in”.                                                                                                                                         |
-
-Resolved: D-1…D-3 (owner decision 2026-11-20, SRS v0.3.0). Editorial only (v0.3.1): four error codes already used in §14 were added to the §19.2 table.
+- None open.
+- D-4…D-6 resolved 2026-11-20 by owner decision (“Accept all three”, SRS v0.4.0):
+  - **D-4:** the breached-password check now uses the NCSC 100k list (46,483 entries of 8+ characters, from SecLists), plus service-specific words.
+  - **D-5:** `AUTH_TERMS_REQUIRED` and `ACCOUNT_PENDING_DELETION` are in the §19.2 catalogue and the API-AUTH-003/004 specifications.
+  - **D-6:** API-AUTH-023 now specifies a one-time reactivation token from sign-in.
+- D-1…D-3 resolved 2026-11-20 (SRS v0.3.0). Editorial v0.3.1: four codes already used in §14 were added to the §19.2 table.
 
 Not discrepancies: ADV-only tables (chat, per-member permission overrides) are intentionally not created yet; OAuth (FR-AUTH-004), account recovery (FR-AUTH-014) and TOTP (CORE) are later releases.
 
@@ -161,14 +159,13 @@ Not discrepancies: ADV-only tables (chat, per-member permission overrides) are i
 
 ## Next steps
 
-1. Owner decisions on D-4, D-5 and D-6.
-2. Owner go-ahead for Phase 5 (core customer backend: profiles, addresses, serviceability, restaurant discovery and menus).
+1. Owner go-ahead for Phase 5 (core customer backend: profiles, addresses, serviceability, restaurant discovery and menus).
 
 ## TODO
 
 - [x] Decide D-1…D-3 (accepted 2026-11-20)
 - [x] Phase 4: auth & security
-- [ ] Decide D-4…D-6
+- [x] Decide D-4…D-6 (accepted 2026-11-20)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
 - [ ] Push to GitHub so CI runs (moves §22.1a–c rows to _Verified_)
 - [ ] Dedicated test for idle/absolute session expiry (FR-AUTH-023)

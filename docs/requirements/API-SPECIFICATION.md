@@ -1,6 +1,6 @@
 # SRS Section 14 — API Requirements (API Inventory & Specification)
 
-> Part of FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002, API-AUTH-001…016, 021…023 and API-USER-001/003 (see Traceability Matrix §22.1a/§22.1c); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
+> Part of FOS-SRS-001 v0.4.0 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002, API-AUTH-001…016, 021…023 and API-USER-001/003 (see Traceability Matrix §22.1a/§22.1c); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
 
 ---
 
@@ -97,8 +97,8 @@ Counts: 494 planned endpoints across 30 modules (about 165 of them admin). Each 
 |---|---|---|---|---|---|---|---|
 | API-AUTH-001 | POST `/auth/register` | Register with email+password | Public | RL-AUTH | fullName, email, phone, password, acceptTerms | VALIDATION_ERROR, AUTH_REGISTRATION_CONFLICT, AUTH_PASSWORD_WEAK/BREACHED | FR-AUTH-001 |
 | API-AUTH-002 | POST `/auth/otp/request` | Send OTP for LOGIN / VERIFY_PHONE / RESET_PASSWORD / CHANGE_PHONE / DELETE_ACCOUNT | Public (LOGIN, RESET) or authed | RL-OTP | phone, purpose | RATE_LIMITED | FR-AUTH-010 |
-| API-AUTH-003 | POST `/auth/otp/login` | Verify login OTP → session (creates account if new) | Public | RL-AUTH | phone, code | AUTH_OTP_INVALID/EXPIRED/ATTEMPTS_EXCEEDED, AUTH_ACCOUNT_SUSPENDED | FR-AUTH-002 |
-| API-AUTH-004 | POST `/auth/login` | Password login → session | Public | RL-AUTH | identifier, password | AUTH_INVALID_CREDENTIALS, AUTH_ACCOUNT_SUSPENDED, AUTH_APP_NOT_PERMITTED, AUTH_MFA_REQUIRED | FR-AUTH-003 |
+| API-AUTH-003 | POST `/auth/otp/login` | Verify login OTP → session (creates account if new) | Public | RL-AUTH | phone, code, fullName?, acceptTerms? | AUTH_OTP_INVALID/EXPIRED/ATTEMPTS_EXCEEDED, AUTH_TERMS_REQUIRED (new number without consent; the code is consumed), AUTH_ACCOUNT_SUSPENDED, ACCOUNT_PENDING_DELETION | FR-AUTH-002 |
+| API-AUTH-004 | POST `/auth/login` | Password login → session | Public | RL-AUTH | identifier, password | AUTH_INVALID_CREDENTIALS, AUTH_ACCOUNT_SUSPENDED, ACCOUNT_PENDING_DELETION, AUTH_APP_NOT_PERMITTED, AUTH_MFA_REQUIRED | FR-AUTH-003 |
 | API-AUTH-005 | POST `/auth/refresh` | Rotate refresh token, new access token | Cookie + Origin + X-Client-App | RL-AUTH | (cookie) | AUTH_REFRESH_INVALID, AUTH_REFRESH_REUSED, AUTH_REFRESH_RACE, AUTH_SESSION_EXPIRED/REVOKED | FR-AUTH-022 |
 | API-AUTH-006 | POST `/auth/logout` | Revoke current session | Any authed (or cookie) | — | — | — | FR-AUTH-005 |
 | API-AUTH-007 | POST `/auth/logout-all` | Revoke all sessions | Any authed | — | keepCurrent | — | FR-AUTH-006 |
@@ -117,7 +117,7 @@ Counts: 494 planned endpoints across 30 modules (about 165 of them admin). Each 
 | API-AUTH-020 | POST `/auth/mfa/totp/confirm` | Confirm enrolment, return recovery codes | ADM | — | code | AUTH_OTP_INVALID | FR-AUTH-032 |
 | API-AUTH-021 | POST `/auth/mfa/challenge` | Complete MFA login step | Pending-MFA token | RL-AUTH | mfaToken, code \| recoveryCode | AUTH_MFA_INVALID | FR-AUTH-032 |
 | API-AUTH-022 | POST `/auth/account/deletion` | Request account deletion | Any authed + reauth | Idem | confirm=true | ACCOUNT_DELETION_BLOCKED, AUTH_REAUTH_REQUIRED | FR-AUTH-041 |
-| API-AUTH-023 | POST `/auth/account/reactivate` | Cancel pending deletion | Deactivated user session | — | — | ACCOUNT_NOT_REACTIVATABLE | FR-AUTH-042 |
+| API-AUTH-023 | POST `/auth/account/reactivate` | Cancel pending deletion and sign in | One-time reactivation token (15 min) from the `ACCOUNT_PENDING_DELETION` sign-in response; no session is issued before reactivation | RL-AUTH | token | AUTH_TOKEN_INVALID/EXPIRED/USED, ACCOUNT_NOT_REACTIVATABLE | FR-AUTH-042 |
 | API-AUTH-024 | POST `/auth/recovery-requests` | Lost-access recovery request | Public | 3/day/IP | contact info, details | — | FR-AUTH-014 |
 
 ### Users / profile — `API-USER` (module `users`, `customers`)
@@ -715,7 +715,7 @@ The remaining endpoints' request/response schemas are defined as Zod schemas in 
 - **Body:** `{ "identifier": "user@example.com" | "+919876543210", "password": "string(8..128)" }`
 - **200:** `{ data: { accessToken, accessTokenExpiresAt, user: { id, fullName, roles, emailVerified, phoneVerified, profileComplete }, session: { id } } }` + `Set-Cookie: fos_rt_customer=…; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth; Max-Age=2592000`
 - **200 (MFA):** `{ data: { mfaRequired: true, mfaToken (5 min, single use) } }` (admin)
-- **Errors:** 400 VALIDATION_ERROR · 401 AUTH_INVALID_CREDENTIALS · 403 AUTH_ACCOUNT_SUSPENDED, AUTH_APP_NOT_PERMITTED · 429 RATE_LIMITED.
+- **Errors:** 400 VALIDATION_ERROR · 401 AUTH_INVALID_CREDENTIALS · 403 AUTH_ACCOUNT_SUSPENDED, AUTH_APP_NOT_PERMITTED, ACCOUNT_PENDING_DELETION (after a correct password during the deletion grace period; `error.details` carries `{ code: "REACTIVATION_TOKEN", message: <token> }` for API-AUTH-023) · 429 RATE_LIMITED.
 - **Rules:** BR-AUTH-001, 004, 005, 010. **Rate limit:** RL-AUTH. **Idempotency:** not applicable (each success creates a session by design).
 
 ### API-AUTH-005 — POST /api/v1/auth/refresh

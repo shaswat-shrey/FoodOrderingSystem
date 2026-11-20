@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database) and §22.1c (authentication).
+> Part of FOS-SRS-001 v0.4.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database) and §22.1c (authentication).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -138,7 +138,7 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 | FR-AUTH-040, BR-AUTH-012 | Suspended accounts cannot sign in | Implemented (admin suspend action: Phase 11) |
 | FR-AUTH-041, 042, BR-AUTH-011, 013 | Account deletion with 30-day grace, blockers, reactivation, anonymisation job | Implemented |
 | FR-AUTH-004, FR-AUTH-014 | OAuth sign-in, account recovery | Planned (CORE) |
-| BR-AUTH-001 | Password policy, Argon2id | Implemented, with discrepancy **D-4** (interim breached-password list) |
+| BR-AUTH-001 | Password policy, Argon2id, breached-password check against the NCSC 100k list (D-4, approved) | Implemented |
 | BR-AUTH-003, 005, 006, 007, 008, 009, 010, 014, 015, 016, 019 | OTP policy, session cap, token lifetimes, refresh grace, link lifetimes, revocation on credential change, app–role compatibility, uniqueness, generic conflicts, cookie endpoints require trusted Origin | Implemented |
 | BR-AUTH-002 | Verified phone before checkout | Partial (verification gate in place; checkout arrives in Phase 6) |
 | FR-AUDIT-001 | Security events written to the audit log with redaction | Implemented |
@@ -176,3 +176,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-20 | 0.2.1 | Phase 2: added §22.1a with platform requirements implemented and verified. |
 | 2026-11-20 | 0.2.2 | Phase 3: added §22.1b with database requirements. |
 | 2026-11-20 | 0.3.1 | Phase 4: added §22.1c with authentication, session, realtime-auth and web-auth requirements. |
+| 2026-11-20 | 0.4.0 | D-4…D-6 approved: BR-AUTH-001 fully implemented; FR-AUTH-002/003/042 and API-AUTH-003/004/023 text updated. |

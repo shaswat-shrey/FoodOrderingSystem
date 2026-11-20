@@ -1,6 +1,6 @@
 # SRS Section 19 — Error Handling
 
-> Part of FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20).
+> Part of FOS-SRS-001 v0.4.0 (APPROVED 2026-11-20).
 
 ## 19.1 Principles
 
@@ -23,8 +23,8 @@
 | Authentication | 401 | `AUTH_SESSION_REVOKED`, `AUTH_SESSION_EXPIRED`, `AUTH_REFRESH_INVALID`, `AUTH_REFRESH_REUSED` | "You've been signed out. Please sign in again." | No | Login |
 | Authentication | 409 | `AUTH_REFRESH_RACE` | — | Yes, once | Retry refresh |
 | Authentication | 401 | `AUTH_INVALID_CREDENTIALS` | "Incorrect email/phone or password." | No | Retry / reset password |
-| Authentication | 422 | `AUTH_OTP_INVALID`, `AUTH_OTP_EXPIRED`, `AUTH_OTP_ATTEMPTS_EXCEEDED`, `AUTH_TOKEN_EXPIRED`, `AUTH_TOKEN_USED`, `AUTH_PASSWORD_WEAK`, `AUTH_PASSWORD_BREACHED`, `AUTH_REGISTRATION_CONFLICT`, `AUTH_EMAIL_ALREADY_VERIFIED`, `AUTH_MFA_INVALID` | e.g., "That code has expired. We've sent a new one." | Varies | Resend / correct |
-| Authorization | 403 | `FORBIDDEN`, `AUTH_APP_NOT_PERMITTED`, `AUTH_VERIFICATION_REQUIRED`, `AUTH_REAUTH_REQUIRED`, `AUTH_MFA_REQUIRED`, `AUTH_ACCOUNT_SUSPENDED`, `PROFILE_INCOMPLETE`, `CSRF_ORIGIN_MISMATCH` | "You don't have access to this." / "Verify your phone to continue." | No | Verify / reauth / contact support |
+| Authentication | 422 | `AUTH_OTP_INVALID`, `AUTH_OTP_EXPIRED`, `AUTH_OTP_ATTEMPTS_EXCEEDED`, `AUTH_TOKEN_EXPIRED`, `AUTH_TOKEN_USED`, `AUTH_PASSWORD_WEAK`, `AUTH_PASSWORD_BREACHED`, `AUTH_REGISTRATION_CONFLICT`, `AUTH_EMAIL_ALREADY_VERIFIED`, `AUTH_MFA_INVALID`, `AUTH_TERMS_REQUIRED` | e.g., "That code has expired. We've sent a new one." | Varies | Resend / correct |
+| Authorization | 403 | `FORBIDDEN`, `AUTH_APP_NOT_PERMITTED`, `AUTH_VERIFICATION_REQUIRED`, `AUTH_REAUTH_REQUIRED`, `AUTH_MFA_REQUIRED`, `AUTH_ACCOUNT_SUSPENDED`, `ACCOUNT_PENDING_DELETION`, `PROFILE_INCOMPLETE`, `CSRF_ORIGIN_MISMATCH` | "You don't have access to this." / "Verify your phone to continue." | No | Verify / reauth / contact support |
 | Not found | 404 | `NOT_FOUND`, `AUTH_SESSION_NOT_FOUND`, `ORDER_NOT_FOUND`, `ITEM_NOT_FOUND`, `OFFER_NOT_FOUND`, … | "We couldn't find that." | No | Navigate back |
 | Conflict | 409 | `CONFLICT_STALE_VERSION`, `ORDER_STATE_CONFLICT`, `ORDER_INVALID_TRANSITION`, `DELIVERY_STATE_CONFLICT`, `IDEMPOTENCY_KEY_REUSED`, `CART_BRANCH_CONFLICT`, `CART_CHANGED`, `CHECKOUT_SESSION_CONSUMED`, `OFFER_EXPIRED`, `OFFER_ALREADY_TAKEN`, `OFFER_WITHDRAWN` | "This order was just updated." | Refetch then act | Refetch & re-render |
 | Gone | 410 | `CHECKOUT_SESSION_EXPIRED`, `INVITATION_EXPIRED` | "Your checkout timed out — prices refreshed." | No | Restart step |

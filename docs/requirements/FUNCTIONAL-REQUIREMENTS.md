@@ -1,6 +1,6 @@
 # SRS Sections 4–9 — Functional Requirements
 
-> Part of FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20). Master: [SRS-Online-Food-Ordering-and-Delivery-Platform.md](SRS-Online-Food-Ordering-and-Delivery-Platform.md).
+> Part of FOS-SRS-001 v0.4.0 (APPROVED 2026-11-20). Master: [SRS-Online-Food-Ordering-and-Delivery-Platform.md](SRS-Online-Food-Ordering-and-Delivery-Platform.md).
 > Business rules (`BR-*`) are defined in [BUSINESS-RULES.md](BUSINESS-RULES.md); error codes in [ERROR-HANDLING.md](ERROR-HANDLING.md); APIs in [API-SPECIFICATION.md](API-SPECIFICATION.md).
 
 ---
@@ -107,7 +107,7 @@ Architecture: `docs/architecture/SYSTEM-ARCHITECTURE.md` §6 (Authentication & S
 - **Behavior:** 1) The system shall send a 6-digit OTP to the phone (FR-AUTH-010) with purpose `LOGIN`. 2) On correct OTP: if a user exists with this phone, the system shall sign them in (FR-AUTH-020); otherwise it shall create a user with phone verified, status `ACTIVE`, and require `fullName` (and optional email) before first order (`profileComplete=false`). 3) The system shall not disclose whether the phone was already registered in the OTP request response.
 - **Post:** verified phone; session issued.
 - **Rules:** BR-AUTH-002, BR-AUTH-003, BR-AUTH-010.
-- **Errors:** `AUTH_OTP_INVALID`, `AUTH_OTP_EXPIRED`, `AUTH_OTP_ATTEMPTS_EXCEEDED`, `RATE_LIMITED`, `AUTH_ACCOUNT_SUSPENDED`.
+- **Errors:** `AUTH_OTP_INVALID`, `AUTH_OTP_EXPIRED`, `AUTH_OTP_ATTEMPTS_EXCEEDED`, `AUTH_TERMS_REQUIRED` (new number without accepted terms), `RATE_LIMITED`, `AUTH_ACCOUNT_SUSPENDED`, `ACCOUNT_PENDING_DELETION`.
 
 #### FR-AUTH-003 — Login with email/phone and password  [P0 · MVP]
 - **Actor:** Guest · **Trigger:** submits identifier + password.
@@ -119,7 +119,7 @@ Architecture: `docs/architecture/SYSTEM-ARCHITECTURE.md` §6 (Authentication & S
   5. If the account status is `SUSPENDED` or `DEACTIVATED` (pending deletion), after a correct password it shall return `AUTH_ACCOUNT_SUSPENDED` / offer reactivation (FR-AUTH-042).
   6. It shall verify the user has a role permitted for the requesting app (BR-AUTH-010); otherwise `AUTH_APP_NOT_PERMITTED`.
   7. On success it shall reset the failure counter and create a session (FR-AUTH-020).
-- **Errors:** `AUTH_INVALID_CREDENTIALS`, `AUTH_ACCOUNT_SUSPENDED`, `AUTH_APP_NOT_PERMITTED`, `AUTH_MFA_REQUIRED` (admin, CORE), `RATE_LIMITED`.
+- **Errors:** `AUTH_INVALID_CREDENTIALS`, `AUTH_ACCOUNT_SUSPENDED`, `ACCOUNT_PENDING_DELETION` (offers reactivation, FR-AUTH-042), `AUTH_APP_NOT_PERMITTED`, `AUTH_MFA_REQUIRED` (admin, CORE), `RATE_LIMITED`.
 
 #### FR-AUTH-004 — OAuth sign-in (Google, Apple)  [P2 · CORE]
 - **Behavior:** The system shall verify the provider ID token (signature against provider JWKS, `aud`, `iss`, `exp`, nonce), find a user by `(provider, providerUserId)`; if absent and the provider email is verified and matches an existing account, it shall require the user to sign in with the existing method before linking (no silent account takeover); otherwise create a new account (phone still required before ordering). OAuth is available only in the customer app.
@@ -212,7 +212,7 @@ An admin with `user:suspend` shall be able to suspend a user with a reason and o
 - **Post:** user cannot log in; data minimized per §20.
 
 #### FR-AUTH-042 — Account reactivation  [P1 · MVP]
-A user in the deletion grace period shall be able to reactivate by signing in successfully and confirming; reactivation cancels the anonymization job. Suspended users cannot self-reactivate; only admins can lift a suspension (`user:unsuspend`). After anonymization, reactivation is impossible.
+A user in the deletion grace period shall be able to reactivate by signing in successfully and confirming; reactivation cancels the anonymization job. No session is issued before confirmation: sign-in returns `ACCOUNT_PENDING_DELETION` with a one-time reactivation token (15 min), which API-AUTH-023 exchanges for a session. Suspended users cannot self-reactivate; only admins can lift a suspension (`user:unsuspend`). After anonymization, reactivation is impossible.
 
 ---
 
