@@ -14,8 +14,10 @@
   "dependencies": {
     "@fos/shared": "workspace:*",
     "@fos/types": "workspace:*",
+    "@fos/validation": "workspace:*",
     "@tanstack/react-query": "^5.108.2",
-    "axios": "^1.21.1"
+    "axios": "^1.21.1",
+    "zustand": "^5.1.0"
   },
   "devDependencies": {
     "@fos/config": "workspace:*",

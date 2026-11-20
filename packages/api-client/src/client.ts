@@ -1,7 +1,20 @@
-import axios, { AxiosError, type AxiosInstance } from 'axios';
+import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { CLIENT_APP_HEADER, REQUEST_ID_HEADER, type ClientApp } from '@fos/shared';
 import type { ApiFailure, ApiSuccess, ReadinessReport } from '@fos/types';
+import { createAuthApi, type AuthApi } from './auth-api';
+import {
+  createAuthStore,
+  setSignedIn,
+  setSignedOut,
+  type AuthStore,
+  type AuthUser,
+} from './auth-store';
 import { ApiClientError } from './errors';
+
+/** Minimal Web Locks API surface (navigator.locks) used to refresh once across tabs. */
+export interface LockManagerLike {
+  request<T>(name: string, callback: () => Promise<T>): Promise<T>;
+}
 
 export interface ApiClientOptions {
   /** Origin of the API; '' means same origin (Vite dev proxy / reverse proxy). */
@@ -9,13 +22,17 @@ export interface ApiClientOptions {
   clientApp: ClientApp;
   /** Injected in tests to avoid real network. */
   adapter?: AxiosInstance['defaults']['adapter'];
+  /** Defaults to navigator.locks when available. */
+  locks?: LockManagerLike | null;
+  /** Pause before retrying a refresh that lost a race (ms). */
+  raceRetryDelayMs?: number;
 }
 
 function newRequestId(): string {
   return globalThis.crypto.randomUUID();
 }
 
-function toClientError(error: unknown): ApiClientError {
+export function toClientError(error: unknown): ApiClientError {
   if (error instanceof ApiClientError) return error;
   if (error instanceof AxiosError) {
     const body = error.response?.data as Partial<ApiFailure> | undefined;
@@ -51,17 +68,42 @@ function toClientError(error: unknown): ApiClientError {
 
 export interface ApiClient {
   readonly http: AxiosInstance;
+  readonly clientApp: ClientApp;
+  readonly authStore: AuthStore;
+  readonly auth: AuthApi;
   get<T>(path: string, params?: Record<string, unknown>): Promise<T>;
   post<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T>;
+  delete<T>(path: string): Promise<T>;
   /** API-SYS-002 readiness (not enveloped; 503 is a valid answer, not an error). */
   readiness(): Promise<ReadinessReport>;
+  /**
+   * Restores or renews the session from the refresh cookie. Concurrent callers
+   * share one request; tabs coordinate through a lock (FR-FE-003).
+   */
+  refreshSession(): Promise<boolean>;
 }
 
-export function createApiClient({ baseURL = '', clientApp, adapter }: ApiClientOptions): ApiClient {
+type RetriableConfig = InternalAxiosRequestConfig & { _authRetried?: boolean };
+
+const REFRESH_PATH = '/api/v1/auth/refresh';
+const RETRY_ON = new Set(['AUTH_TOKEN_EXPIRED', 'AUTH_TOKEN_INVALID']);
+
+export function createApiClient({
+  baseURL = '',
+  clientApp,
+  adapter,
+  locks = typeof navigator !== 'undefined' && 'locks' in navigator
+    ? (navigator.locks as LockManagerLike)
+    : null,
+  raceRetryDelayMs = 250,
+}: ApiClientOptions): ApiClient {
+  const authStore = createAuthStore();
   const http = axios.create({
     baseURL,
     timeout: 15_000,
     headers: { Accept: 'application/json' },
+    // Cookies are scoped to /api/v1/auth; sending credentials elsewhere is harmless.
+    withCredentials: true,
     ...(adapter ? { adapter } : {}),
   });
 
@@ -69,7 +111,68 @@ export function createApiClient({ baseURL = '', clientApp, adapter }: ApiClientO
     config.headers.set(CLIENT_APP_HEADER, clientApp);
     if (!config.headers.has(REQUEST_ID_HEADER))
       config.headers.set(REQUEST_ID_HEADER, newRequestId());
+    const token = authStore.getState().accessToken;
+    if (token && !config.headers.has('Authorization'))
+      config.headers.set('Authorization', `Bearer ${token}`);
     return config;
+  });
+
+  let inFlight: Promise<boolean> | null = null;
+
+  async function doRefresh(attempt = 0): Promise<boolean> {
+    try {
+      const response = await http.post<
+        ApiSuccess<{ accessToken: string; accessTokenExpiresAt: string; user: AuthUser }>
+      >(REFRESH_PATH, undefined, { headers: { Authorization: '' } });
+      setSignedIn(authStore, response.data.data);
+      return true;
+    } catch (error) {
+      const failure = toClientError(error);
+      if (failure.code === 'AUTH_REFRESH_RACE' && attempt === 0) {
+        // Another tab rotated the cookie a moment ago; the browser now holds the new one.
+        await new Promise((resolve) => setTimeout(resolve, raceRetryDelayMs));
+        return doRefresh(1);
+      }
+      if (failure.code === 'NETWORK_ERROR' || (failure.status ?? 0) >= 500) throw failure;
+      setSignedOut(authStore);
+      return false;
+    }
+  }
+
+  function refreshSession(): Promise<boolean> {
+    inFlight ??= (
+      locks ? locks.request(`fos-auth-refresh-${clientApp}`, () => doRefresh()) : doRefresh()
+    ).finally(() => {
+      inFlight = null;
+    });
+    return inFlight;
+  }
+
+  http.interceptors.response.use(undefined, async (error: unknown) => {
+    if (!(error instanceof AxiosError) || !error.config) throw error;
+    const config = error.config as RetriableConfig;
+    const failure = toClientError(error);
+    const isAuthCall = (config.url ?? '').startsWith('/api/v1/auth/');
+    if (
+      error.response?.status === 401 &&
+      RETRY_ON.has(failure.code) &&
+      !config._authRetried &&
+      !isAuthCall
+    ) {
+      config._authRetried = true;
+      if (await refreshSession()) {
+        config.headers.set('Authorization', `Bearer ${authStore.getState().accessToken}`);
+        return http.request(config);
+      }
+    }
+    if (
+      failure.code === 'AUTH_SESSION_REVOKED' ||
+      failure.code === 'AUTH_SESSION_EXPIRED' ||
+      failure.code === 'AUTH_REFRESH_REUSED'
+    ) {
+      setSignedOut(authStore);
+    }
+    throw error;
   });
 
   async function unwrap<T>(promise: Promise<{ data: ApiSuccess<T> }>): Promise<T> {
@@ -81,10 +184,15 @@ export function createApiClient({ baseURL = '', clientApp, adapter }: ApiClientO
     }
   }
 
-  return {
+  const client: ApiClient = {
     http,
+    clientApp,
+    authStore,
+    auth: undefined as unknown as AuthApi,
     get: (path, params) => unwrap(http.get(`/api/v1${path}`, { params })),
     post: (path, body, headers) => unwrap(http.post(`/api/v1${path}`, body, { headers })),
+    delete: (path) => unwrap(http.delete(`/api/v1${path}`)),
+    refreshSession,
     async readiness() {
       try {
         const response = await http.get<ReadinessReport>('/health/ready', {
@@ -96,4 +204,6 @@ export function createApiClient({ baseURL = '', clientApp, adapter }: ApiClientO
       }
     },
   };
+  (client as { auth: AuthApi }).auth = createAuthApi(client);
+  return client;
 }
