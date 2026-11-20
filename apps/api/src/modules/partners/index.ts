@@ -9,5 +9,10 @@ export { ACTIVE_DELIVERY, PartnerAvailabilityService, type Fix } from './availab
 export { PresenceStore, type Presence, type PresenceState } from './presence';
 export { PartnerEarningsService } from './earnings.service';
 export { cancellationPay, payTotal, tripPay, type Pay } from './pay';
-export { PartnerFinanceService, periodBounds, type EarningsPeriod } from './finance.service';
+export {
+  PartnerFinanceService,
+  periodBounds,
+  type EarningsPeriod,
+  type PartnerRatings,
+} from './finance.service';
 export { partnerFinanceRouter } from './finance.routes';

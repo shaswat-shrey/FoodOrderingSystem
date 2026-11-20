@@ -146,10 +146,16 @@ export function browser(ctx: TestContext, app: App = 'CUSTOMER') {
           .set(headers)
           .send(body ?? {}),
       ),
-    patch: (path: string, body?: object) =>
-      withHeaders(agent.patch(`/api/v1${path}`).send(body ?? {})),
+    patch: (path: string, body?: object, headers: Record<string, string> = {}) =>
+      withHeaders(
+        agent
+          .patch(`/api/v1${path}`)
+          .set(headers)
+          .send(body ?? {}),
+      ),
     put: (path: string, body?: object) => withHeaders(agent.put(`/api/v1${path}`).send(body ?? {})),
-    delete: (path: string) => withHeaders(agent.delete(`/api/v1${path}`)),
+    delete: (path: string, headers: Record<string, string> = {}) =>
+      withHeaders(agent.delete(`/api/v1${path}`).set(headers)),
     /** Stores the access token from a sign-in/refresh response. */
     remember(res: request.Response) {
       if (res.body?.data?.accessToken) accessToken = res.body.data.accessToken;

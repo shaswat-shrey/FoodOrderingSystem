@@ -35,6 +35,11 @@ const dateKey = (d: Date) => {
 
 type Page = { limit: number; cursor?: string | undefined };
 
+/** Implemented by the reviews module (kept structural so partners does not depend on it). */
+export interface PartnerRatings {
+  partnerSummary(partnerId: string): Promise<unknown>;
+}
+
 /**
  * What a partner sees about their money and performance (API-EARN-001…003, 005…011)
  * and the bank-change request (API-EARN-012). Amounts are paise.
@@ -46,6 +51,7 @@ export class PartnerFinanceService {
     private readonly settings: SettingsService,
     private readonly audit: AuditService,
     private readonly cipher: FieldCipher,
+    private readonly reviews: PartnerRatings,
     private readonly clock: Clock,
   ) {}
 
@@ -429,69 +435,14 @@ export class PartnerFinanceService {
       deliveries: delivered.length,
       completionRate: rate(delivered.length, finished),
       onTimeRate: rate(delivered.length - late, delivered.length),
-      rating: stats?.ratingAvgBps ? stats.ratingAvgBps / 10_000 : null,
+      rating: stats?.ratingAvgBps ? stats.ratingAvgBps / 100 : null,
       ratingCount: stats?.ratingCount ?? 0,
     };
   }
 
-  /** API-EARN-010: rating summary and anonymised feedback (no customer identity). */
-  async ratings(userId: string, page: Page) {
-    const partnerId = await this.partnerId(userId);
-    const where = {
-      partnerId,
-      targetType: 'PARTNER' as const,
-      status: 'PUBLISHED' as const,
-      deletedAt: null,
-    };
-    const [groups, stats] = await Promise.all([
-      this.prisma.review.groupBy({ by: ['rating'], where, _count: { _all: true } }),
-      this.prisma.partnerStats.findUnique({ where: { partnerId } }),
-    ]);
-    const context = queryFingerprint(['partner-ratings', partnerId]);
-    const after = page.cursor ? decodeCursor(page.cursor, context) : null;
-    const rows = await this.prisma.review.findMany({
-      where: {
-        ...where,
-        ...(after
-          ? {
-              OR: [
-                { createdAt: { lt: new Date(after[0] as number) } },
-                { createdAt: new Date(after[0] as number), id: { lt: after[1] as string } },
-              ],
-            }
-          : {}),
-      },
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: page.limit + 1,
-      select: {
-        id: true,
-        rating: true,
-        text: true,
-        createdAt: true,
-        tags: { select: { tag: true } },
-      },
-    });
-    const items = rows.slice(0, page.limit);
-    const last = items.at(-1);
-    return {
-      average: stats?.ratingAvgBps ? stats.ratingAvgBps / 10_000 : null,
-      count: stats?.ratingCount ?? 0,
-      distribution: Object.fromEntries(
-        [5, 4, 3, 2, 1].map((r) => [r, groups.find((g) => g.rating === r)?._count._all ?? 0]),
-      ),
-      items: items.map((r) => ({
-        id: r.id,
-        rating: r.rating,
-        text: r.text,
-        tags: r.tags.map((t) => t.tag),
-        // Day only, so a review cannot be matched to a specific trip (anonymised feedback).
-        date: dateKey(r.createdAt),
-      })),
-      nextCursor:
-        rows.length > page.limit && last
-          ? encodeCursor(context, [last.createdAt.getTime(), last.id])
-          : null,
-    };
+  /** API-EARN-010 (BR-REVIEW-006): averages and tag counts only. */
+  async ratings(userId: string) {
+    return this.reviews.partnerSummary(await this.partnerId(userId));
   }
 
   /** API-EARN-011: masked bank details, plus a pending change if there is one. */

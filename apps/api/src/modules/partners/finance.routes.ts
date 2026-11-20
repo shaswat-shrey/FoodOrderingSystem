@@ -108,11 +108,7 @@ export function partnerFinanceRouter(deps: PartnerFinanceRouterDeps): Router {
   router.get(
     '/partner/me/ratings',
     ...partner,
-    handle({ query: schema.cursorPaginationSchema }, async ({ query, res }) => {
-      const r = await fin.ratings(me(res), page(query));
-      const { items, nextCursor, ...summary } = r;
-      sendOk(res, { ...summary, items }, { meta: { pagination: { nextCursor } } });
-    }),
+    handle({}, async ({ res }) => sendOk(res, await fin.ratings(me(res)))),
   );
   router.get(
     '/partner/me/bank-account',

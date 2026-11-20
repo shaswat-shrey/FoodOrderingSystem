@@ -35,6 +35,8 @@ import {
   ServiceabilityService,
   PaymentsService,
   RefundService,
+  registerReviewConsumers,
+  ReviewService,
   registerOrderConsumers,
   SettingsService,
   WalletService,
@@ -176,6 +178,7 @@ async function main(): Promise<void> {
     logger,
   );
   registerDispatchConsumers(outbox, dispatch);
+  registerReviewConsumers(outbox, new ReviewService(prisma, files, settings, clock));
   const registrations = buildRegistrations({
     sink,
     anonymizer,

@@ -74,6 +74,13 @@ export const PURPOSES: Partial<Record<FilePurpose, PurposeRule>> = {
     apps: ['DELIVERY'],
     derivatives: false,
   },
+  REVIEW_PHOTO: {
+    types: IMAGES,
+    maxBytes: 5 * MB,
+    visibility: 'PUBLIC',
+    apps: ['CUSTOMER'],
+    derivatives: true,
+  },
   SUPPORT_ATTACHMENT: {
     types: [...IMAGES, 'application/pdf'],
     maxBytes: 5 * MB,

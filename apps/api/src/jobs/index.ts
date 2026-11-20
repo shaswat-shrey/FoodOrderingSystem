@@ -55,3 +55,4 @@ export {
   DispatchService,
   registerDispatchConsumers,
 } from '../modules/dispatch';
+export { registerReviewConsumers, ReviewService } from '../modules/reviews';

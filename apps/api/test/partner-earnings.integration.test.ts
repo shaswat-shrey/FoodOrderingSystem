@@ -146,7 +146,7 @@ suite('partner earnings (API-EARN-001…012, FR-EARN-001/002/005…007, BR-EARN-
     expect((await r.browser.get(`/partner/me/payouts/${uuidv7()}`)).status).toBe(404);
   });
 
-  it('reports 30-day performance and an empty ratings page', async () => {
+  it('reports 30-day performance and aggregate-only ratings (BR-REVIEW-006)', async () => {
     const r = await deliverOne();
     const perf = (await r.browser.get('/partner/me/performance')).body.data;
     expect(perf).toMatchObject({ windowDays: 30, acceptanceRate: expect.any(Number) });
@@ -155,7 +155,8 @@ suite('partner earnings (API-EARN-001…012, FR-EARN-001/002/005…007, BR-EARN-
     const ratings = await r.browser.get('/partner/me/ratings');
     expect(ratings.body.data).toMatchObject({
       distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
-      items: [],
+      tags: {},
+      comments: [],
     });
   });
 

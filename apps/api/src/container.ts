@@ -1,8 +1,10 @@
 import {
   DeliveryStagesService,
   DispatchService,
+  OrderTrackingService,
   registerDispatchConsumers,
 } from './modules/dispatch';
+import { registerReviewConsumers, ReviewService } from './modules/reviews';
 import type { PrismaClient } from '@fos/db';
 import type { Env } from './config/env';
 import { appOrigins } from './config/env';
@@ -308,12 +310,15 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  const reviews = new ReviewService(prisma, files, settings, clock);
+  const tracking = new OrderTrackingService(prisma, presence, env.AUTH_HMAC_SECRET, clock);
   const partnerFinance = new PartnerFinanceService(
     prisma,
     partnerAvailability,
     settings,
     audit,
     fieldCipher,
+    reviews,
     clock,
   );
   partnerAvailability.onLeave = (partnerId) => dispatch.withdrawFor(partnerId);
@@ -338,6 +343,7 @@ export function createContainer(input: ContainerInput) {
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
   registerNotificationConsumers(outboxRelay, { prisma, notifications });
   registerDispatchConsumers(outboxRelay, dispatch);
+  registerReviewConsumers(outboxRelay, reviews);
   return {
     env,
     prisma,
@@ -404,6 +410,8 @@ export function createContainer(input: ContainerInput) {
     dispatch,
     partnerEarnings,
     partnerFinance,
+    reviews,
+    tracking,
     deliveryStages,
     restaurantOrders,
     outboxRelay,
