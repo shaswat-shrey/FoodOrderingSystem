@@ -1,7 +1,7 @@
 import { closeRedis, connectRedis, createLogger, pingRedis } from '@fos/api/platform';
 import { loadWorkerEnv } from './env';
 import { createHealthServer } from './health-server';
-import { registrations, startWorkers } from './processors';
+import { buildRegistrations, createMessageSink, startWorkers } from './processors';
 
 async function main(): Promise<void> {
   const env = loadWorkerEnv();
@@ -9,6 +9,7 @@ async function main(): Promise<void> {
   // The worker only needs the core (queue) Redis.
   const core = connectRedis(env.REDIS_CORE_URL, 'core', logger);
 
+  const registrations = buildRegistrations(createMessageSink(env, logger));
   const workers = startWorkers(registrations, core, logger);
   logger.info(
     { processors: registrations.map((r) => r.queue) },

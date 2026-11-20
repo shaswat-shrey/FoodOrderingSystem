@@ -2,7 +2,9 @@ import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { loadWorkerEnv } from './env';
 import { createHealthServer } from './health-server';
-import { registrations } from './processors';
+import { buildRegistrations, createMessageSink } from './processors';
+import { createLogger } from '@fos/api/platform';
+import type { Message, MessageSink } from '@fos/api/notifications';
 
 let close: (() => void) | undefined;
 afterEach(() => close?.());
@@ -41,7 +43,24 @@ describe('worker', () => {
     });
   });
 
-  it('has no processors registered before feature modules exist', () => {
-    expect(registrations).toEqual([]);
+  it('delivers queued account messages through the configured sink', async () => {
+    const delivered: Message[] = [];
+    const sink: MessageSink = { deliver: async (m) => void delivered.push(m) };
+    const [notifications] = buildRegistrations(sink);
+    const message: Message = {
+      channel: 'SMS',
+      to: '+919000000101',
+      template: 'OTP',
+      vars: { code: '123456', purpose: 'LOGIN', minutes: 5 },
+    };
+    await notifications!.processor({ name: 'send-message', data: message } as never);
+    expect(delivered).toEqual([message]);
+  });
+
+  it('refuses dev sinks in production', () => {
+    const env = loadWorkerEnv({ NODE_ENV: 'production', REDIS_CORE_URL: 'redis://localhost:6379' });
+    expect(() =>
+      createMessageSink(env, createLogger({ level: 'silent', service: 'worker' })),
+    ).toThrow(/provider/);
   });
 });
