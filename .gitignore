@@ -1,0 +1,17 @@
+# Dependencies & builds
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local tooling
+.claude/settings.local.json
+.DS_Store
+*.log
