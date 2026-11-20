@@ -220,6 +220,44 @@ describe('OTP sign-in (FR-AUTH-002)', () => {
   });
 });
 
+describe('reactivation (FR-AUTH-042)', () => {
+  it('offers to reactivate an account pending deletion instead of signing in', async () => {
+    const { calls } = setup(
+      '/sign-in',
+      (url) => {
+        if (url === '/api/v1/auth/login')
+          return {
+            status: 403,
+            data: {
+              success: false,
+              message: 'This account is scheduled for deletion. You can reactivate it.',
+              error: {
+                code: 'ACCOUNT_PENDING_DELETION',
+                details: [{ code: 'REACTIVATION_TOKEN', message: 'r'.repeat(43) }],
+                retryable: false,
+              },
+              meta: {},
+            },
+          };
+        if (url === '/api/v1/auth/account/reactivate') return session();
+        return undefined;
+      },
+      { methods: ['password'] },
+    );
+    await screen.findByRole('heading', { name: 'Sign in' });
+    type('Email or mobile number', 'asha@example.com');
+    type('Password', 'correct horse battery');
+    fireEvent.submit(screen.getByRole('button', { name: 'Sign in' }));
+    expect(await screen.findByText('This account is scheduled for deletion')).toBeInTheDocument();
+    expect(screen.queryByText('r'.repeat(43))).toBeNull(); // the token is never shown
+    fireEvent.click(screen.getByRole('button', { name: 'Reactivate my account' }));
+    expect(await screen.findByText('Home page')).toBeInTheDocument();
+    expect(calls.find((c) => c.url === '/api/v1/auth/account/reactivate')?.body).toEqual({
+      token: 'r'.repeat(43),
+    });
+  });
+});
+
 describe('admin sign-in (BR-AUTH-018)', () => {
   it('asks for the emailed code before signing in, and offers no sign-up', async () => {
     const { calls } = setup(

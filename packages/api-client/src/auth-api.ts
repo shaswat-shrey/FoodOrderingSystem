@@ -67,6 +67,9 @@ export function createAuthApi(client: ApiClient) {
       ),
     loginWithOtp: (body: OtpLoginBody) =>
       signIn(client.post<SignInResponse>('/auth/otp/login', body)),
+    /** FR-AUTH-042: the token comes from the ACCOUNT_PENDING_DELETION sign-in error. */
+    reactivate: (token: string) =>
+      signIn(client.post<SignInResponse>('/auth/account/reactivate', { token })),
     completeMfa: (body: { mfaToken: string; code: string }) =>
       signIn(client.post<SignInResponse>('/auth/mfa/challenge', body)),
     async logout() {

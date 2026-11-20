@@ -56,3 +56,9 @@ export function useServerError<T extends FieldValues>() {
 export function errorCode(error: unknown): string | undefined {
   return isApiClientError(error) ? error.code : undefined;
 }
+
+/** Sign-in during the deletion grace period returns a one-time reactivation token (FR-AUTH-042). */
+export function reactivationToken(error: unknown): string | null {
+  if (!isApiClientError(error) || error.code !== 'ACCOUNT_PENDING_DELETION') return null;
+  return error.details.find((d) => d.code === 'REACTIVATION_TOKEN')?.message ?? null;
+}

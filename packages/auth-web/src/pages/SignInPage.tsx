@@ -6,7 +6,14 @@ import { Alert, Button, FormField, Input, OtpInput, PasswordInput } from '@fos/u
 import { fullNameSchema, loginBody, otpCodeSchema } from '@fos/validation';
 import { AuthLayout, useCountdown } from '../AuthLayout';
 import { useAuth, type SignInMethod } from '../context';
-import { errorCode, mobileDigitsSchema, toE164, useServerError, useZodForm } from '../form';
+import {
+  errorCode,
+  mobileDigitsSchema,
+  reactivationToken,
+  toE164,
+  useServerError,
+  useZodForm,
+} from '../form';
 import { safeNext } from '../guards';
 
 const METHOD_LABEL: Record<SignInMethod, string> = { otp: 'Mobile number', password: 'Password' };
@@ -65,9 +72,19 @@ function PasswordSignIn({ onDone }: { onDone: () => void }) {
   const form = useZodForm(loginBody, { identifier: '', password: '' });
   const server = useServerError();
   const [mfa, setMfa] = useState<MfaRequired | null>(null);
+  const [reactivation, setReactivation] = useState<string | null>(null);
   const { errors, isSubmitting } = form.formState;
 
   if (mfa) return <MfaStep challenge={mfa} onDone={onDone} onRestart={() => setMfa(null)} />;
+  if (reactivation) {
+    return (
+      <ReactivatePrompt
+        token={reactivation}
+        onDone={onDone}
+        onCancel={() => setReactivation(null)}
+      />
+    );
+  }
 
   const onSubmit = form.handleSubmit(async (values) => {
     server.setMessage(null);
@@ -76,7 +93,9 @@ function PasswordSignIn({ onDone }: { onDone: () => void }) {
       if (isMfaRequired(result)) setMfa(result);
       else onDone();
     } catch (error) {
-      server.apply(error);
+      const token = reactivationToken(error);
+      if (token) setReactivation(token);
+      else server.apply(error);
     }
   });
 
@@ -166,6 +185,7 @@ const newAccountForm = z.object({
 
 type OtpStep =
   | { kind: 'phone' }
+  | { kind: 'reactivate'; token: string }
   | { kind: 'code'; phone: string; signUp?: { fullName: string } }
   | { kind: 'newAccount'; phone: string };
 
@@ -194,6 +214,16 @@ function OtpSignIn({ onDone }: { onDone: () => void }) {
             server.apply(error);
           }
         }}
+      />
+    );
+  }
+
+  if (step.kind === 'reactivate') {
+    return (
+      <ReactivatePrompt
+        token={step.token}
+        onDone={onDone}
+        onCancel={() => setStep({ kind: 'phone' })}
       />
     );
   }
@@ -241,8 +271,11 @@ function OtpSignIn({ onDone }: { onDone: () => void }) {
           });
           onDone();
         } catch (error) {
+          const token = reactivationToken(error);
           // The code is used up either way; a new account needs a name, consent and a fresh code.
-          if (errorCode(error) === 'AUTH_TERMS_REQUIRED' && config.allowSignUp) {
+          if (token) {
+            setStep({ kind: 'reactivate', token });
+          } else if (errorCode(error) === 'AUTH_TERMS_REQUIRED' && config.allowSignUp) {
             setStep({ kind: 'newAccount', phone: step.phone });
           } else if (errorCode(error) === 'AUTH_TERMS_REQUIRED') {
             server.setMessage('No account uses this number. Ask your administrator for access.');
@@ -409,6 +442,49 @@ export function TermsCheckbox({
           {error}
         </p>
       )}
+    </div>
+  );
+}
+
+/** FR-AUTH-042: signing in during the deletion grace period offers to keep the account. */
+function ReactivatePrompt({
+  token,
+  onDone,
+  onCancel,
+}: {
+  token: string;
+  onDone: () => void;
+  onCancel: () => void;
+}) {
+  const { auth } = useAuth();
+  const server = useServerError();
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="space-y-4">
+      <Alert tone="warning" title="This account is scheduled for deletion">
+        Reactivate it to cancel the deletion and sign in. Your data is kept as it was.
+      </Alert>
+      {server.message && <Alert tone="error">{server.message}</Alert>}
+      <Button
+        className="w-full"
+        loading={busy}
+        onClick={async () => {
+          setBusy(true);
+          server.setMessage(null);
+          try {
+            await auth.reactivate(token);
+            onDone();
+          } catch (error) {
+            server.apply(error);
+            setBusy(false);
+          }
+        }}
+      >
+        Reactivate my account
+      </Button>
+      <Button variant="ghost" className="w-full" onClick={onCancel}>
+        Not now
+      </Button>
     </div>
   );
 }

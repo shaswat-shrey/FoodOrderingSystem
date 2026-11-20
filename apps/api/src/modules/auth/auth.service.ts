@@ -1059,10 +1059,8 @@ export class AuthService {
       where: { id: userId, status: 'DEACTIVATED' },
       data: { status: 'ACTIVE', deletionScheduledAt: null },
     });
-    if (updated.count === 0)
-      throw new AppError('AUTH_TOKEN_INVALID', {
-        message: 'This account can no longer be reactivated.',
-      });
+    // API-AUTH-023: already active again, suspended or anonymised.
+    if (updated.count === 0) throw new AppError('ACCOUNT_NOT_REACTIVATABLE');
     await this.audit.record({
       action: 'account.reactivated',
       targetType: 'user',

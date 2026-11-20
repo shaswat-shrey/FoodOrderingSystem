@@ -577,6 +577,18 @@ suite('account deletion & reactivation (FR-AUTH-041/042, AC-AUTH-014)', () => {
     expect(back.body.data.user.status).toBe('ACTIVE');
   });
 
+  it('refuses reactivation once the account is no longer pending deletion', async () => {
+    const { browser: b, email, password, userId } = await signUpCustomer(ctx);
+    await b.post('/auth/reauth', { password });
+    await b.post('/auth/account/deletion', { confirm: true });
+    const login = await browser(ctx).post('/auth/login', { identifier: email, password });
+    const token = login.body.error.details[0].message as string;
+    await ctx.prisma.user.update({ where: { id: userId }, data: { status: 'SUSPENDED' } });
+    const back = await browser(ctx).post('/auth/account/reactivate', { token });
+    expect(back.status).toBe(422);
+    expect(back.body.error.code).toBe('ACCOUNT_NOT_REACTIVATABLE');
+  });
+
   it('blocks deletion for the sole owner of an active restaurant', async () => {
     const owner = await ctx.prisma.user.findFirstOrThrow({ where: { phone: '+919000000201' } });
     expect(await ctx.container.auth.deletionBlockers(owner.id)).toContain('RESTAURANT_OWNER');
