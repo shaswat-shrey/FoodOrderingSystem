@@ -4,3 +4,7 @@ export { Card } from './components/Card';
 export { DietaryMarker, type DietaryMarkerType } from './components/DietaryMarker';
 export { EmptyState, ErrorState } from './components/StatusMessage';
 export { Spinner } from './components/Spinner';
+export { Alert, type AlertProps } from './components/Alert';
+export { FormField, Input, Label, type FormFieldProps, type InputProps } from './components/Input';
+export { OtpInput } from './components/OtpInput';
+export { PasswordInput } from './components/PasswordInput';
