@@ -44,6 +44,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The Prisma client is generated, not committed; typecheck and tests need it.
+      - run: pnpm --filter @fos/db db:generate
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
@@ -69,6 +71,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @fos/db db:generate
       - run: pnpm --filter @fos/e2e e2e:install
       - run: pnpm --filter @fos/e2e e2e
       - uses: actions/upload-artifact@v4
