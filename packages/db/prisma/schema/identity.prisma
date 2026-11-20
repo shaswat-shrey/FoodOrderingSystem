@@ -32,6 +32,8 @@ enum SessionRevokeReason {
   SESSION_LIMIT
   SUSPENDED
   ROLE_REMOVED
+  /// FR-CUST-004: other sessions end when the phone number changes.
+  PHONE_CHANGED
 }
 
 enum RefreshTokenStatus {

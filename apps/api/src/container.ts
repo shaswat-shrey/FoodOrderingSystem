@@ -8,6 +8,7 @@ import type { RedisClients } from './platform/redis';
 import { AuditService } from './modules/audit';
 import { BranchRepository, ServiceabilityService } from './modules/catalog';
 import { SettingsService } from './modules/config';
+import { ProfileService } from './modules/customers';
 import {
   EstimatedRouting,
   GeoService,
@@ -65,6 +66,7 @@ export function createContainer(input: ContainerInput) {
     roadFactor: await settings.get('geo.roadFactor'),
     kmph: await settings.get('geo.motorbikeKmph'),
   }));
+  const profiles = new ProfileService(prisma, clock);
   const branches = new BranchRepository(prisma);
   const serviceability = new ServiceabilityService(prisma, branches, routing, settings, clock);
   return {
@@ -82,6 +84,7 @@ export function createContainer(input: ContainerInput) {
     otp,
     auth,
     settings,
+    profiles,
     geo,
     routing,
     branches,

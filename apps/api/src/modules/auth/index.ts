@@ -4,7 +4,7 @@ export {
   type AuthenticateOptions,
   type AuthMiddlewareDeps,
 } from './auth.middleware';
-export { authRouter, type AuthRouterDeps } from './auth.routes';
+export { authRouter, requestMeta, type AuthRouterDeps } from './auth.routes';
 export {
   AuthService,
   maskIp,

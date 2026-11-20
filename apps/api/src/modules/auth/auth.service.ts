@@ -1052,6 +1052,127 @@ export class AuthService {
     return { deletionScheduledAt };
   }
 
+  // ---------------------------------------------------------------------------
+  // Contact changes (FR-CUST-003/004)
+  // ---------------------------------------------------------------------------
+
+  /** Rejects contact details already used by another live account, generically (BR-AUTH-015). */
+  private async assertContactFree(userId: string, contact: { email?: string; phone?: string }) {
+    const taken = await this.prisma.user.findFirst({
+      where: {
+        id: { not: userId },
+        status: { not: 'ANONYMIZED' },
+        ...(contact.email ? { email: contact.email } : { phone: contact.phone }),
+      },
+      select: { id: true },
+    });
+    if (taken) throw new AppError('AUTH_REGISTRATION_CONFLICT');
+  }
+
+  /** FR-CUST-003: needs recent re-auth; the new email starts unverified and the old one is told. */
+  async changeEmail(
+    userId: string,
+    sessionId: string,
+    newEmailRaw: string,
+    meta: RequestMeta,
+  ): Promise<void> {
+    await this.sessions.requireRecentReauth(sessionId);
+    const newEmail = newEmailRaw.trim().toLowerCase();
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (user.email?.toLowerCase() === newEmail) {
+      throw new AppError('VALIDATION_ERROR', { message: 'This is already your email address.' });
+    }
+    await this.assertContactFree(userId, { email: newEmail });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { email: newEmail, emailVerifiedAt: null },
+    });
+    await this.audit.record({
+      action: 'account.email_changed',
+      targetType: 'user',
+      targetId: userId,
+      actorUserId: userId,
+      sessionId,
+      ip: meta.ip,
+      userAgent: meta.userAgent,
+      requestId: meta.requestId,
+      sensitivity: 'HIGH',
+    });
+    await this.sessions.invalidateUser(userId);
+    await this.sendEmailVerificationFor(userId, meta.app);
+    if (user.email && user.emailVerifiedAt) {
+      await this.messages
+        .send({
+          channel: 'EMAIL',
+          to: user.email,
+          template: 'SECURITY_ALERT',
+          vars: { name: user.fullName || 'there', event: 'EMAIL_CHANGED' },
+        })
+        .catch((error: unknown) => this.logger.warn({ err: error }, 'email-change notice failed'));
+    }
+  }
+
+  /** FR-CUST-004 step 1: re-auth, then a code to the new number. */
+  async requestPhoneChange(userId: string, sessionId: string, newPhone: string): Promise<void> {
+    await this.sessions.requireRecentReauth(sessionId);
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (user.phone === newPhone) {
+      throw new AppError('VALIDATION_ERROR', { message: 'This is already your phone number.' });
+    }
+    await this.assertContactFree(userId, { phone: newPhone });
+    const { code } = await this.otp.issue(newPhone, 'CHANGE_PHONE', userId);
+    await this.messages.send({
+      channel: 'SMS',
+      to: newPhone,
+      template: 'OTP',
+      vars: { code, purpose: 'CHANGE_PHONE', minutes: AUTH_POLICY.otp.ttlSeconds / 60 },
+    });
+  }
+
+  /** FR-CUST-004 step 2: the code proves the new number; every other session ends. */
+  async confirmPhoneChange(
+    userId: string,
+    sessionId: string,
+    input: { phone: string; code: string },
+    meta: RequestMeta,
+  ): Promise<void> {
+    await this.otp.verify(input.phone, 'CHANGE_PHONE', input.code);
+    await this.assertContactFree(userId, { phone: input.phone });
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        phone: input.phone,
+        phoneVerifiedAt: this.clock.now(),
+        status: user.status === 'PENDING_VERIFICATION' ? 'ACTIVE' : user.status,
+      },
+    });
+    await this.sessions.revokeAll(userId, 'PHONE_CHANGED', sessionId);
+    await this.sessions.invalidateUser(userId);
+    await this.audit.record({
+      action: 'account.phone_changed',
+      targetType: 'user',
+      targetId: userId,
+      actorUserId: userId,
+      sessionId,
+      ip: meta.ip,
+      userAgent: meta.userAgent,
+      requestId: meta.requestId,
+      sensitivity: 'HIGH',
+    });
+    await this.alert(userId, 'PHONE_CHANGED');
+    if (user.phone) {
+      await this.messages
+        .send({
+          channel: 'SMS',
+          to: user.phone,
+          template: 'SECURITY_ALERT',
+          vars: { name: user.fullName || 'there', event: 'PHONE_CHANGED' },
+        })
+        .catch((error: unknown) => this.logger.warn({ err: error }, 'phone-change notice failed'));
+    }
+  }
+
   /** FR-AUTH-042: reactivation during the grace period, using the token issued at sign-in. */
   async reactivate(token: string, meta: RequestMeta): Promise<SignInResult> {
     const userId = await this.consumeToken(token, 'REACTIVATE_ACCOUNT');

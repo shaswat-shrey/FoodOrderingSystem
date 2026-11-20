@@ -129,6 +129,9 @@ export function browser(ctx: TestContext, app: App = 'CUSTOMER') {
       withHeaders(agent.get(`/api/v1${path}`).query(query ?? {})),
     post: (path: string, body?: object) =>
       withHeaders(agent.post(`/api/v1${path}`).send(body ?? {})),
+    patch: (path: string, body?: object) =>
+      withHeaders(agent.patch(`/api/v1${path}`).send(body ?? {})),
+    put: (path: string, body?: object) => withHeaders(agent.put(`/api/v1${path}`).send(body ?? {})),
     delete: (path: string) => withHeaders(agent.delete(`/api/v1${path}`)),
     /** Stores the access token from a sign-in/refresh response. */
     remember(res: request.Response) {

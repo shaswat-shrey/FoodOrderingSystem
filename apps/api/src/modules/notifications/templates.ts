@@ -16,6 +16,7 @@ export type SecurityEvent =
   | 'SESSION_REUSE_DETECTED'
   | 'LOGGED_OUT_EVERYWHERE'
   | 'EMAIL_CHANGED'
+  | 'PHONE_CHANGED'
   | 'ACCOUNT_DELETION_REQUESTED'
   | 'ACCOUNT_REACTIVATED';
 
@@ -38,6 +39,8 @@ const SECURITY_TEXT: Record<SecurityEvent, string> = {
     'We signed out one of your sessions because its sign-in credentials were used from two places. If this wasn’t you, change your password.',
   LOGGED_OUT_EVERYWHERE: 'You were signed out of all devices.',
   EMAIL_CHANGED: 'The email address on your account was changed.',
+  PHONE_CHANGED:
+    'The phone number on your account was changed and other devices were signed out. If this wasn’t you, contact support.',
   ACCOUNT_DELETION_REQUESTED:
     'Your account is scheduled for deletion in 30 days. Sign in to cancel.',
   ACCOUNT_REACTIVATED: 'Your account was reactivated and will not be deleted.',

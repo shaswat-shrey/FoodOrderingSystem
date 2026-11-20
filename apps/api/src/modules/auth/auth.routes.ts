@@ -26,7 +26,7 @@ export interface AuthRouterDeps extends AuthMiddlewareDeps {
   hmacSecret: string;
 }
 
-function meta(req: Request, res: Response): RequestMeta {
+export function requestMeta(req: Request, res: Response): RequestMeta {
   return {
     app: res.locals.clientApp!,
     ip: req.ip ?? null,
@@ -105,7 +105,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
       key: byIp,
     }),
     handle({ body: schema.registerBody }, async ({ body, req, res }) => {
-      sendSignIn(res, await auth.register(body, meta(req, res)), 201);
+      sendSignIn(res, await auth.register(body, requestMeta(req, res)), 201);
     }),
   );
 
@@ -119,7 +119,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
     }),
     optionalAuth,
     handle({ body: schema.otpRequestBody }, async ({ body, req, res }) => {
-      await auth.requestOtp(body, meta(req, res), res.locals.auth?.userId);
+      await auth.requestOtp(body, requestMeta(req, res), res.locals.auth?.userId);
       sendOk(
         res,
         {
@@ -135,7 +135,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
     '/otp/login',
     authLimit,
     handle({ body: schema.otpLoginBody }, async ({ body, req, res }) => {
-      sendSignIn(res, await auth.loginWithOtp(body, meta(req, res)));
+      sendSignIn(res, await auth.loginWithOtp(body, requestMeta(req, res)));
     }),
   );
 
@@ -149,7 +149,10 @@ export function authRouter(deps: AuthRouterDeps): Router {
       key: identifierKey,
     }),
     handle({ body: schema.loginBody }, async ({ body, req, res }) => {
-      sendSignIn(res, await auth.loginWithPassword(body.identifier, body.password, meta(req, res)));
+      sendSignIn(
+        res,
+        await auth.loginWithPassword(body.identifier, body.password, requestMeta(req, res)),
+      );
     }),
   );
 
@@ -157,7 +160,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
     '/mfa/challenge',
     authLimit,
     handle({ body: schema.mfaChallengeBody }, async ({ body, req, res }) => {
-      sendSignIn(res, await auth.completeMfa(body.mfaToken, body.code, meta(req, res)));
+      sendSignIn(res, await auth.completeMfa(body.mfaToken, body.code, requestMeta(req, res)));
     }),
   );
 
@@ -171,7 +174,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
       const token = readRefreshCookie(req, app);
       if (!token) throw new AppError('AUTH_REFRESH_INVALID');
       try {
-        const result = await auth.refresh(token, meta(req, res));
+        const result = await auth.refresh(token, requestMeta(req, res));
         setRefreshCookie(
           res,
           app,
@@ -230,7 +233,12 @@ export function authRouter(deps: AuthRouterDeps): Router {
     signedIn({ allowUnverified: true }),
     handle({ body: schema.logoutAllBody }, async ({ body, req, res }) => {
       const { userId, sessionId } = res.locals.auth!;
-      const revoked = await auth.logoutAll(userId, sessionId, body.keepCurrent, meta(req, res));
+      const revoked = await auth.logoutAll(
+        userId,
+        sessionId,
+        body.keepCurrent,
+        requestMeta(req, res),
+      );
       if (!body.keepCurrent) clearRefreshCookie(res, res.locals.clientApp!, deps.cookieSecure);
       sendOk(res, { revokedSessions: revoked }, { message: 'Signed out of all devices' });
     }),
@@ -251,7 +259,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
     handle({ params: schema.sessionIdParams }, async ({ params, req, res }) => {
       const { userId, sessionId } = res.locals.auth!;
       await auth.revokeOwnSession(userId, params.sessionId, {
-        ...meta(req, res),
+        ...requestMeta(req, res),
         currentSessionId: sessionId,
       });
       sendOk(res, null, { message: 'Device signed out' });
@@ -316,7 +324,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
     '/password/reset',
     authLimit,
     handle({ body: schema.resetPasswordBody }, async ({ body, req, res }) => {
-      await auth.resetPassword(body, meta(req, res));
+      await auth.resetPassword(body, requestMeta(req, res));
       clearRefreshCookie(res, res.locals.clientApp!, deps.cookieSecure);
       sendOk(res, null, { message: 'Password updated. Please sign in again.' });
     }),
@@ -328,7 +336,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
     signedIn({ allowUnverified: true }),
     handle({ body: schema.changePasswordBody }, async ({ body, req, res }) => {
       const { userId, sessionId } = res.locals.auth!;
-      const reissued = await auth.changePassword(userId, sessionId, body, meta(req, res));
+      const reissued = await auth.changePassword(userId, sessionId, body, requestMeta(req, res));
       setRefreshCookie(
         res,
         res.locals.clientApp!,
@@ -357,7 +365,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
     signedIn({ allowUnverified: true }),
     handle({ body: schema.deletionBody }, async ({ req, res }) => {
       const { userId, sessionId } = res.locals.auth!;
-      const result = await auth.requestDeletion(userId, sessionId, meta(req, res));
+      const result = await auth.requestDeletion(userId, sessionId, requestMeta(req, res));
       clearRefreshCookie(res, res.locals.clientApp!, deps.cookieSecure);
       sendOk(res, result, {
         message: 'Your account will be deleted in 30 days unless you sign in and reactivate it',
@@ -369,7 +377,7 @@ export function authRouter(deps: AuthRouterDeps): Router {
     '/account/reactivate',
     authLimit,
     handle({ body: schema.tokenBody }, async ({ body, req, res }) => {
-      sendSignIn(res, await auth.reactivate(body.token, meta(req, res)));
+      sendSignIn(res, await auth.reactivate(body.token, requestMeta(req, res)));
     }),
   );
 
