@@ -1,6 +1,6 @@
 # SRS Section 19 — Error Handling
 
-> Part of FOS-SRS-001 v0.5.1 (APPROVED 2026-11-20).
+> Part of FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20).
 
 ## 19.1 Principles
 

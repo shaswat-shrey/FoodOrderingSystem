@@ -1,6 +1,6 @@
 # SRS Section 15 — Database Requirements
 
-> Part of FOS-SRS-001 v0.5.1 (APPROVED 2026-11-20). Implementation notes: [`docs/database/SCHEMA-NOTES.md`](../database/SCHEMA-NOTES.md). ERD diagrams: [`docs/database/ERD.md`](../database/ERD.md). Decisions: ADR-004 (PostgreSQL only), ADR-005 (PostGIS with Prisma), ADR-007 (money), ADR-011 (ledger).
+> Part of FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20). Implementation notes: [`docs/database/SCHEMA-NOTES.md`](../database/SCHEMA-NOTES.md). ERD diagrams: [`docs/database/ERD.md`](../database/ERD.md). Decisions: ADR-004 (PostgreSQL only), ADR-005 (PostGIS with Prisma), ADR-007 (money), ADR-011 (ledger).
 
 ## 15.1 Technology
 
@@ -118,7 +118,7 @@ Legend: **PK** primary key, **UQ** unique, **FK** foreign key, **CK** check, **I
 | Entity | Purpose | Key columns | Constraints / indexes |
 |---|---|---|---|
 | `carts` (V) | Customer cart | id, user_id, branch_id NULL, status (ACTIVE, CONVERTED, EXPIRED, ABANDONED), coupon_id NULL, instructions, no_cutlery, last_activity_at | partial UQ(user_id) WHERE status='ACTIVE' (one active cart); IX(last_activity_at) |
-| `cart_items` | Lines | id, cart_id, food_item_id, variant_id NULL, quantity, instructions, config_hash | UQ(cart_id, config_hash); CK(quantity BETWEEN 1 AND 20) |
+| `cart_items` | Lines | id, cart_id, food_item_id, variant_id NULL, quantity, instructions, config_hash, unit_amount_seen NULL (unit price last shown, for PRICE_CHANGED — BR-CART-005) | UQ(cart_id, config_hash); CK(quantity BETWEEN 1 AND 20); CK(unit_amount_seen ≥ 0) |
 | `cart_item_options` | Selected options | cart_item_id, option_id | PK; FK cart_item ON DELETE CASCADE |
 | `checkout_sessions` | Priced snapshot | id, user_id, cart_id, cart_hash, address_id (address re-read and snapshotted into `order_addresses` at confirm), payment_method, use_wallet, tip_amount, quote jsonb (derived, re-computable cache), payable_amount, fee_schedule_id, tax_rule_set_id, status (OPEN, CONFIRMED, EXPIRED), expires_at | IX(user_id, status); quote JSONB is a *cache* — authoritative amounts are recomputed at confirm |
 | `fee_schedules` (H) | Effective-dated fees | id, zone_id NULL, platform_fee_amount, small_order_threshold_amount, small_order_fee_amount, delivery_fee_slabs via child, packaging_cap_amount, surge_cap_amount, effective_from, created_by | IX(zone_id, effective_from) |

@@ -7,7 +7,7 @@
 | Path | Contents |
 | --- | --- |
 | `packages/db/prisma/schema/*.prisma` | Multi-file Prisma schema, one file per domain: `identity`, `customers`, `restaurants`, `menu`, `commerce`, `orders`, `payments`, `delivery`, `engagement`, `platform` (+ `base` for generator/datasource). 147 models, 105 enums. |
-| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints`, `…300_immutability`, `…400_payment_attempts_guard` (hand-written rules) · `20261120151832_auth_enum_values` (Phase 4: OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT`) · `20261120180000_phone_change_revoke_reason` (Phase 5: session revoke reason `PHONE_CHANGED`) · `20261120190000_cart_item_price_seen` (Phase 6: `cart_items.unit_amount_seen`, pending approval as D-9) |
+| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints`, `…300_immutability`, `…400_payment_attempts_guard` (hand-written rules) · `20261120151832_auth_enum_values` (Phase 4: OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT`) · `20261120180000_phone_change_revoke_reason` (Phase 5: session revoke reason `PHONE_CHANGED`) · `20261120190000_cart_item_price_seen` (Phase 6: `cart_items.unit_amount_seen`, D-9 approved) |
 | `packages/db/src/index.ts` | `createPrismaClient`, `pingDatabase` |
 | `packages/db/src/seed/` | Development seed (`data.ts` = dataset, `seed.ts` = loader) |
 | `packages/db/test/constraints.test.ts` | Integration tests proving every SQL rule (34 tests) |

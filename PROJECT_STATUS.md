@@ -8,7 +8,7 @@ _Last updated: 2026-11-20_
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Current phase     | **Phase 6 — Cart, pricing, checkout, payments: complete; Phase 7 awaiting go-ahead**                                                                                                      |
 | Next phase        | Phase 7 — Order management                                                                                                                                                                |
-| SRS version       | FOS-SRS-001 v0.5.1 (APPROVED 2026-11-20; v0.5.1 is an editorial update)                                                                                                                   |
+| SRS version       | FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20; v0.6.0 adds owner-approved D-9)                                                                                                                  |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout quotes, wallet and online payments |
 
 ## Phases
@@ -20,7 +20,7 @@ _Last updated: 2026-11-20_
 | 3 Database                    | ✅ Complete 2026-11-20 (SRS changes D-1…D-3 approved)     |
 | 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                 |
 | 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                |
-| 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 awaits decision)              |
+| 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                     |
 | 7 Order management            | Not started                                               |
 | 8 Restaurant application      | Not started                                               |
 | 9 Delivery application        | Not started                                               |
@@ -130,13 +130,9 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-Open — awaiting owner decision (SRS §27.3):
-
-| ID  | Requirement                                                                                            | Observed                                                                                                                                                                                           | Proposal                                                                              |
-| --- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| D-9 | SRS §15 `cart_items` columns; FR-CART-002 / BR-CART-005 (flag `PRICE_CHANGED`, never silently reprice) | The specified table has no record of the price a customer saw, so a price change can't be detected. Migration `20261120190000_cart_item_price_seen` adds nullable `unit_amount_seen` (paise, ≥ 0). | **Change requirement:** add `unit_amount_seen` to the `cart_items` definition in §15. |
-
-Resolved by owner decision on 2026-11-20: D-1…D-3 (v0.3.0), D-4…D-6 (v0.4.0), D-7…D-8 (v0.5.0). Editorial only: v0.3.1, v0.4.1 and v0.5.1 added codes already specified elsewhere to the §19.2 table.
+- None open.
+- D-9 resolved 2026-11-20 by owner decision (“Approve D-9”, SRS v0.6.0): `cart_items.unit_amount_seen` is part of §15.
+- Earlier: D-1…D-3 (v0.3.0), D-4…D-6 (v0.4.0), D-7…D-8 (v0.5.0); v0.3.1, v0.4.1 and v0.5.1 were editorial.
 
 Not discrepancies (planned later): order creation, order timers and cancellation, payment expiry/cancel, COD payment records, automatic refunds per the cancellation matrix and split-payment refund allocation (Phase 7); reviews, popularity and trending from orders (Phase 7); images and avatar uploads, manual-close auto-reopen (Phase 8); dispatch load factor in checkout ETAs (Phase 9); reconciliation reports, refund approvals, promo-credit expiry, settings editing and per-zone payment methods (Phase 11); linked zones, item schedules, data export, OAuth, account recovery and TOTP (CORE).
 
@@ -241,14 +237,13 @@ Not discrepancies (planned later): order creation, order timers and cancellation
 
 ## Next steps
 
-1. Owner decision on D-9.
-2. Owner go-ahead for Phase 7 (order creation transaction, state machine and transitions, outbox relay, timers, cancellations, refunds end to end, order history and invoices, notifications).
+1. Owner go-ahead for Phase 7 (order creation transaction, state machine and transitions, outbox relay, timers, cancellations, refunds end to end, order history and invoices, notifications).
 
 ## TODO
 
 - [x] Decide D-1…D-8
 - [x] Phases 4–6
-- [ ] Decide D-9
+- [x] Decide D-9 (approved 2026-11-20)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
 - [ ] Push to GitHub so CI runs (moves §22.1a–e rows to _Verified_)
 - [ ] Exercise the Razorpay adapter in Razorpay test mode (needs test keys)
