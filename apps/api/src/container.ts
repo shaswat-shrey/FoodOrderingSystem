@@ -6,6 +6,15 @@ import type { Logger } from './platform/logger';
 import { RedisRateLimiter, type RateLimiter } from './platform/rate-limit';
 import type { RedisClients } from './platform/redis';
 import { AuditService } from './modules/audit';
+import { BranchRepository, ServiceabilityService } from './modules/catalog';
+import { SettingsService } from './modules/config';
+import {
+  EstimatedRouting,
+  GeoService,
+  MockGeocoder,
+  UnavailableGeocoder,
+  type GeocodingProvider,
+} from './modules/geo';
 import { AuthService, OtpService, SessionService, TokenService } from './modules/auth';
 import { IamService } from './modules/iam';
 import type { MessageDispatcher } from './modules/notifications';
@@ -18,6 +27,8 @@ export interface ContainerInput {
   clock: Clock;
   messages: MessageDispatcher;
   limiter?: RateLimiter;
+  /** Overrides the geocoder (tests inject failing providers). */
+  geocoder?: GeocodingProvider;
 }
 
 /** Composition root: builds every service once per process (SYSTEM-ARCHITECTURE §3). */
@@ -45,6 +56,17 @@ export function createContainer(input: ContainerInput) {
       appUrls: env.APP_URLS,
     },
   );
+  const settings = new SettingsService(prisma, logger);
+  const geocoder =
+    input.geocoder ??
+    (env.GEO_PROVIDER === 'mock' ? new MockGeocoder() : new UnavailableGeocoder());
+  const geo = new GeoService(prisma, geocoder, logger, () => clock.now());
+  const routing = new EstimatedRouting(async () => ({
+    roadFactor: await settings.get('geo.roadFactor'),
+    kmph: await settings.get('geo.motorbikeKmph'),
+  }));
+  const branches = new BranchRepository(prisma);
+  const serviceability = new ServiceabilityService(prisma, branches, routing, settings, clock);
   return {
     env,
     prisma,
@@ -59,6 +81,11 @@ export function createContainer(input: ContainerInput) {
     sessions,
     otp,
     auth,
+    settings,
+    geo,
+    routing,
+    branches,
+    serviceability,
     appOrigins: appOrigins(env),
   };
 }

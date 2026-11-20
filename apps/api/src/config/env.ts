@@ -66,10 +66,17 @@ export const envSchema = z
     COOKIE_SECURE: booleanFlag.optional(),
     /** Development message sink when no SMS/email provider is configured. */
     DEV_MESSAGE_SINK: z.enum(['log', 'file']).default('file'),
+    /**
+     * Geocoding provider (IF-GEO-001). `mock` = pilot-city gazetteer for development;
+     * `none` = no provider, so address search reports GEO_PROVIDER_UNAVAILABLE and
+     * customers drop a map pin (FR-LOC-003 degraded path). A real provider follows OD-13.
+     */
+    GEO_PROVIDER: z.enum(['mock', 'none']).optional(),
   })
   .transform((env) => ({
     ...env,
     COOKIE_SECURE: env.COOKIE_SECURE ?? env.NODE_ENV === 'production',
+    GEO_PROVIDER: env.GEO_PROVIDER ?? (env.NODE_ENV === 'production' ? 'none' : 'mock'),
     APP_URLS: {
       CUSTOMER: env.APP_URL_CUSTOMER,
       RESTAURANT: env.APP_URL_RESTAURANT,
@@ -79,6 +86,14 @@ export const envSchema = z
   }))
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== 'production') return;
+    if (env.GEO_PROVIDER === 'mock') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['GEO_PROVIDER'],
+        message:
+          'The mock geocoder returns fictional data; use "none" until a provider is configured (OD-13)',
+      });
+    }
     if (!env.COOKIE_SECURE) {
       ctx.addIssue({
         code: 'custom',

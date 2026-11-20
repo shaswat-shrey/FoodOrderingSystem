@@ -57,6 +57,10 @@ describe('loadEnv (NFR-SEC-011)', () => {
       APP_URL_ADMIN: 'https://admin.example.com',
     });
     expect(prod.COOKIE_SECURE).toBe(true);
+    expect(prod.GEO_PROVIDER).toBe('none'); // degraded address search, never the fictional mock
+    expect(() => loadEnv({ ...valid, NODE_ENV: 'production', GEO_PROVIDER: 'mock' })).toThrow(
+      /GEO_PROVIDER/,
+    );
     expect(() => loadEnv({ ...valid, NODE_ENV: 'production', COOKIE_SECURE: 'false' })).toThrow(
       /COOKIE_SECURE/,
     );

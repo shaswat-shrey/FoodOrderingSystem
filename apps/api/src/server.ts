@@ -2,12 +2,12 @@ import { createServer } from 'node:http';
 import { createPrismaClient, pingDatabase } from '@fos/db';
 import { loadEnv } from './config/env';
 import { createContainer } from './container';
-import { authRouter, createSocketAuth, REALTIME_CONTROL_CHANNEL } from './modules/auth';
+import { createSocketAuth, REALTIME_CONTROL_CHANNEL } from './modules/auth';
 import { QueueMessageDispatcher } from './modules/notifications';
-import { usersRouter } from './modules/users';
 import { systemClock } from './platform/clock';
 import { createApp } from './platform/http/app';
 import { createLogger } from './platform/logger';
+import { mountRoutes } from './routes';
 import { createSocketServer } from './platform/realtime/socket-server';
 import { closeRedis, createRedisClients, pingRedis } from './platform/redis';
 
@@ -39,17 +39,7 @@ async function main(): Promise<void> {
         redisCache: () => pingRedis(redis.cache),
       },
     },
-    routes: (api) => {
-      api.use(
-        '/auth',
-        authRouter({
-          ...container,
-          cookieSecure: env.COOKIE_SECURE,
-          hmacSecret: env.AUTH_HMAC_SECRET,
-        }),
-      );
-      api.use(usersRouter(container));
-    },
+    routes: (api) => mountRoutes(api, container),
   });
 
   const httpServer = createServer(app);

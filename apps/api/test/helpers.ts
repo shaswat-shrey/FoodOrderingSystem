@@ -5,13 +5,13 @@ import type TestAgent from 'supertest/lib/agent';
 import { PrismaClient } from '@fos/db';
 import { loadEnv } from '../src/config/env';
 import { createContainer, type Container } from '../src/container';
-import { authRouter } from '../src/modules/auth';
 import { hashPassword } from '../src/modules/auth/password';
+import type { GeocodingProvider } from '../src/modules/geo';
 import { RecordingDispatcher } from '../src/modules/notifications';
-import { usersRouter } from '../src/modules/users';
 import { ManualClock } from '../src/platform/clock';
 import { createApp } from '../src/platform/http/app';
 import { createLogger } from '../src/platform/logger';
+import { mountRoutes } from '../src/routes';
 import { apiTestDatabaseUrl } from './global-setup';
 
 export const integrationEnabled = Boolean(apiTestDatabaseUrl() && process.env.TEST_REDIS_URL);
@@ -35,7 +35,9 @@ export interface TestContext {
 }
 
 /** Real PostgreSQL + Redis, manual clock, recorded messages and captured logs. */
-export async function createTestContext(): Promise<TestContext> {
+export async function createTestContext(
+  options: { geocoder?: GeocodingProvider } = {},
+): Promise<TestContext> {
   const url = apiTestDatabaseUrl()!;
   const env = loadEnv({
     NODE_ENV: 'test',
@@ -73,18 +75,13 @@ export async function createTestContext(): Promise<TestContext> {
     logger,
     clock,
     messages,
+    ...(options.geocoder ? { geocoder: options.geocoder } : {}),
   });
   const app = createApp({
     logger,
     corsOrigins: Object.values(container.appOrigins),
     readiness: { critical: {}, degradable: {} },
-    routes: (api) => {
-      api.use(
-        '/auth',
-        authRouter({ ...container, cookieSecure: false, hmacSecret: env.AUTH_HMAC_SECRET }),
-      );
-      api.use(usersRouter(container));
-    },
+    routes: (api) => mountRoutes(api, container),
   });
   return {
     app,
@@ -128,7 +125,8 @@ export function browser(ctx: TestContext, app: App = 'CUSTOMER') {
     set token(value: string | undefined) {
       accessToken = value;
     },
-    get: (path: string) => withHeaders(agent.get(`/api/v1${path}`)),
+    get: (path: string, query?: Record<string, string | number | boolean>) =>
+      withHeaders(agent.get(`/api/v1${path}`).query(query ?? {})),
     post: (path: string, body?: object) =>
       withHeaders(agent.post(`/api/v1${path}`).send(body ?? {})),
     delete: (path: string) => withHeaders(agent.delete(`/api/v1${path}`)),
