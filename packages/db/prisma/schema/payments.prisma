@@ -231,8 +231,8 @@ model Refund {
   updatedAt        DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   order     Order        @relation(fields: [orderId], references: [id])
-  payment   Payment?     @relation(fields: [paymentId], references: [id])
-  initiator User?        @relation(fields: [initiatorId], references: [id])
+  payment   Payment?     @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  initiator User?        @relation(fields: [initiatorId], references: [id], onDelete: Restrict)
   items     RefundItem[]
   disputes  Dispute[]
 
@@ -288,7 +288,7 @@ model LedgerTransaction {
   createdBy      String?               @map("created_by") @db.Uuid
   createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  creator User?         @relation(fields: [createdBy], references: [id])
+  creator User?         @relation(fields: [createdBy], references: [id], onDelete: Restrict)
   entries LedgerEntry[]
 
   @@unique([type, referenceType, referenceId, idempotencyKey])
@@ -345,7 +345,7 @@ model RestaurantSettlement {
   updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id])
-  payout     Payout?    @relation(fields: [payoutId], references: [id])
+  payout     Payout?    @relation(fields: [payoutId], references: [id], onDelete: Restrict)
 
   @@unique([restaurantId, periodStart])
   @@map("restaurant_settlements")
@@ -363,8 +363,8 @@ model PayoutBatch {
   createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  creator  User?    @relation("PayoutBatchCreatedBy", fields: [createdBy], references: [id])
-  approver User?    @relation("PayoutBatchApprovedBy", fields: [approvedBy], references: [id])
+  creator  User?    @relation("PayoutBatchCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  approver User?    @relation("PayoutBatchApprovedBy", fields: [approvedBy], references: [id], onDelete: Restrict)
   payouts  Payout[]
 
   @@unique([type, periodStart])
@@ -390,10 +390,10 @@ model Payout {
   updatedAt               DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   batch                 PayoutBatch            @relation(fields: [batchId], references: [id])
-  restaurant            Restaurant?            @relation(fields: [restaurantId], references: [id])
-  partner               DeliveryPartner?       @relation(fields: [partnerId], references: [id])
-  restaurantBankAccount RestaurantBankAccount? @relation(fields: [restaurantBankAccountId], references: [id])
-  partnerBankAccount    PartnerBankAccount?    @relation(fields: [partnerBankAccountId], references: [id])
+  restaurant            Restaurant?            @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  partner               DeliveryPartner?       @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  restaurantBankAccount RestaurantBankAccount? @relation(fields: [restaurantBankAccountId], references: [id], onDelete: Restrict)
+  partnerBankAccount    PartnerBankAccount?    @relation(fields: [partnerBankAccountId], references: [id], onDelete: Restrict)
   settlement            RestaurantSettlement?
 
   @@index([batchId])

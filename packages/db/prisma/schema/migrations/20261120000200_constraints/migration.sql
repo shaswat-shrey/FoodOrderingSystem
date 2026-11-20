@@ -1,5 +1,7 @@
 -- Database rules that Prisma's schema language cannot express (DB-TECH-003).
 -- Every rule here is listed in docs/database/SCHEMA-NOTES.md with its requirement.
+-- Plain GiST/GIN indexes on columns are declared in the Prisma schema (so Prisma
+-- does not report drift) and therefore created by the core schema migration.
 -- Constant used for "no value" inside unique expressions:
 --   '00000000-0000-0000-0000-000000000000'::uuid
 
@@ -49,9 +51,7 @@ CREATE UNIQUE INDEX customer_addresses_one_default_uq ON customer_addresses (use
   WHERE is_default AND deleted_at IS NULL;
 CREATE UNIQUE INDEX customer_addresses_home_work_uq ON customer_addresses (user_id, label)
   WHERE label IN ('HOME', 'WORK') AND deleted_at IS NULL;
-CREATE INDEX customer_addresses_location_gix ON customer_addresses USING gist (location);
 
-CREATE INDEX zones_polygon_gix ON zones USING gist (polygon);
 ALTER TABLE zones
   ADD CONSTRAINT zones_radius_chk CHECK (max_delivery_radius_m BETWEEN 500 AND 15000),
   ADD CONSTRAINT zones_surge_chk CHECK (surge_amount >= 0);
@@ -92,8 +92,6 @@ END;
 $$;
 CREATE TRIGGER restaurants_search_vector BEFORE INSERT OR UPDATE OF brand_name, description ON restaurants
   FOR EACH ROW EXECUTE FUNCTION fos_restaurants_search_vector();
-CREATE INDEX restaurants_search_vector_gin ON restaurants USING gin (search_vector);
-CREATE INDEX restaurants_brand_name_trgm ON restaurants USING gin (brand_name gin_trgm_ops);
 
 ALTER TABLE restaurants
   ADD CONSTRAINT restaurants_gstin_chk CHECK (gstin IS NULL OR gstin ~ '^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$'),
@@ -104,7 +102,6 @@ CREATE UNIQUE INDEX restaurant_bank_accounts_one_verified_uq ON restaurant_bank_
   WHERE status = 'VERIFIED';
 ALTER TABLE restaurant_bank_accounts ADD CONSTRAINT restaurant_bank_accounts_ifsc_chk CHECK (ifsc ~ '^[A-Z]{4}0[A-Z0-9]{6}$');
 
-CREATE INDEX branches_location_gix ON branches USING gist (location);
 ALTER TABLE branches
   ADD CONSTRAINT branches_radius_chk CHECK (delivery_radius_m BETWEEN 500 AND 15000),
   ADD CONSTRAINT branches_prep_chk CHECK (default_prep_minutes BETWEEN 5 AND 90),
@@ -172,8 +169,6 @@ END;
 $$;
 CREATE TRIGGER food_items_search_vector BEFORE INSERT OR UPDATE OF name, description ON food_items
   FOR EACH ROW EXECUTE FUNCTION fos_food_items_search_vector();
-CREATE INDEX food_items_search_vector_gin ON food_items USING gin (search_vector);
-CREATE INDEX food_items_name_trgm ON food_items USING gin (name gin_trgm_ops);
 
 -- BR-MENU-004: one default variant per item.
 CREATE UNIQUE INDEX food_item_variants_one_default_uq ON food_item_variants (food_item_id)
@@ -336,7 +331,6 @@ ALTER TABLE payout_batches ADD CONSTRAINT payout_batches_period_chk CHECK (perio
 -- 9. Delivery partners, deliveries, dispatch
 -- =============================================================================
 
-CREATE INDEX delivery_partners_last_location_gix ON delivery_partners USING gist (last_location);
 ALTER TABLE delivery_partners ADD CONSTRAINT delivery_partners_aadhaar_last4_chk CHECK (aadhaar_last4 IS NULL OR aadhaar_last4 ~ '^[0-9]{4}$');
 
 CREATE UNIQUE INDEX partner_vehicles_one_active_uq ON partner_vehicles (partner_id) WHERE is_active AND deleted_at IS NULL;

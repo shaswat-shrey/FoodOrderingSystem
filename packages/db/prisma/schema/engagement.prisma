@@ -112,10 +112,10 @@ model Review {
 
   order      Order            @relation(fields: [orderId], references: [id])
   author     User             @relation(fields: [authorId], references: [id])
-  restaurant Restaurant?      @relation(fields: [restaurantId], references: [id])
-  branch     Branch?          @relation(fields: [branchId], references: [id])
-  partner    DeliveryPartner? @relation(fields: [partnerId], references: [id])
-  foodItem   FoodItem?        @relation(fields: [foodItemId], references: [id])
+  restaurant Restaurant?      @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  branch     Branch?          @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  partner    DeliveryPartner? @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  foodItem   FoodItem?        @relation(fields: [foodItemId], references: [id], onDelete: Restrict)
   tags       ReviewTag[]
   photos     ReviewPhoto[]
   response   ReviewResponse?
@@ -274,8 +274,8 @@ model SupportTicket {
   updatedAt     DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   requester  User                   @relation("TicketRequester", fields: [requesterId], references: [id])
-  assignee   User?                  @relation("TicketAssignee", fields: [assigneeId], references: [id])
-  order      Order?                 @relation(fields: [orderId], references: [id])
+  assignee   User?                  @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: Restrict)
+  order      Order?                 @relation(fields: [orderId], references: [id], onDelete: Restrict)
   messages   SupportTicketMessage[]
   orderIssue OrderIssue?
   complaints Complaint[]
@@ -329,8 +329,8 @@ model Complaint {
   createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  order  Order?         @relation(fields: [orderId], references: [id])
-  ticket SupportTicket? @relation(fields: [ticketId], references: [id])
+  order  Order?         @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  ticket SupportTicket? @relation(fields: [ticketId], references: [id], onDelete: Restrict)
 
   @@index([againstType, againstId])
   @@map("complaints")
@@ -352,8 +352,8 @@ model Dispute {
 
   order   Order   @relation(fields: [orderId], references: [id])
   raiser  User    @relation("DisputeRaisedBy", fields: [raisedBy], references: [id])
-  decider User?   @relation("DisputeDecidedBy", fields: [decidedBy], references: [id])
-  refund  Refund? @relation(fields: [refundId], references: [id])
+  decider User?   @relation("DisputeDecidedBy", fields: [decidedBy], references: [id], onDelete: Restrict)
+  refund  Refund? @relation(fields: [refundId], references: [id], onDelete: Restrict)
 
   @@index([status])
   @@map("disputes")

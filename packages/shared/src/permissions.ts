@@ -157,7 +157,12 @@ const SUPER_ADMIN_ONLY: PlatformPermission[] = [
   'notify:templates',
 ];
 
-const SELF_SERVICE: PlatformPermission[] = ['me:manage', 'customer:order', 'partner:self', 'merchant:onboard'];
+const SELF_SERVICE: PlatformPermission[] = [
+  'me:manage',
+  'customer:order',
+  'partner:self',
+  'merchant:onboard',
+];
 
 const SUPPORT_AGENT: PlatformPermission[] = [
   'dashboard:read',
@@ -184,7 +189,9 @@ export const PLATFORM_ROLE_GRANTS: Record<PlatformRole, readonly PlatformPermiss
   RESTAURANT_OWNER: ['me:manage', 'merchant:onboard'],
   DELIVERY_PARTNER: ['me:manage', 'partner:self'],
   SUPPORT_AGENT: ['me:manage', ...SUPPORT_AGENT],
-  ADMIN: ALL_PLATFORM.filter((p) => !SUPER_ADMIN_ONLY.includes(p) && !SELF_SERVICE.includes(p)).concat('me:manage'),
+  ADMIN: ALL_PLATFORM.filter(
+    (p) => !SUPER_ADMIN_ONLY.includes(p) && !SELF_SERVICE.includes(p),
+  ).concat('me:manage'),
   SUPER_ADMIN: ALL_PLATFORM.filter((p) => !SELF_SERVICE.includes(p)).concat('me:manage'),
 };
 
@@ -231,6 +238,18 @@ export const RESTAURANT_ROLE_GRANTS: Record<RestaurantRoleName, readonly Restaur
     'rest.kds:view',
     'rest.review:read',
   ],
-  KITCHEN: ['rest.branch:read', 'rest.menu:read', 'rest.menu:availability', 'rest.order:prepare', 'rest.kds:view'],
-  STAFF: ['rest.restaurant:read', 'rest.branch:read', 'rest.menu:read', 'rest.order:read', 'rest.order:handover'],
+  KITCHEN: [
+    'rest.branch:read',
+    'rest.menu:read',
+    'rest.menu:availability',
+    'rest.order:prepare',
+    'rest.kds:view',
+  ],
+  STAFF: [
+    'rest.restaurant:read',
+    'rest.branch:read',
+    'rest.menu:read',
+    'rest.order:read',
+    'rest.order:handover',
+  ],
 };

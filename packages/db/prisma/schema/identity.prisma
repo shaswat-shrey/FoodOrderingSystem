@@ -102,7 +102,7 @@ model User {
   createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt           DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  avatarFile         File?               @relation("UserAvatar", fields: [avatarFileId], references: [id])
+  avatarFile         File?               @relation("UserAvatar", fields: [avatarFileId], references: [id], onDelete: Restrict)
   credential         UserCredential?
   oauthAccounts      OAuthAccount[]
   roles              UserRole[]          @relation("UserRoles")
@@ -250,7 +250,7 @@ model UserRole {
 
   user          User  @relation("UserRoles", fields: [userId], references: [id], onDelete: Cascade)
   role          Role  @relation(fields: [roleId], references: [id])
-  grantedByUser User? @relation("RoleGrantedBy", fields: [grantedBy], references: [id])
+  grantedByUser User? @relation("RoleGrantedBy", fields: [grantedBy], references: [id], onDelete: Restrict)
 
   @@id([userId, roleId])
   @@index([roleId])
@@ -315,7 +315,7 @@ model LoginAttempt {
   outcome        LoginOutcome
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  user User? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([identifierHash, createdAt])
   @@index([ip, createdAt])
@@ -335,7 +335,7 @@ model OtpCode {
   userId          String?    @map("user_id") @db.Uuid
   createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  user User? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([destinationHash, purpose, createdAt])
   @@map("otp_codes")

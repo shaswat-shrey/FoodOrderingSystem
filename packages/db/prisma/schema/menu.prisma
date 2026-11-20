@@ -250,7 +250,7 @@ model BranchItemAvailability {
 
   branch        Branch   @relation(fields: [branchId], references: [id])
   foodItem      FoodItem @relation(fields: [foodItemId], references: [id])
-  updatedByUser User?    @relation(fields: [updatedBy], references: [id])
+  updatedByUser User?    @relation(fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@id([branchId, foodItemId])
   @@index([unavailableUntil])
@@ -308,7 +308,7 @@ model ComboComponent {
 
   comboItem     FoodItem         @relation("ComboItem", fields: [comboItemId], references: [id], onDelete: Cascade)
   componentItem FoodItem         @relation("ComboComponentItem", fields: [componentItemId], references: [id])
-  variant       FoodItemVariant? @relation(fields: [variantId], references: [id])
+  variant       FoodItemVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
 
   @@id([comboItemId, componentItemId])
   @@map("combo_components")

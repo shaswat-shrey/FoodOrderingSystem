@@ -14,18 +14,22 @@
     "db:migrate": "prisma migrate dev --schema prisma/schema --create-only",
     "db:deploy": "prisma migrate deploy --schema prisma/schema",
     "db:status": "prisma migrate status --schema prisma/schema",
-    "db:seed": "tsx src/seed/index.ts",
+    "db:seed": "tsx --env-file-if-exists=../../.env src/seed/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:drift": "prisma migrate diff --from-migrations prisma/schema/migrations --to-schema-datamodel prisma/schema --shadow-database-url $SHADOW_DATABASE_URL --exit-code"
   },
   "dependencies": {
+    "@fos/shared": "workspace:*",
     "@prisma/client": "^6.19.3"
   },
   "devDependencies": {
     "@fos/config": "workspace:*",
     "@types/node": "^22.20.5",
     "prisma": "^6.19.3",
-    "typescript": "~5.9.3"
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.8",
+    "vitest": "^3.2.7"
   }
 }

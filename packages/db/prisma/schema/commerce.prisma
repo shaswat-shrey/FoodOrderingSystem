@@ -103,8 +103,8 @@ model Cart {
   updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   user             User              @relation(fields: [userId], references: [id])
-  branch           Branch?           @relation(fields: [branchId], references: [id])
-  coupon           Coupon?           @relation(fields: [couponId], references: [id])
+  branch           Branch?           @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  coupon           Coupon?           @relation(fields: [couponId], references: [id], onDelete: Restrict)
   items            CartItem[]
   checkoutSessions CheckoutSession[]
 
@@ -128,7 +128,7 @@ model CartItem {
 
   cart     Cart             @relation(fields: [cartId], references: [id], onDelete: Cascade)
   foodItem FoodItem         @relation(fields: [foodItemId], references: [id])
-  variant  FoodItemVariant? @relation(fields: [variantId], references: [id])
+  variant  FoodItemVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
   options  CartItemOption[]
 
   @@unique([cartId, configHash])
@@ -196,7 +196,7 @@ model FeeSchedule {
   createdBy                  String?  @map("created_by") @db.Uuid
   createdAt                  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  zone             Zone?             @relation(fields: [zoneId], references: [id])
+  zone             Zone?             @relation(fields: [zoneId], references: [id], onDelete: Restrict)
   deliverySlabs    DeliveryFeeSlab[]
   checkoutSessions CheckoutSession[]
   orders           Order[]
@@ -345,7 +345,7 @@ model Promotion {
   updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
   deletedAt         DateTime?       @map("deleted_at") @db.Timestamptz(3)
 
-  restaurant Restaurant?       @relation(fields: [restaurantId], references: [id])
+  restaurant Restaurant?       @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
   branches   PromotionBranch[]
   items      PromotionItem[]
 
@@ -390,7 +390,7 @@ model Banner {
   deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
 
   imageFile File  @relation("BannerImage", fields: [imageFileId], references: [id])
-  zone      Zone? @relation(fields: [zoneId], references: [id])
+  zone      Zone? @relation(fields: [zoneId], references: [id], onDelete: Restrict)
 
   @@index([zoneId, startsAt, endsAt])
   @@map("banners")

@@ -99,8 +99,8 @@ model DeliveryPartner {
   updatedAt                DateTime                              @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   user              User                   @relation(fields: [userId], references: [id])
-  homeZone          Zone?                  @relation(fields: [homeZoneId], references: [id])
-  photoFile         File?                  @relation("PartnerPhoto", fields: [photoFileId], references: [id])
+  homeZone          Zone?                  @relation(fields: [homeZoneId], references: [id], onDelete: Restrict)
+  photoFile         File?                  @relation("PartnerPhoto", fields: [photoFileId], references: [id], onDelete: Restrict)
   documents         PartnerDocument[]
   vehicles          PartnerVehicle[]
   bankAccounts      PartnerBankAccount[]
@@ -237,8 +237,8 @@ model Delivery {
 
   order         Order                   @relation(fields: [orderId], references: [id])
   branch        Branch                  @relation(fields: [branchId], references: [id])
-  partner       DeliveryPartner?        @relation(fields: [partnerId], references: [id])
-  proofFile     File?                   @relation("DeliveryProof", fields: [proofFileId], references: [id])
+  partner       DeliveryPartner?        @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  proofFile     File?                   @relation("DeliveryProof", fields: [proofFileId], references: [id], onDelete: Restrict)
   assignments   DeliveryAssignment[]
   statusHistory DeliveryStatusHistory[]
   locations     DeliveryLocation[]
@@ -272,7 +272,7 @@ model DeliveryAssignment {
 
   delivery       Delivery        @relation(fields: [deliveryId], references: [id])
   partner        DeliveryPartner @relation(fields: [partnerId], references: [id])
-  assignedByUser User?           @relation("AssignmentAssignedBy", fields: [assignedBy], references: [id])
+  assignedByUser User?           @relation("AssignmentAssignedBy", fields: [assignedBy], references: [id], onDelete: Restrict)
 
   @@index([deliveryId, partnerId])
   @@index([partnerId, status])
@@ -292,7 +292,7 @@ model DeliveryStatusHistory {
   createdAt         DateTime                              @default(now()) @map("created_at") @db.Timestamptz(3)
 
   delivery Delivery @relation(fields: [deliveryId], references: [id])
-  actor    User?    @relation(fields: [actorId], references: [id])
+  actor    User?    @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   @@index([deliveryId, createdAt])
   @@map("delivery_status_history")
@@ -361,7 +361,7 @@ model PartnerPayPlan {
   createdBy             String?  @map("created_by") @db.Uuid
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  zone     Zone?            @relation(fields: [zoneId], references: [id])
+  zone     Zone?            @relation(fields: [zoneId], references: [id], onDelete: Restrict)
   earnings PartnerEarning[]
 
   @@index([zoneId, effectiveFrom])

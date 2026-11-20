@@ -144,9 +144,9 @@ model Restaurant {
   createdAt        DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt        DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  logoFile            File?                          @relation("RestaurantLogo", fields: [logoFileId], references: [id])
-  coverFile           File?                          @relation("RestaurantCover", fields: [coverFileId], references: [id])
-  approvedByUser      User?                          @relation("RestaurantApprovedBy", fields: [approvedBy], references: [id])
+  logoFile            File?                          @relation("RestaurantLogo", fields: [logoFileId], references: [id], onDelete: Restrict)
+  coverFile           File?                          @relation("RestaurantCover", fields: [coverFileId], references: [id], onDelete: Restrict)
+  approvedByUser      User?                          @relation("RestaurantApprovedBy", fields: [approvedBy], references: [id], onDelete: Restrict)
   applicationReviews  RestaurantApplicationReview[]
   documents           RestaurantDocument[]
   bankAccounts        RestaurantBankAccount[]
@@ -246,7 +246,7 @@ model RestaurantChangeRequest {
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id])
   requester  User       @relation("ChangeRequestedBy", fields: [requestedBy], references: [id])
-  decider    User?      @relation("ChangeDecidedBy", fields: [decidedBy], references: [id])
+  decider    User?      @relation("ChangeDecidedBy", fields: [decidedBy], references: [id], onDelete: Restrict)
 
   @@index([status])
   @@index([restaurantId])
@@ -262,7 +262,7 @@ model Cuisine {
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  imageFile   File?               @relation("CuisineImage", fields: [imageFileId], references: [id])
+  imageFile   File?               @relation("CuisineImage", fields: [imageFileId], references: [id], onDelete: Restrict)
   restaurants RestaurantCuisine[]
 
   @@map("cuisines")
@@ -384,7 +384,7 @@ model BranchStatusEvent {
   createdAt DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
 
   branch Branch @relation(fields: [branchId], references: [id])
-  actor  User?  @relation(fields: [actorId], references: [id])
+  actor  User?  @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   @@index([branchId, createdAt])
   @@map("branch_status_events")

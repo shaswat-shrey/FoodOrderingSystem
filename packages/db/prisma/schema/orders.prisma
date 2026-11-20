@@ -151,7 +151,7 @@ model Order {
   branch           Branch                @relation(fields: [branchId], references: [id])
   checkoutSession  CheckoutSession       @relation(fields: [checkoutSessionId], references: [id])
   feeSchedule      FeeSchedule           @relation(fields: [feeScheduleId], references: [id])
-  coupon           Coupon?               @relation(fields: [couponId], references: [id])
+  coupon           Coupon?               @relation(fields: [couponId], references: [id], onDelete: Restrict)
   address          OrderAddress?
   items            OrderItem[]
   priceComponents  OrderPriceComponent[]
@@ -188,7 +188,7 @@ model OrderAddress {
   sourceAddressId String?                              @map("source_address_id") @db.Uuid
 
   order         Order            @relation(fields: [orderId], references: [id])
-  sourceAddress CustomerAddress? @relation(fields: [sourceAddressId], references: [id])
+  sourceAddress CustomerAddress? @relation(fields: [sourceAddressId], references: [id], onDelete: Restrict)
 
   @@map("order_addresses")
 }
@@ -266,7 +266,7 @@ model OrderStatusHistory {
   createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
 
   order Order @relation(fields: [orderId], references: [id])
-  actor User? @relation(fields: [actorId], references: [id])
+  actor User? @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   @@index([orderId, createdAt])
   @@map("order_status_history")
@@ -285,7 +285,7 @@ model OrderCancellation {
   createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
 
   order     Order @relation(fields: [orderId], references: [id])
-  initiator User? @relation(fields: [initiatorId], references: [id])
+  initiator User? @relation(fields: [initiatorId], references: [id], onDelete: Restrict)
 
   @@map("order_cancellations")
 }
@@ -303,7 +303,7 @@ model OrderIssue {
   updatedAt             DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   order  Order             @relation(fields: [orderId], references: [id])
-  ticket SupportTicket?    @relation(fields: [ticketId], references: [id])
+  ticket SupportTicket?    @relation(fields: [ticketId], references: [id], onDelete: Restrict)
   items  OrderIssueItem[]
   photos OrderIssuePhoto[]
 
@@ -346,7 +346,7 @@ model Invoice {
   issuedAt      DateTime      @default(now()) @map("issued_at") @db.Timestamptz(3)
 
   order Order @relation(fields: [orderId], references: [id])
-  file  File? @relation(fields: [fileId], references: [id])
+  file  File? @relation(fields: [fileId], references: [id], onDelete: Restrict)
 
   @@unique([series, financialYear, number])
   @@index([orderId])

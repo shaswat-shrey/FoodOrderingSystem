@@ -85,7 +85,7 @@ model File {
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  owner               User?                     @relation("FileOwner", fields: [ownerUserId], references: [id])
+  owner               User?                     @relation("FileOwner", fields: [ownerUserId], references: [id], onDelete: Restrict)
   userAvatars         User[]                    @relation("UserAvatar")
   restaurantLogos     Restaurant[]              @relation("RestaurantLogo")
   restaurantCovers    Restaurant[]              @relation("RestaurantCover")
@@ -125,8 +125,8 @@ model AuditLog {
   sensitivity AuditSensitivity @default(NORMAL)
   createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  actor   User?        @relation(fields: [actorUserId], references: [id])
-  session UserSession? @relation(fields: [sessionId], references: [id])
+  actor   User?        @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  session UserSession? @relation(fields: [sessionId], references: [id], onDelete: Restrict)
 
   @@index([targetType, targetId, createdAt])
   @@index([actorUserId, createdAt])
@@ -158,7 +158,7 @@ model PlatformSettingHistory {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   setting PlatformSetting @relation(fields: [key], references: [key])
-  changer User?           @relation(fields: [changedBy], references: [id])
+  changer User?           @relation(fields: [changedBy], references: [id], onDelete: Restrict)
 
   @@index([key, createdAt])
   @@map("platform_setting_history")
@@ -190,7 +190,7 @@ model ApprovalRequest {
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
 
   requester User  @relation("ApprovalRequestedBy", fields: [requestedBy], references: [id])
-  decider   User? @relation("ApprovalDecidedBy", fields: [decidedBy], references: [id])
+  decider   User? @relation("ApprovalDecidedBy", fields: [decidedBy], references: [id], onDelete: Restrict)
 
   @@index([status, createdAt])
   @@map("approval_requests")
@@ -211,7 +211,7 @@ model OpsAlert {
   resolvedAt     DateTime?     @map("resolved_at") @db.Timestamptz(3)
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  acknowledger User? @relation(fields: [acknowledgedBy], references: [id])
+  acknowledger User? @relation(fields: [acknowledgedBy], references: [id], onDelete: Restrict)
 
   @@index([status, severity, createdAt])
   @@map("ops_alerts")
@@ -229,7 +229,7 @@ model ReportExport {
   updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   requester User  @relation(fields: [requestedBy], references: [id])
-  file      File? @relation(fields: [fileId], references: [id])
+  file      File? @relation(fields: [fileId], references: [id], onDelete: Restrict)
 
   @@index([requestedBy, createdAt])
   @@map("report_exports")
