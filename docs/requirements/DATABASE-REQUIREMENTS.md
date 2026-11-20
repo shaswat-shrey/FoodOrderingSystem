@@ -1,6 +1,6 @@
 # SRS Section 15 — Database Requirements
 
-> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). Implementation notes: [`docs/database/SCHEMA-NOTES.md`](../database/SCHEMA-NOTES.md). ERD diagrams: [`docs/database/ERD.md`](../database/ERD.md). Decisions: ADR-004 (PostgreSQL only), ADR-005 (PostGIS with Prisma), ADR-007 (money), ADR-011 (ledger).
+> Part of FOS-SRS-001 v0.3.0 (APPROVED 2026-11-20). Implementation notes: [`docs/database/SCHEMA-NOTES.md`](../database/SCHEMA-NOTES.md). ERD diagrams: [`docs/database/ERD.md`](../database/ERD.md). Decisions: ADR-004 (PostgreSQL only), ADR-005 (PostGIS with Prisma), ADR-007 (money), ADR-011 (ledger).
 
 ## 15.1 Technology
 
@@ -20,7 +20,7 @@
 | DB-CONV-002 | Primary keys: `id uuid` (UUIDv7, time-ordered → good B-tree locality). Join tables use composite PKs. |
 | DB-CONV-003 | Every table has `created_at timestamptz NOT NULL DEFAULT now()`; mutable tables have `updated_at`; versioned aggregates have `version int NOT NULL DEFAULT 0`. |
 | DB-CONV-004 | Soft delete via `deleted_at timestamptz NULL` only on user-managed business entities (addresses, categories, food items, customization groups/options, coupons, reviews, branches, zones). Unique constraints on soft-deletable tables are partial (`WHERE deleted_at IS NULL`). |
-| DB-CONV-005 | Money: `bigint` minor units (`*_amount` / `*_paise`) + `currency char(3)` at aggregate level (orders, payments, refunds, ledger). Rates: `int` basis points (`rate_bps`). `CHECK (amount >= 0)` unless the column is a signed ledger amount. |
+| DB-CONV-005 | Money: integer minor units (`*_amount`) — `integer` (Int) for bounded per-transaction amounts — order, item, fee, payment, refund and earning amounts (max ₹2.1 crore per value); `bigint` (BigInt) for accumulating balances and totals — ledger entries and balances, settlements, payouts, analytics + `currency char(3)` at aggregate level (orders, payments, refunds, ledger). Rates: `int` basis points (`rate_bps`). `CHECK (amount >= 0)` unless the column is a signed ledger amount. |
 | DB-CONV-006 | Enums: PostgreSQL enums via Prisma for closed sets that change only with code (statuses, allergens — a closed regulatory list); lookup tables for admin-managed sets (cuisines). |
 | DB-CONV-007 | Foreign keys on every reference, `ON DELETE RESTRICT` by default; `CASCADE` only for pure child rows that have no meaning alone (e.g., `cart_item_options`, `role_permissions`). |
 | DB-CONV-008 | JSONB only for: provider raw payloads (webhooks, provider responses), audit before/after diffs, notification template variables, feature-flag rules, setting values (schema-validated), score breakdowns, device metadata. **Never** for core business data (items, prices, statuses, addresses). |
@@ -182,7 +182,7 @@ Legend: **PK** primary key, **UQ** unique, **FK** foreign key, **CK** check, **I
 | `deliveries` (V) | Delivery aggregate | id, order_id, branch_id, partner_id NULL, status, escalated, dispatch_starts_at, search_round, pickup_code, assigned_at, arrived_restaurant_at, picked_up_at, arrived_customer_at, delivered_at, distance_pickup_m, distance_drop_m, proof_type (OTP, PHOTO, ADMIN), proof_file_id NULL, failure_reason | UQ(order_id) (one delivery per order; reassignment happens inside it via `delivery_assignments`); partial UQ(partner_id) WHERE status IN (ASSIGNED, AT_RESTAURANT, EN_ROUTE_TO_CUSTOMER, AT_CUSTOMER) (max 1 active per partner in MVP) |
 | `delivery_assignments` (H) | Offers | id, delivery_id, partner_id, round, rank, score, score_breakdown jsonb, distance_to_pickup_m, status (OFFERED, ACCEPTED, REJECTED, EXPIRED, WITHDRAWN, RELEASED, REVOKED), offered_at, expires_at, displayed_at, responded_at, reject_reason, manual (bool), assigned_by | partial UQ(delivery_id) WHERE status='ACCEPTED'; partial UQ(partner_id) WHERE status='OFFERED'; IX(delivery_id, partner_id) |
 | `delivery_status_history` (H) | Delivery timeline | id, delivery_id, from_status, to_status, actor_type, actor_id, location geography(Point) NULL, distance_to_target_m, flagged, created_at | IX(delivery_id, created_at) |
-| `delivery_locations` (H, partitioned monthly) | Sampled trail | id, delivery_id, partner_id, location geography(Point), accuracy_m, heading, speed, recorded_at (device), received_at | IX(delivery_id, received_at); retention §20 |
+| `delivery_locations` (H; monthly partitioning deferred — DB-SCALE-001) | Sampled trail | id, delivery_id, partner_id, location geography(Point), accuracy_m, heading, speed, recorded_at (device), received_at | IX(delivery_id, received_at); retention §20 |
 | `delivery_routes` | Cached route geometry | delivery_id, leg (TO_RESTAURANT, TO_CUSTOMER), polyline, distance_m, duration_s, computed_at, provider | PK(delivery_id, leg) |
 | `delivery_otp_attempts` | OTP attempt log | id, delivery_id, success, created_at | IX(delivery_id) |
 
@@ -206,7 +206,7 @@ Legend: **PK** primary key, **UQ** unique, **FK** foreign key, **CK** check, **I
 | `faqs`, `support_macros` | Content | — | — |
 | `chat_conversations` / `chat_participants` / `chat_messages` | Chat (ADV) | order-scoped conversations | — |
 | `files` | Object metadata | id, owner_user_id, purpose, bucket, object_key, mime_type, size_bytes, sha256, width, height, visibility (PUBLIC, PRIVATE), status (UPLOADED, ATTACHED, DELETED), scan_status | UQ(bucket, object_key) |
-| `audit_logs` (H, partitioned monthly) | Audit trail | id, actor_user_id, actor_roles, session_id, action, target_type, target_id, reason, before jsonb, after jsonb, ip, user_agent, request_id, sensitivity, created_at | IX(target_type, target_id, created_at); IX(actor_user_id, created_at); IX(action, created_at); UPDATE/DELETE revoked |
+| `audit_logs` (H; monthly partitioning deferred — DB-SCALE-001) | Audit trail | id, actor_user_id, actor_roles, session_id, action, target_type, target_id, reason, before jsonb, after jsonb, ip, user_agent, request_id, sensitivity, created_at | IX(target_type, target_id, created_at); IX(actor_user_id, created_at); IX(action, created_at); UPDATE/DELETE revoked |
 | `platform_settings` / `platform_setting_history` | Config | key PK, value jsonb, schema_version, updated_by / history rows | — |
 | `feature_flags` | Flags | key PK, description, enabled, rules jsonb, updated_by | — |
 | `approval_requests` | Maker-checker (CORE) | id, action, payload jsonb, requested_by, status, decided_by, decided_at | CK(decided_by <> requested_by) |
@@ -216,6 +216,8 @@ Legend: **PK** primary key, **UQ** unique, **FK** foreign key, **CK** check, **I
 | `analytics_branch_hourly` / `analytics_platform_daily` / `analytics_item_daily` | Pre-aggregates | dimension keys + metrics | PK on dimensions |
 
 **Entity count:** 147 tables as implemented in Phase 3 (including join tables; the Phase 1 estimate was ~125), satisfying and extending the master prompt's starting list (mapping: `user_profiles` → `users` + `customer_profiles`; `restaurant_owners` → `restaurant_members` with role OWNER; `restaurant_inventory` → `branch_item_availability` + `branch_item_stock`; `delivery_partner_availability` → Redis state + `partner_online_sessions` + `delivery_partners.availability_state`; `wallets` / `wallet_transactions` / `transactions` / `earnings` → ledger tables + `partner_earnings`; `sessions` → `user_sessions`).
+
+**DB-SCALE-001 (v0.3.0) — Deferred partitioning.** `audit_logs`, `delivery_locations` and `notifications` start as regular tables indexed by time. Monthly range partitioning shall be introduced in a dedicated migration when either (a) a table exceeds 50 million rows or 50 GB, or (b) the retention jobs (JOB-RET-001) are implemented and partition dropping is cheaper than batched DELETE — whichever comes first. Until then retention uses batched DELETE.
 
 ## 15.4 Relationships (summary)
 
@@ -241,7 +243,7 @@ Legend: **PK** primary key, **UQ** unique, **FK** foreign key, **CK** check, **I
 ## 15.6 Historical snapshots (immutable)
 
 These entities are **append-only**/immutable once written (application never updates; DB triggers reject updates on protected columns):
-`order_items`, `order_item_options`, `order_price_components`, `order_addresses`, `order_status_history`, `order_cancellations`, `invoices`, `payment_attempts`, `payment_webhook_events`, `ledger_transactions`, `ledger_entries`, `partner_earnings`, `delivery_assignments` (after terminal status), `delivery_status_history`, `delivery_locations`, `user_consents`, `audit_logs`, `restaurant_application_reviews`, `branch_status_events`, effective-dated configs (`fee_schedules`, `tax_rules`, `commission_plans`, `partner_pay_plans`, `notification_templates` versions).
+`order_items`, `order_item_options`, `order_price_components`, `order_addresses`, `order_status_history`, `order_cancellations`, `invoices`, `payment_attempts` (provider payment ID, payment and amount immutable; status and error fields progress — v0.3.0), `payment_webhook_events` (received payload immutable; processing fields mutable), `ledger_transactions`, `ledger_entries`, `partner_earnings`, `delivery_assignments` (after terminal status), `delivery_status_history`, `delivery_locations` (no UPDATE; rows removed only by retention), `user_consents`, `audit_logs`, `restaurant_application_reviews`, `branch_status_events`, effective-dated configs (`fee_schedules`, `tax_rules`, `commission_plans`, `partner_pay_plans`, `notification_templates` versions).
 
 Order items preserve: item name, variant name, dietary marker, unit price, option names & prices, item discount, quantity, tax rate, line total — satisfying master prompt §13 (historical pricing never reconstructed from current menu data).
 
@@ -271,7 +273,7 @@ Index additions are justified by query plans (`EXPLAIN ANALYZE` in performance t
 | Sessions & refresh tokens | ACTIVE → REVOKED/EXPIRED → purged 30 d after end. |
 | Orders & financial records | Retained ≥ 8 years (tax/accounting — legal review), PII in snapshots minimized after 3 years (name → initials, phone removed, address coarse to area) — §20. |
 | Delivery location trails | 90 days, then aggregated (distance only) and deleted. |
-| Audit logs | 3 years online (partitioned), then archived to cold storage ≥ 8 years for financial/admin actions. |
+| Audit logs | 3 years online, then archived to cold storage ≥ 8 years for financial/admin actions. |
 | Notifications (in-app) | 180 days. |
 | Webhook raw payloads | 1 year. |
 

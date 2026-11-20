@@ -7,10 +7,10 @@
 | Path | Contents |
 | --- | --- |
 | `packages/db/prisma/schema/*.prisma` | Multi-file Prisma schema, one file per domain: `identity`, `customers`, `restaurants`, `menu`, `commerce`, `orders`, `payments`, `delivery`, `engagement`, `platform` (+ `base` for generator/datasource). 147 models, 105 enums. |
-| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints` (hand-written rules) · `…300_immutability` (hand-written rules) |
+| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints`, `…300_immutability`, `…400_payment_attempts_guard` (hand-written rules) |
 | `packages/db/src/index.ts` | `createPrismaClient`, `pingDatabase` |
 | `packages/db/src/seed/` | Development seed (`data.ts` = dataset, `seed.ts` = loader) |
-| `packages/db/test/constraints.test.ts` | Integration tests proving every SQL rule (33 tests) |
+| `packages/db/test/constraints.test.ts` | Integration tests proving every SQL rule (34 tests) |
 
 ## 2. Workflow for schema changes
 
@@ -87,6 +87,7 @@ Money non-negative and bounded (items ₹1–₹1,00,000, discounts below price,
 | `*_append_only` (`fos_reject_mutation`) | No UPDATE/DELETE on ledger, order snapshots (items, options, price components, address, status history, cancellations, invoices), audit logs, consents, application reviews, branch status events, delivery status history, partner earnings, effective-dated configs | SRS §15.6, FR-AUDIT-002, FR-CFG-002 |
 | `delivery_assignments_guard` | Offers freeze once final; only OFFERED → terminal and ACCEPTED → RELEASED/REVOKED; offer facts immutable | FR-DISP-013 |
 | `payment_webhook_events_guard` | Payload immutable; processing status may change | FR-PAY-004 |
+| `payment_attempts_guard` | Status progresses; payment, amount and provider payment ID immutable; no deletes | SRS §15.6 (v0.3.0) |
 | `delivery_locations_no_update` | Trail points never edited (deleted only by retention) | SRS §20 |
 | `zones_no_overlap` | ACTIVE zones may touch but not overlap | FR-ADMIN-070 |
 | `branch_operating_hours_max_slots` | ≤ 3 slots per weekday | BR-REST-003 |
@@ -128,8 +129,7 @@ Accounts have **no passwords yet**: credentials and OTP login arrive with the au
 - **Docker:** `pnpm infra:up` (PostGIS 16 on port 5432, plus `fos_test` and `fos_shadow`).
 - **No Docker:** `infrastructure/scripts/local-postgres.sh init` starts a private PostgreSQL 18 + PostGIS instance on port **5433** with data in `.local/postgres` (requires `brew install postgresql@18 postgis` on macOS). Point `DATABASE_URL`, `TEST_DATABASE_URL` and `SHADOW_DATABASE_URL` at port 5433.
 
-## 8. Known gaps (see PROJECT_STATUS.md → discrepancies)
+## 8. Deliberately deferred
 
-- Monthly partitioning of `audit_logs` and `delivery_locations` (SRS §15.3) is not implemented yet.
-- `payment_attempts` status is mutable (SRS §15.6 lists the table as immutable).
-- ADV-only tables (chat, per-member permission overrides) are not created.
+- Monthly partitioning of `audit_logs`, `delivery_locations` and `notifications` is deferred until the DB-SCALE-001 thresholds (SRS §15.3, v0.3.0).
+- ADV-only tables (chat, per-member permission overrides) are not created yet.

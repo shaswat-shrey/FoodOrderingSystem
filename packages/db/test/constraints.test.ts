@@ -635,6 +635,43 @@ suite('immutability (SRS §15.6, FR-CFG-002, FR-DISP-013, FR-PAY-004)', () => {
     });
   });
 
+  it('D-1: lets a payment attempt progress but never changes its amount or provider id', async () => {
+    const attempt = async (tx: Tx) => {
+      const order = await createOrder(tx);
+      const payment = await tx.payment.create({
+        data: {
+          orderId: order.id,
+          method: 'ONLINE',
+          provider: 'MOCK',
+          amount: 40000,
+          status: 'PENDING',
+        },
+      });
+      return tx.paymentAttempt.create({ data: { paymentId: payment.id, amount: 40000 } });
+    };
+    await inRollback(async (tx) => {
+      const a = await attempt(tx);
+      await tx.paymentAttempt.update({
+        where: { id: a.id },
+        data: { providerPaymentId: 'pay_1', status: 'AUTHORIZED' },
+      });
+      await tx.paymentAttempt.update({ where: { id: a.id }, data: { status: 'CAPTURED' } });
+    });
+    await expectRejected('payment attempt facts are immutable', async (tx) => {
+      const a = await attempt(tx);
+      await tx.paymentAttempt.update({ where: { id: a.id }, data: { amount: 1 } });
+    });
+    await expectRejected('payment attempt facts are immutable', async (tx) => {
+      const a = await attempt(tx);
+      await tx.paymentAttempt.update({ where: { id: a.id }, data: { providerPaymentId: 'pay_1' } });
+      await tx.paymentAttempt.update({ where: { id: a.id }, data: { providerPaymentId: 'pay_2' } });
+    });
+    await expectRejected('cannot be deleted', async (tx) => {
+      const a = await attempt(tx);
+      await tx.paymentAttempt.delete({ where: { id: a.id } });
+    });
+  });
+
   it('lets webhook processing status change but never the received payload', async () => {
     await inRollback(async (tx) => {
       const event = await tx.paymentWebhookEvent.create({

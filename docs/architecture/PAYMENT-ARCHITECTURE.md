@@ -1,6 +1,6 @@
 # Payment Architecture
 
-> Phase 1 · v0.2.0 (APPROVED 2026-11-20). Requirements: SRS §11 (FR-PAY-*, FR-REFUND-*, FR-RECON-*, FR-SETTLE-*). Decisions: ADR-007 (money), ADR-011 (ledger).
+> Phase 1 · v0.3.0 (APPROVED 2026-11-20). Requirements: SRS §11 (FR-PAY-*, FR-REFUND-*, FR-RECON-*, FR-SETTLE-*). Decisions: ADR-007 (money), ADR-011 (ledger).
 
 ## 1. Components
 
@@ -41,7 +41,7 @@ export interface PaymentProvider {
 Canonical events: `PAYMENT_AUTHORIZED`, `PAYMENT_CAPTURED`, `PAYMENT_FAILED`, `ORDER_PAID`, `REFUND_PROCESSED`, `REFUND_FAILED` — the payments service only understands canonical events, so adding Stripe means writing an adapter, not changing business logic.
 
 ## 3. Money representation
-Integer paise everywhere (`bigint` in DB, `number` in TS guarded ≤ `Number.MAX_SAFE_INTEGER` — ₹90 trillion, ample), currency on aggregates. Percentages in basis points. One rounding function. Formatting only at the edge.
+Integer paise everywhere (`integer` for per-transaction amounts and `bigint` for balances/totals in DB — DB-CONV-005, `number` in TS guarded ≤ `Number.MAX_SAFE_INTEGER` — ₹90 trillion, ample), currency on aggregates. Percentages in basis points. One rounding function. Formatting only at the edge.
 
 ## 4. Ledger (double entry)
 

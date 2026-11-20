@@ -1,6 +1,6 @@
 # Phase 1 Review Pack — For Owner Approval
 
-> Date: 2026-11-20 · SRS FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). **Outcome: APPROVED with defaults by the owner on 2026-11-20.** All OD-* defaults adopted; Phase 2 started.
+> Date: 2026-11-20 · SRS FOS-SRS-001 v0.3.0 (APPROVED 2026-11-20). **Outcome: APPROVED with defaults by the owner on 2026-11-20.** All OD-* defaults adopted; Phase 2 started.
 
 ## 1. What was produced
 

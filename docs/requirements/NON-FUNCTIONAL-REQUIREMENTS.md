@@ -1,6 +1,6 @@
 # SRS Section 16 — Non-Functional Requirements
 
-> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). **All numeric targets are proposed engineering objectives**, not contractual SLAs. They assume the MVP pilot load profile (A-12) on modest production infrastructure (2–3 API instances, 1–2 worker instances, managed PostgreSQL with 4 vCPU/16 GB, managed Redis). Targets are verified by load tests (k6) in a production-like staging environment before launch, and re-baselined after real traffic.
+> Part of FOS-SRS-001 v0.3.0 (APPROVED 2026-11-20). **All numeric targets are proposed engineering objectives**, not contractual SLAs. They assume the MVP pilot load profile (A-12) on modest production infrastructure (2–3 API instances, 1–2 worker instances, managed PostgreSQL with 4 vCPU/16 GB, managed Redis). Targets are verified by load tests (k6) in a production-like staging environment before launch, and re-baselined after real traffic.
 
 **Load profiles**
 - **Normal:** 20 orders/min, 2,000 concurrent customer sessions, 200 online partners, 300 open restaurant dashboards.
@@ -32,7 +32,7 @@
 | NFR-SCALE-001 | API instances are stateless (no in-memory session state, no local file storage) and horizontally scalable behind a load balancer. |
 | NFR-SCALE-002 | Workers scale independently per queue (queue-specific concurrency; separate worker deployments for heavy queues such as notifications and analytics). |
 | NFR-SCALE-003 | Socket.IO scales horizontally via the Redis adapter; room fan-out avoids per-socket loops; location broadcasts are throttled per order. Target 20k concurrent sockets per 3 instances. |
-| NFR-SCALE-004 | Database: read replicas for analytics/reporting (CORE); partitioning for `audit_logs`, `delivery_locations`, `notifications` by month; connection pooling via PgBouncer. Vertical scaling first; sharding not planned before multi-city scale. |
+| NFR-SCALE-004 | Database: read replicas for analytics/reporting (CORE); monthly partitioning for `audit_logs`, `delivery_locations`, `notifications` when the DB-SCALE-001 thresholds are reached (regular tables until then); connection pooling via PgBouncer. Vertical scaling first; sharding not planned before multi-city scale. |
 | NFR-SCALE-005 | Redis: separate logical stores for cache (evictable), queues (noeviction), and realtime/geo (noeviction); can be split into separate instances without code changes (config-driven connection strings). |
 | NFR-SCALE-006 | Geographic expansion: zones, fees, taxes, partner pay and feature flags are zone/city-configurable; adding a city requires configuration, not code. Timezone stored per branch. |
 | NFR-SCALE-007 | Module boundaries allow extracting dispatch/tracking into a separate service if location throughput exceeds a single cluster's capacity (ADR-001). |

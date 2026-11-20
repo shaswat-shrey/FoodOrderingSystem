@@ -6,7 +6,7 @@
 JavaScript floats cannot represent decimal currency exactly; financial totals must reconcile to the paisa.
 
 ## Decision
-Store and compute all money as integer paise (`bigint` columns, safe-integer numbers in TS) with an explicit currency on aggregates. Percentages are basis points. One shared rounding function (half-up, once per component). Formatting only at presentation edges. No floating point in pricing, ledger, refunds or payouts (lint rule bans arithmetic on `*Amount` floats in domain code via helper-only access).
+Store and compute all money as integer paise (`integer` columns for bounded per-transaction amounts and `bigint` for accumulating balances/totals — DB-CONV-005 as amended in SRS v0.3.0; safe-integer numbers in TS) with an explicit currency on aggregates. Percentages are basis points. One shared rounding function (half-up, once per component). Formatting only at presentation edges. No floating point in pricing, ledger, refunds or payouts (lint rule bans arithmetic on `*Amount` floats in domain code via helper-only access).
 
 ## Alternatives
 `decimal.js` / `Prisma.Decimal` — correct but slower and easy to misuse across boundaries; integer minor units are simpler and match provider APIs (Razorpay uses paise).

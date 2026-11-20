@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.2.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; platform requirements delivered in Phase 2 are listed in §22.1a.
+> Part of FOS-SRS-001 v0.3.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; platform requirements delivered in Phase 2 are listed in §22.1a.
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -103,15 +103,15 @@ Code: `packages/db/prisma/schema/**`; tests: `packages/db/test/constraints.test.
 |---|---|---|
 | DB-TECH-001…005 | PostgreSQL + extensions, Prisma with SQL extensions, no binaries in DB | Verified |
 | DB-CONV-001…004, 006, 008, 010, 011 | Naming, UUIDv7 keys, timestamps/versions, soft delete, enums, JSONB limits, timestamptz, history tables | Implemented |
-| DB-CONV-005 | Money as integer minor units | Implemented with Int/BigInt split — **discrepancy D-3 pending** |
+| DB-CONV-005 | Money as integer minor units (Int per-transaction, BigInt totals — v0.3.0) | Implemented |
 | DB-CONV-007 | RESTRICT by default | Verified |
 | DB-CONV-009 | No array relationships | Implemented (one exception: `audit_logs.actor_roles` text[] snapshot of role keys) |
 | DB-INT-003 | Business uniqueness in the database | Verified |
 | DB-INT-004 | Balanced ledger, non-negative wallets | Verified |
 | DB-INT-005 | Snapshots render after menu changes | Implemented (verified with order flows in Phase 7) |
 | DB-INT-006 | Outbox table | Implemented (relay in Phase 7) |
-| §15.6 immutable snapshots | Append-only triggers | Verified — `payment_attempts` **discrepancy D-1 pending** |
-| §15.3 partitioning | Monthly partitions for audit/location trail | Not implemented — **discrepancy D-2 pending** |
+| §15.6 immutable snapshots (incl. `payment_attempts` rule, v0.3.0) | Append-only and guard triggers | Verified |
+| DB-SCALE-001 | Partitioning deferred until volume/retention thresholds | Planned (by design, v0.3.0) |
 | BR-AUTH-014, BR-ADDR-001, BR-CART-001, BR-MENU-002…005, BR-COUPON-003/004, BR-DEL-014, BR-REVIEW-002, BR-REST-003, BR-ADMIN-001 | Rules with database backstops | Verified (database layer; service-level enforcement comes with each module) |
 | FR-DISP-006/007, FR-DISP-013, FR-PAY-004, FR-PAY-008, FR-REFUND-003, FR-CFG-002, FR-AUDIT-002, FR-ADMIN-070 | Database backstops for these requirements | Verified (database layer) |
 

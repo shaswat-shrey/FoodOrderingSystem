@@ -1,6 +1,6 @@
 # System Architecture
 
-> Phase 1 deliverable · v0.2.0 (APPROVED 2026-11-20). Requirements: `docs/requirements/`. Decisions: `docs/architecture/adr/`.
+> Phase 1 deliverable · v0.3.0 (APPROVED 2026-11-20). Requirements: `docs/requirements/`. Decisions: `docs/architecture/adr/`.
 > Contents: 1 Context · 2 Containers · 3 Backend module architecture · 4 Request, real-time & job pipelines · 5 Data architecture · 6 Authentication & session architecture · 7 Authorization (RBAC) & permission matrix · 8 Real-time architecture · 9 Security architecture · 10 Caching strategy · 11 Search strategy · 12 Frontend architecture · 13 Infrastructure & environments · 14 Project directory structure · 15 Cross-cutting conventions
 
 ---
@@ -133,7 +133,7 @@ Dotted arrows = asynchronous via domain events (outbox). Cycles are forbidden (d
 
 ## 5. Data architecture
 
-See SRS §15 and `docs/database/ERD.md`. Key decisions: UUIDv7 keys; integer paise; PostGIS geography; immutable snapshots for orders and ledger; outbox table; partitioned high-volume append-only tables; Prisma for schema/migrations with SQL extensions for PostGIS, partial indexes, triggers.
+See SRS §15 and `docs/database/ERD.md`. Key decisions: UUIDv7 keys; integer paise; PostGIS geography; immutable snapshots for orders and ledger; outbox table; high-volume append-only tables partitioned when DB-SCALE-001 thresholds are reached; Prisma for schema/migrations with SQL extensions for PostGIS, partial indexes, triggers.
 
 ## 6. Authentication & session architecture
 
@@ -407,7 +407,7 @@ FoodOrderSystem/
 
 - **IDs:** UUIDv7 generated in app (`uuidv7` package) for time-ordered inserts.
 - **Time:** server uses UTC; business-hour logic converts via branch timezone (`Asia/Kolkata`) using a timezone-aware library (Luxon / date-fns-tz).
-- **Money:** `@fos/shared/money` — `Money { amount: bigint|number(int), currency }`, arithmetic helpers, basis-point percentage helper with half-up rounding; formatting `₹1,234.50` via `Intl.NumberFormat('en-IN')`.
+- **Money:** `@fos/shared/money` — `Money { amount: number (safe integer), currency }` (DB `integer`/`bigint` per DB-CONV-005), arithmetic helpers, basis-point percentage helper with half-up rounding; formatting `₹1,234.50` via `Intl.NumberFormat('en-IN')`.
 - **Logging:** pino with redaction paths; `logger.child({ module, requestId })`.
 - **Config:** `@fos/config/env` Zod schema; app refuses to boot on invalid config.
 - **Feature flags:** `flags.isEnabled(key, ctx)` evaluated server-side; client gets resolved flags via `/config/public` or `/me`.

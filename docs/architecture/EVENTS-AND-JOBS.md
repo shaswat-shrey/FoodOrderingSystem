@@ -1,6 +1,6 @@
 # Domain Events, Notification Matrix & Background Job Inventory
 
-> Phase 1 · v0.2.0 (APPROVED 2026-11-20). Real-time (socket) events are specified in SRS §13.5; this document covers internal domain events, the notification matrix, and BullMQ jobs.
+> Phase 1 · v0.3.0 (APPROVED 2026-11-20). Real-time (socket) events are specified in SRS §13.5; this document covers internal domain events, the notification matrix, and BullMQ jobs.
 
 ## 1. Domain events (outbox)
 
@@ -110,7 +110,7 @@ Queues: `notifications`, `orders`, `dispatch`, `payments`, `refunds`, `tracking`
 | JOB-FILE-001 | Image derivatives & EXIF strip | files | Upload | Immediate | Per file ID | 3× | Mark failed |
 | JOB-FILE-002 | Orphan file cleanup | files | Repeatable | Daily | Status UPLOADED & age > 24 h | 3× | — |
 | JOB-RPT-001 | Report export generation | reports | Request | Immediate | Per export ID | 3× | Mark failed + notify |
-| JOB-RET-001 | Retention purge (locations, logs tables, notifications, proofs) | maintenance | Repeatable | Daily 03:00 IST | Partition drop / set delete | 3× | Alert privacy owner |
+| JOB-RET-001 | Retention purge (locations, logs tables, notifications, proofs) | maintenance | Repeatable | Daily 03:00 IST | Batched DELETE (partition drop once DB-SCALE-001 applies) | 3× | Alert privacy owner |
 | JOB-OUTBOX-001 | Outbox relay health & stale event alert | maintenance | Repeatable | Every minute | Read-only | — | Alert |
 
 ## 4. Queue configuration principles

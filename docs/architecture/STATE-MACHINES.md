@@ -1,6 +1,6 @@
 # State Machines
 
-> Phase 1 · v0.2.0 (APPROVED 2026-11-20). Normative transition tables live in SRS §10.3 (orders) and §12.1 (deliveries). This document provides diagrams and the remaining machines. Implementation: each machine is a pure, data-driven transition table in `@fos/shared/state-machines` (used by API for enforcement and by frontends for labels/available actions); the API's `transition()` adds locking, guards, side effects.
+> Phase 1 · v0.3.0 (APPROVED 2026-11-20). Normative transition tables live in SRS §10.3 (orders) and §12.1 (deliveries). This document provides diagrams and the remaining machines. Implementation: each machine is a pure, data-driven transition table in `@fos/shared/state-machines` (used by API for enforcement and by frontends for labels/available actions); the API's `transition()` adds locking, guards, side effects.
 
 ## 1. Order
 
@@ -98,7 +98,7 @@ stateDiagram-v2
   CAPTURED --> REFUNDED: full refund succeeded
   PARTIALLY_REFUNDED --> REFUNDED: remaining refunded
 ```
-Individual failed attempts are recorded on `payment_attempts`; the payment remains `PENDING` while retries are allowed. Precedence rule (FR-PAY-009) prevents regressions from out-of-order events.
+Individual attempts are recorded on `payment_attempts` (status progresses CREATED → AUTHORIZED → CAPTURED/FAILED; provider ID and amount are immutable); the payment remains `PENDING` while retries are allowed. Precedence rule (FR-PAY-009) prevents regressions from out-of-order events.
 
 COD payment: `PENDING → COLLECTED` (partner confirms cash) or `PENDING → CANCELLED` (order did not complete).
 
