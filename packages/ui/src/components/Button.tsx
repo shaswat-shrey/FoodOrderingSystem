@@ -8,7 +8,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-brand-600 text-white hover:bg-brand-700',
+        // brand-700 keeps white text at >= 4.5:1 (NFR-ACCESS-001); brand-600 is only 3.55:1.
+        primary: 'bg-brand-700 text-white hover:bg-brand-800',
         secondary: 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50',
         ghost: 'text-gray-700 hover:bg-gray-100',
         danger: 'bg-danger-600 text-white hover:bg-red-800',
