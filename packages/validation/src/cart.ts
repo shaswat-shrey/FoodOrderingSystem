@@ -107,3 +107,56 @@ export const mergeCartBody = z
 export type AddCartItemBody = z.infer<typeof addCartItemBody>;
 export type MergeCartBody = z.infer<typeof mergeCartBody>;
 export type ReplaceCartLineBody = z.infer<typeof replaceCartLineBody>;
+
+const checkoutFields = {
+  addressId: idSchema,
+  /** ONLINE + useWallet is the wallet-plus-online split (FR-CHK-001). */
+  paymentMethod: z.enum(['ONLINE', 'COD', 'WALLET']),
+  useWallet: z.boolean(),
+  tipAmount: tipSchema,
+  deliveryInstructions: z
+    .string()
+    .transform((v) =>
+      v
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
+    )
+    .pipe(z.string().max(200)),
+  contactless: z.boolean(),
+  contactName: z.string().trim().min(2).max(80),
+  contactPhone: z
+    .string()
+    .trim()
+    .regex(/^\+91[6-9]\d{9}$/, 'Enter a valid Indian mobile number'),
+};
+
+/** API-CHK-001 (FR-CHK-001, 003, 005…007). */
+export const createCheckoutBody = z
+  .object({
+    ...checkoutFields,
+    useWallet: checkoutFields.useWallet.default(false),
+    tipAmount: checkoutFields.tipAmount.default(0),
+    contactless: checkoutFields.contactless.default(false),
+    deliveryInstructions: checkoutFields.deliveryInstructions.optional(),
+    contactName: checkoutFields.contactName.optional(),
+    contactPhone: checkoutFields.contactPhone.optional(),
+  })
+  .strict();
+
+/** API-CHK-003: change anything, then re-quote. */
+export const updateCheckoutBody = z
+  .object(checkoutFields)
+  .partial()
+  .extend({ version: z.number().int().min(0).optional() })
+  .strict()
+  .refine((b) => Object.keys(b).some((k) => k !== 'version'), { message: 'Nothing to update' });
+
+export const checkoutSessionParams = z.object({ sessionId: idSchema }).strict();
+
+/** API-PAY-001 */
+export const paymentMethodsQuery = z
+  .object({ branchId: idSchema, amount: z.coerce.number().int().min(0).max(100_000_000) })
+  .strict();
+
+export type CreateCheckoutBody = z.infer<typeof createCheckoutBody>;

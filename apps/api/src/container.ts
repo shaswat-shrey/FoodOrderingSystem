@@ -9,7 +9,7 @@ import { AuditService } from './modules/audit';
 import { BranchRepository, MenuService, ServiceabilityService } from './modules/catalog';
 import { SettingsService } from './modules/config';
 import { AddressService, FavoritesService, ProfileService } from './modules/customers';
-import { CartService, QuoteBuilder } from './modules/checkout';
+import { CartService, CheckoutService, QuoteBuilder } from './modules/checkout';
 import { DiscoveryService } from './modules/discovery';
 import { LedgerService, WalletService } from './modules/ledger';
 import { OffersService } from './modules/offers';
@@ -95,6 +95,15 @@ export function createContainer(input: ContainerInput) {
   const wallet = new WalletService(prisma, ledger, clock);
   const offers = new OffersService(prisma, clock);
   const cart = new CartService(prisma, branches, menus, quotes, offers, settings, clock);
+  const checkout = new CheckoutService(
+    prisma,
+    cart,
+    addresses,
+    wallet,
+    pricingConfig,
+    settings,
+    clock,
+  );
   return {
     env,
     prisma,
@@ -126,6 +135,7 @@ export function createContainer(input: ContainerInput) {
     wallet,
     offers,
     cart,
+    checkout,
     appOrigins: appOrigins(env),
   };
 }
