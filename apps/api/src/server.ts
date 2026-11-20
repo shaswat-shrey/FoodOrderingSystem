@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { createPrismaClient, pingDatabase } from '@fos/db';
-import { loadEnv } from './config/env';
+import { appOrigins, loadEnv } from './config/env';
 import { createApp } from './platform/http/app';
 import { createLogger } from './platform/logger';
 import { createSocketServer } from './platform/realtime/socket-server';
@@ -10,6 +10,7 @@ const SHUTDOWN_GRACE_MS = 25_000; // NFR-REL-007
 
 async function main(): Promise<void> {
   const env = loadEnv();
+  const corsOrigins = Object.values(appOrigins(env));
   const logger = createLogger({ level: env.LOG_LEVEL, service: 'api' });
 
   const prisma = createPrismaClient({
@@ -23,7 +24,7 @@ async function main(): Promise<void> {
 
   const app = createApp({
     logger,
-    corsOrigins: env.CORS_ORIGINS,
+    corsOrigins,
     readiness: {
       critical: { database: () => pingDatabase(prisma) },
       degradable: {
@@ -35,7 +36,7 @@ async function main(): Promise<void> {
 
   const httpServer = createServer(app);
   const io = createSocketServer(httpServer, {
-    corsOrigins: env.CORS_ORIGINS,
+    corsOrigins,
     logger,
     redis: redis.core,
   });
