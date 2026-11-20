@@ -4,6 +4,7 @@ import type { OrderCard, QueueTab } from '@fos/api-client';
 import { Alert, Button, EmptyState, Spinner } from '@fos/ui';
 import { ServerError } from '../components/fields';
 import { useOrderAlert } from '../lib/alert-sound';
+import { useBranchLive } from '../lib/live';
 import { clock, mmss } from '../lib/format';
 import { merchant } from '../lib/merchant';
 import { useWorkspace } from '../lib/workspace';
@@ -24,12 +25,12 @@ const REJECT = [
   ['OTHER', 'Other'],
 ] as const;
 /** Live updates arrive with the realtime gateway (Phase 10); until then the queue polls. */
-const POLL_MS = 8_000;
 
 /** FR-RORD-008: order queue with tabs, counts and a repeating alert for new orders. */
 export function OrdersPage() {
   const { branchId, can } = useWorkspace();
   const [tab, setTab] = useState<QueueTab>('NEW');
+  const { pollMs: POLL_MS } = useBranchLive(branchId, 'branch-orders');
   const counts = useQuery({
     queryKey: ['orders', branchId, 'counts'],
     queryFn: () => merchant.orders.counts(branchId!),

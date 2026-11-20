@@ -6,6 +6,7 @@ import { Alert, Button, Spinner } from '@fos/ui';
 import { Section, ServerError, Stat } from '../components/ui';
 import { hoursMinutes, rupees } from '../lib/format';
 import { currentFix, useLocationReporting } from '../lib/location';
+import { live, usePartnerLive } from '../lib/live';
 import { partner } from '../lib/partner';
 import { ApplicationPage, applicationKey, useApplication } from './ApplicationPage';
 
@@ -29,10 +30,11 @@ export function HomePage() {
 
 function Shift({ application }: { application: PartnerApplication }) {
   const qc = useQueryClient();
+  const { connected } = usePartnerLive();
   const availability = useQuery({
     queryKey: ['partner', 'availability'],
     queryFn: partner.availability,
-    refetchInterval: 15_000,
+    refetchInterval: connected ? 60_000 : 15_000,
   });
   const dashboard = useQuery({
     queryKey: ['partner', 'dashboard'],
@@ -41,6 +43,7 @@ function Shift({ application }: { application: PartnerApplication }) {
   });
   const state = availability.data?.state;
   useLocationReporting(state);
+  const offerPollMs = connected ? 30_000 : 5_000;
   const set = (a: Availability) => {
     qc.setQueryData(['partner', 'availability'], a);
     void qc.invalidateQueries({ queryKey: ['partner', 'dashboard'] });
@@ -98,7 +101,7 @@ function Shift({ application }: { application: PartnerApplication }) {
         </Alert>
       )}
 
-      {(state === 'ONLINE_IDLE' || state === 'OFFERED') && <OfferSlot />}
+      {(state === 'ONLINE_IDLE' || state === 'OFFERED') && <OfferSlot pollMs={offerPollMs} />}
 
       <Section title="Availability">
         {availability.isPending && <Spinner />}
@@ -166,12 +169,12 @@ function Shift({ application }: { application: PartnerApplication }) {
   );
 }
 
-/** Polls for an offer while waiting (sockets arrive in Phase 10). */
-function OfferSlot() {
+/** The current offer: pushed (EVT-DP-001), with polling as the fallback. */
+function OfferSlot({ pollMs }: { pollMs: number }) {
   const offer = useQuery({
     queryKey: ['partner', 'offer'],
     queryFn: partner.offers.current,
-    refetchInterval: 5_000,
+    refetchInterval: pollMs,
   });
   if (!offer.data) return null;
   return <OfferCard offer={offer.data} />;
@@ -189,6 +192,9 @@ export function OfferCard({ offer }: { offer: Offer }) {
     const t = setInterval(() => setSeconds(left()), 1000);
     return () => clearInterval(t);
   });
+  useEffect(() => {
+    void live.emit('offer:ack', { offerId: offer.offerId }); // EVT-C-006 (diagnostics)
+  }, [offer.offerId]);
   const done = () => qc.invalidateQueries({ queryKey: ['partner'] });
   const accept = useMutation({
     mutationFn: () => partner.offers.accept(offer.offerId),

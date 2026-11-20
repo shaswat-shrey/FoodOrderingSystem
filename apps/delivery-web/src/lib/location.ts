@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { Fix } from '@fos/api-client';
+import { live } from './live';
 import { partner } from './partner';
 
 function toFix(p: GeolocationPosition): Fix {
@@ -58,8 +59,25 @@ export function useLocationReporting(state: string | undefined) {
     );
     const timer = setInterval(() => {
       const points = queue.current.splice(0, 60);
-      if (points.length)
-        partner.sendLocations(points).catch(() => queue.current.unshift(...points));
+      if (!points.length) return;
+      // Live socket when connected (EVT-C-004): the newest fix only; REST batches otherwise.
+      if (live.status() === 'connected' && points.length === 1) {
+        const f = points[0]!;
+        void live
+          .emit('partner:location', {
+            lat: f.lat,
+            lng: f.lng,
+            accuracy: f.accuracyM,
+            ...(f.recordedAt ? { recordedAt: f.recordedAt } : {}),
+            ...(f.heading !== undefined ? { heading: f.heading } : {}),
+            ...(f.speedKmh !== undefined ? { speed: f.speedKmh } : {}),
+          })
+          .then((ack) => {
+            if (!ack.ok && ack.code !== 'RATE_LIMITED') queue.current.unshift(...points);
+          });
+        return;
+      }
+      partner.sendLocations(points).catch(() => queue.current.unshift(...points));
     }, everyMs);
     return () => {
       navigator.geolocation.clearWatch(watch);

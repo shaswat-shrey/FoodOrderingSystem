@@ -6,6 +6,7 @@ import { Alert, Button, Spinner } from '@fos/ui';
 import { Field, Section, Select, ServerError } from '../components/ui';
 import { rupees, STAGE_LABEL } from '../lib/format';
 import { currentFix } from '../lib/location';
+import { usePartnerLive } from '../lib/live';
 import { partner } from '../lib/partner';
 
 const key = ['partner', 'delivery'] as const;
@@ -21,10 +22,11 @@ const mapsLink = (p: Point) =>
 
 /** FR-DEL-010…035: the trip, one step at a time. */
 export function DeliveryPage() {
+  const { connected } = usePartnerLive();
   const delivery = useQuery({
     queryKey: key,
     queryFn: partner.deliveries.active,
-    refetchInterval: 15_000,
+    refetchInterval: connected ? 60_000 : 15_000,
   });
   if (delivery.isPending) return <Spinner />;
   if (delivery.isError) return <ServerError error={delivery.error} />;

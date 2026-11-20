@@ -470,6 +470,9 @@ importers:
       axios:
         specifier: ^1.21.1
         version: 1.21.1
+      socket.io-client:
+        specifier: ^4.8.4
+        version: 4.8.4
       zustand:
         specifier: ^5.1.0
         version: 5.1.0(@types/react@19.3.0)(react@19.3.1)

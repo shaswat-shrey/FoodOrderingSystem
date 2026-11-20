@@ -3,6 +3,7 @@ import type { KdsTicket } from '@fos/api-client';
 import { Button, EmptyState } from '@fos/ui';
 import { mmss } from '../lib/format';
 import { merchant } from '../lib/merchant';
+import { useBranchLive } from '../lib/live';
 import { useWorkspace } from '../lib/workspace';
 
 const COLUMNS: { status: KdsTicket['status']; title: string }[] = [
@@ -20,11 +21,12 @@ const URGENCY = {
 export function KitchenPage() {
   const { branchId, can } = useWorkspace();
   const qc = useQueryClient();
+  const { pollMs } = useBranchLive(branchId, 'branch-kds');
   const tickets = useQuery({
     queryKey: ['kds', branchId],
     queryFn: () => merchant.orders.kds(branchId!),
     enabled: Boolean(branchId),
-    refetchInterval: 5_000,
+    refetchInterval: pollMs,
     // Keep showing the last state while offline (FR-RORD-010).
     placeholderData: (prev) => prev,
   });
