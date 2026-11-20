@@ -1,0 +1,15 @@
+// Prisma schema for FoodOrderSystem.
+// Models are added in Phase 3 (SRS §15, docs/database/ERD.md).
+// PostGIS columns, partial unique indexes, check constraints and triggers that
+// Prisma cannot express are written as SQL inside migrations (ADR-005, DB-TECH-003).
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis, pg_trgm, unaccent, citext, pgcrypto]
+}

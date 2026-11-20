@@ -1,0 +1,20 @@
+{
+  "name": "@fos/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-free domain helpers shared by API, worker and web apps (money, error codes, constants)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@fos/config": "workspace:*",
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

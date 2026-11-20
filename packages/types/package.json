@@ -1,0 +1,21 @@
+{
+  "name": "@fos/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "API contract types (response envelope, inferred schema types)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fos/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@fos/config": "workspace:*",
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3"
+  }
+}

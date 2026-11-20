@@ -1,0 +1,24 @@
+{
+  "name": "@fos/validation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Zod schemas shared by the API (request validation) and the web apps (forms)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@fos/config": "workspace:*",
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "@fos/shared": "workspace:*",
+    "zod": "^4.6.7"
+  }
+}
