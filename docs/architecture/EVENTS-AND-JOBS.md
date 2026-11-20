@@ -1,6 +1,6 @@
 # Domain Events, Notification Matrix & Background Job Inventory
 
-> Phase 1 · v0.7.0 (APPROVED 2026-11-20). Real-time (socket) events are specified in SRS §13.5; this document covers internal domain events, the notification matrix, and BullMQ jobs.
+> Phase 1 · v0.8.0 (APPROVED 2026-11-20). Real-time (socket) events are specified in SRS §13.5; this document covers internal domain events, the notification matrix, and BullMQ jobs.
 
 ## 1. Domain events (outbox)
 
@@ -105,9 +105,9 @@ Queues: `notifications`, `orders`, `dispatch`, `payments`, `refunds`, `tracking`
 | JOB-CART-001 | Expire inactive carts | maintenance | Repeatable | Hourly | Set-based | 3× | — |
 | JOB-CHK-001 | Expire checkout sessions | maintenance | Repeatable | Every 5 min | Set-based | 3× | — |
 | JOB-REV-001 | Rating aggregation | analytics | ReviewPublished | Debounced 60 s per branch | Recompute from source | 3× | — |
-| JOB-ANL-001 | Hourly analytics roll-up | analytics | Repeatable | Hourly + daily | Upsert by period | 3× | Alert |
+| JOB-ANL-001 | Hourly analytics roll-up (optional; enable when live queries miss NFR-PERF — D-15) | analytics | Repeatable | Hourly + daily | Upsert by period | 3× | Alert |
 | JOB-SRCH-001 | Trending searches aggregation & autocomplete refresh | analytics | Repeatable | Hourly / 10 min | Upsert | 3× | — |
-| JOB-FILE-001 | Image derivatives & EXIF strip | files | Upload | Immediate | Per file ID | 3× | Mark failed |
+| JOB-FILE-001 | Image derivatives & EXIF strip (done during upload in MVP — D-13) | files | Upload | Immediate | Per file ID | 3× | Mark failed |
 | JOB-FILE-002 | Orphan file cleanup | files | Repeatable | Daily | Status UPLOADED & age > 24 h | 3× | — |
 | JOB-RPT-001 | Report export generation | reports | Request | Immediate | Per export ID | 3× | Mark failed + notify |
 | JOB-RET-001 | Retention purge (locations, logs tables, notifications, proofs) | maintenance | Repeatable | Daily 03:00 IST | Batched DELETE (partition drop once DB-SCALE-001 applies) | 3× | Alert privacy owner |

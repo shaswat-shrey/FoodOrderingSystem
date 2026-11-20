@@ -92,7 +92,9 @@ export class FilesService {
     const id = uuidv7();
     const now = this.clock.now();
     const key = `${purpose.toLowerCase()}/${now.toISOString().slice(0, 7)}/${id}.${EXTENSION[type]}`;
-    const bucket = rule.visibility === 'PUBLIC' ? 'public' : 'private';
+    // FR-FILE-003: public images are served as derivatives; the original stays private (owner only).
+    const derivativeBucket = rule.visibility === 'PUBLIC' ? 'public' : 'private';
+    const bucket = rule.visibility === 'PUBLIC' && !rule.derivatives ? 'public' : 'private';
     await this.storage.put(bucket, key, body, type);
     if (rule.derivatives) {
       for (const [name, w] of Object.entries(DERIVATIVES) as [DerivativeName, number][]) {
@@ -100,7 +102,7 @@ export class FilesService {
           .resize({ width: w, withoutEnlargement: true })
           .webp({ quality: 80 })
           .toBuffer();
-        await this.storage.put(bucket, this.derivativeKey(key, name), d, 'image/webp');
+        await this.storage.put(derivativeBucket, this.derivativeKey(key, name), d, 'image/webp');
       }
     }
     const file = await this.prisma.file.create({
@@ -122,20 +124,17 @@ export class FilesService {
     return this.view(file);
   }
 
-  /** Public URLs for a file (and its derivatives); private files get none here. */
+  /** Public URLs: the WebP derivatives of public images (originals are private, FR-FILE-003). */
   urls(file: Pick<File, 'objectKey' | 'visibility' | 'purpose'>) {
     if (file.visibility !== 'PUBLIC') return null;
-    const derivatives = PURPOSES[file.purpose]?.derivatives
-      ? Object.fromEntries(
-          (Object.keys(DERIVATIVES) as DerivativeName[]).map((n) => [
-            n,
-            this.storage.publicUrl(this.derivativeKey(file.objectKey, n)),
-          ]),
-        )
-      : null;
-    return { original: this.storage.publicUrl(file.objectKey), ...(derivatives ?? {}) } as {
-      original: string;
-    } & Partial<Record<DerivativeName, string>>;
+    if (!PURPOSES[file.purpose]?.derivatives)
+      return { original: this.storage.publicUrl(file.objectKey) };
+    return Object.fromEntries(
+      (Object.keys(DERIVATIVES) as DerivativeName[]).map((n) => [
+        n,
+        this.storage.publicUrl(this.derivativeKey(file.objectKey, n)),
+      ]),
+    ) as Partial<Record<DerivativeName | 'original', string>>;
   }
 
   view(file: File) {
@@ -161,7 +160,8 @@ export class FilesService {
     let allowed = file.ownerUserId === who.userId;
     for (const check of this.checks) if (!allowed) allowed = await check(file);
     if (!allowed) throw new AppError('NOT_FOUND', { message: "We couldn't find that file." });
-    if (file.visibility === 'PUBLIC') return { url: this.urls(file)!.original, expiresAt: null };
+    if (file.bucket === 'public')
+      return { url: this.storage.publicUrl(file.objectKey), expiresAt: null };
     const url = await this.storage.signedUrl(file.objectKey, SIGNED_URL_SECONDS, this.clock.now());
     await this.audit.record({
       action: 'file.signed_url',
@@ -192,11 +192,13 @@ export class FilesService {
   }
 
   private async destroy(file: File) {
-    const bucket = file.visibility === 'PUBLIC' ? 'public' : 'private';
-    await this.storage.delete(bucket, file.objectKey);
+    await this.storage.delete(file.bucket === 'public' ? 'public' : 'private', file.objectKey);
     if (PURPOSES[file.purpose]?.derivatives)
       for (const n of Object.keys(DERIVATIVES) as DerivativeName[])
-        await this.storage.delete(bucket, this.derivativeKey(file.objectKey, n));
+        await this.storage.delete(
+          file.visibility === 'PUBLIC' ? 'public' : 'private',
+          this.derivativeKey(file.objectKey, n),
+        );
     await this.prisma.file.update({ where: { id: file.id }, data: { status: 'DELETED' } });
   }
 

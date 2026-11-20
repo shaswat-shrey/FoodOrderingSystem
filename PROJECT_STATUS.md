@@ -6,9 +6,9 @@ _Last updated: 2026-11-21_
 
 | Item              | Status                                                                                                                                                                                                                                                                                                                                                                                            |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 8 — Restaurant application: complete; Phase 9 awaiting go-ahead (D-13…D-15 need decisions)**                                                                                                                                                                                                                                                                                              |
+| Current phase     | **Phase 8 — Restaurant application: complete; Phase 9 awaiting go-ahead**                                                                                                                                                                                                                                                                                                                         |
 | Next phase        | Phase 9 — Delivery application                                                                                                                                                                                                                                                                                                                                                                    |
-| SRS version       | FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20; v0.7.0 adds owner-approved D-10…D-12)                                                                                                                                                                                                                                                                                                                    |
+| SRS version       | FOS-SRS-001 v0.8.0 (APPROVED 2026-11-21; v0.8.0 adds owner-approved D-13…D-15)                                                                                                                                                                                                                                                                                                                    |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app) |
 
 ## Phases
@@ -22,7 +22,7 @@ _Last updated: 2026-11-21_
 | 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                |
 | 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                     |
 | 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 approved)               |
-| 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 open)                   |
+| 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 approved)               |
 | 9 Delivery application        | Not started                                               |
 | 10 Real-time                  | Not started                                               |
 | 11 Admin                      | Not started                                               |
@@ -36,7 +36,7 @@ API plus the first real restaurant web screens (the remaining restaurant pages a
 
 | Area               | Delivered                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Uploads            | `POST /files` (multipart) with purpose rules (BR-FILE-001), type from magic bytes, SVG refused, EXIF/GPS stripped by re-encoding, WebP thumb/card/hero for public images, 5-minute signed links for private files (audited), delete of unattached uploads, hourly orphan cleanup; local storage driver for development, S3-compatible for production                                                                                                             |
+| Uploads            | `POST /files` (multipart) with purpose rules (BR-FILE-001), type from magic bytes, SVG refused, EXIF/GPS stripped by re-encoding, WebP thumb/card/hero for public images (originals private), 5-minute signed links for private files (audited), delete of unattached uploads, hourly orphan cleanup; local storage driver for development, S3-compatible for production                                                                                         |
 | Onboarding         | Application as the restaurant row in an onboarding state: business details (PAN/GSTIN/IFSC/FSSAI validated, GSTIN check digit), first outlet with zone from the pin and radius cap, weekly hours, bank account, documents, logo; completeness checklist; submit with no-GST declaration; duplicate FSSAI/GSTIN flagged; review decisions (changes requested, rejection with 30-day wait, approval activating restaurant, outlet, documents, bank and owner role) |
 | Security           | PAN, bank numbers and change-request payloads encrypted with rotatable AES-256-GCM field keys; IAM grants nothing for unapproved restaurants; merchant guard (404 to non-members, 403 without the permission); permission changes invalidate cached sessions immediately                                                                                                                                                                                         |
 | Profile & outlets  | Profile with masked PAN/bank, editable non-legal fields, logo and cover; legal/tax/bank change requests (owner, re-auth); outlet settings within zone, platform and packaging caps; hours, holidays, prep time and rush; effective status with a reason; go online (go-live checklist), offline for today (auto-reopens next day), pause 15–60 min or up to 4 h (auto-resume)                                                                                    |
@@ -181,16 +181,11 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-Open — need the owner's decision:
-
-| ID   | SRS says                                                              | Implemented                                                                                | Why                                                                                                                                                                                                                                                                             |
-| ---- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D-13 | FR-FILE-003: WebP derivatives generated asynchronously (JOB-FILE-001) | Generated during the upload request                                                        | Images are ≤ 5–10 MB and sharp makes the three sizes in well under a second; synchronous generation means a URL never points at a missing derivative and needs no "derivatives ready" column. Proposal: allow synchronous generation in FR-FILE-003, async as a scaling option. |
-| D-14 | FR-REST-001 step 5: the OWNER membership is created on submit         | Created when the application starts, but IAM ignores memberships of unapproved restaurants | The membership is how the applicant owns the draft (one rule for access everywhere); it grants nothing until approval. Proposal: amend step 5 to "the owner membership becomes effective on approval".                                                                          |
-| D-15 | FR-RANL-002: periodic metrics pre-aggregated hourly (JOB-ANL-001)     | Computed on request from `orders` with indexed range queries                               | At pilot volume the queries are fast and always current; the hourly table (`analytics_branch_hourly`) exists for when they aren't. Proposal: make pre-aggregation a performance option (NFR-PERF), not a requirement.                                                           |
+- None open.
 
 Resolved:
 
+- D-13…D-15 resolved 2026-11-21 by owner decision (“Accept all three”, SRS v0.8.0): image derivatives made during upload (FR-FILE-003); owner membership created with the application, effective on approval (FR-REST-001); analytics computed from orders, hourly roll-up optional (FR-RANL-002). While applying D-13 the original of a public image was found to be publicly served, against FR-FILE-003; originals now stay in the private bucket (owner via signed link) and only WebP sizes are public.
 - D-10…D-12 resolved 2026-11-20 by owner decision (“Accept all three”, SRS v0.7.0): order numbers `YYMMDD-XXXXXX` (FR-ORDER-001); the outbox relay runs in the worker (ADR-010, SYSTEM-ARCHITECTURE §3); customer cancellation fees are capped at the amount paid excluding tip, so COD orders cancel without a fee (BR-ORDER-011/012).
 - D-9 resolved 2026-11-20 by owner decision (“Approve D-9”, SRS v0.6.0): `cart_items.unit_amount_seen` is part of §15.
 - Earlier: D-1…D-3 (v0.3.0), D-4…D-6 (v0.4.0), D-7…D-8 (v0.5.0); v0.3.1, v0.4.1 and v0.5.1 were editorial.
@@ -335,8 +330,7 @@ Not discrepancies (planned later): handover with pickup code (API-RORD-009), par
 
 ## Next steps
 
-1. Owner decisions on D-13…D-15.
-2. Owner go-ahead for Phase 9 (delivery application: partner onboarding and documents, availability, dispatch, delivery stages with geofences, pickup/handover codes, OTP/photo/COD completion, earnings, cash in hand; plus reviews and partner ratings).
+1. Owner go-ahead for Phase 9 (delivery application: partner onboarding and documents, availability, dispatch, delivery stages with geofences, pickup/handover codes, OTP/photo/COD completion, earnings, cash in hand; plus reviews and partner ratings).
 
 ## TODO
 
@@ -346,7 +340,7 @@ Not discrepancies (planned later): handover with pickup code (API-RORD-009), par
 - [x] Phase 7
 - [x] Decide D-10…D-12 (approved 2026-11-20)
 - [x] Phase 8
-- [ ] Decide D-13…D-15
+- [x] Decide D-13…D-15 (approved 2026-11-21)
 - [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)

@@ -1,6 +1,6 @@
 # SRS Sections 4–9 — Functional Requirements
 
-> Part of FOS-SRS-001 v0.7.0 (APPROVED 2026-11-20). Master: [SRS-Online-Food-Ordering-and-Delivery-Platform.md](SRS-Online-Food-Ordering-and-Delivery-Platform.md).
+> Part of FOS-SRS-001 v0.8.0 (APPROVED 2026-11-20). Master: [SRS-Online-Food-Ordering-and-Delivery-Platform.md](SRS-Online-Food-Ordering-and-Delivery-Platform.md).
 > Business rules (`BR-*`) are defined in [BUSINESS-RULES.md](BUSINESS-RULES.md); error codes in [ERROR-HANDLING.md](ERROR-HANDLING.md); APIs in [API-SPECIFICATION.md](API-SPECIFICATION.md).
 
 ---
@@ -58,7 +58,7 @@ Requirements for straightforward create/read/update/delete operations use the **
 |---|---|---|---|---|---|---|
 | FR-FILE-001 | Upload intake | The system shall accept uploads only through purpose-specific endpoints (`purpose` ∈ AVATAR, RESTAURANT_LOGO, RESTAURANT_COVER, FOOD_IMAGE, RESTAURANT_DOCUMENT, PARTNER_DOCUMENT, PARTNER_PHOTO, DELIVERY_PROOF, SUPPORT_ATTACHMENT). | Authenticated users per purpose | Purpose determines allowed MIME types & size (BR-FILE-001) | P0 | MVP |
 | FR-FILE-002 | Content validation | The system shall verify file type by magic bytes (not extension or client MIME), reject mismatches, enforce size limits, and strip EXIF metadata (including GPS) from images. | System | `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE` | P0 | MVP |
-| FR-FILE-003 | Image derivatives | The system shall generate resized WebP derivatives (thumbnail 160 px, card 480 px, hero 1200 px) for public images asynchronously and serve the original only to owners. | System | JOB-FILE-001 | P1 | MVP |
+| FR-FILE-003 | Image derivatives | The system shall generate resized WebP derivatives (thumbnail 160 px, card 480 px, hero 1200 px) for public images (during the upload, or asynchronously via JOB-FILE-001 when volume requires — v0.8.0, D-13) and serve the original only to owners. | System | JOB-FILE-001 (optional) | P1 | MVP |
 | FR-FILE-004 | Private documents | The system shall store verification documents and delivery proofs in a private bucket, accessible only via signed URLs valid ≤ 5 minutes, issued after an authorization check. | Owner, Admin | Access logged | P0 | MVP |
 | FR-FILE-005 | Storage abstraction | The system shall access storage only through the `StorageProvider` interface (local, S3-compatible implementations — SeaweedFS in development, S3/R2 in production). | System | — | P0 | MVP |
 | FR-FILE-006 | Orphan cleanup | The system shall delete uploaded files not attached to any entity within 24 hours. | System | JOB-FILE-002 | P2 | CORE |
@@ -468,7 +468,7 @@ Restaurant member roles and their default permissions are defined in `docs/archi
   2. It shall capture the first branch: address, map pin (coordinates), delivery radius (≤ BR-GEO-002 max), operating hours, average prep time, price-for-two, pure-veg flag.
   3. It shall capture bank account details (account holder, account number — stored encrypted, IFSC) — displayed masked thereafter.
   4. It shall require document uploads: FSSAI certificate, PAN card, GST certificate (if GSTIN), cancelled cheque/bank proof, menu (optional photo/PDF), logo.
-  5. The user may save progress at any step; on **submit**, the system shall validate completeness and formats (GSTIN checksum, PAN pattern, IFSC pattern, FSSAI 14 digits), set status `SUBMITTED`, create the OWNER membership, and notify admins (EVT-ADM-002).
+  5. The user may save progress at any step; on **submit**, the system shall validate completeness and formats (GSTIN checksum, PAN pattern, IFSC pattern, FSSAI 14 digits), set status `SUBMITTED`, and notify admins; the applicant's OWNER membership (created with the application) becomes effective on approval (v0.8.0, D-14) (EVT-ADM-002).
 - **Errors:** `VALIDATION_ERROR`, `ONBOARDING_INCOMPLETE` (list of missing items), `DUPLICATE_FSSAI` / `DUPLICATE_GSTIN` (flag for review rather than block if same legal entity adding a brand — admin decides).
 
 | ID | Title | Requirement | Rules | Pri | Rel |
@@ -568,7 +568,7 @@ Restaurant member roles and their default permissions are defined in `docs/archi
 | ID | Title | Requirement | Rules | Pri | Rel |
 |---|---|---|---|---|---|
 | FR-RANL-001 | Dashboard | The restaurant dashboard shall show for selected branch(es) and today: orders by status, revenue (gross food value and net payable), AOV, acceptance rate, avg acceptance time, avg prep time, rating, current status — live-updating. | Values from real data only; empty states if none | P0 | MVP |
-| FR-RANL-002 | Periodic metrics | Shall show daily/weekly/monthly revenue, order count, cancellation & rejection rate, AOV, new vs repeat customers, with period comparison. | Pre-aggregated hourly (JOB-ANL-001) | P1 | MVP |
+| FR-RANL-002 | Periodic metrics | Shall show daily/weekly/monthly revenue, order count, cancellation & rejection rate, AOV, new vs repeat customers, with period comparison. | Computed from orders; hourly pre-aggregation (JOB-ANL-001) is a performance option (v0.8.0, D-15) | P1 | MVP |
 | FR-RANL-003 | Top items & categories | Shall show top items by quantity and revenue, sales by category. | — | P1 | MVP |
 | FR-RANL-004 | Peak hours | Shall show orders by hour-of-day × weekday heatmap. | — | P2 | CORE |
 | FR-RANL-005 | Branch comparison | Owner shall compare branches on the above metrics. | — | P2 | CORE |

@@ -68,18 +68,25 @@ suite('uploads (API-FILE-001…003, FR-FILE-001…006, BR-FILE-001)', () => {
       visibility: 'PUBLIC',
       status: 'UPLOADED',
       urls: {
-        original: expect.stringMatching(/\/api\/v1\/media\/food_image\/.+\.jpg$/),
-        thumb: expect.stringMatching(/\.thumb\.webp$/),
+        thumb: expect.stringMatching(/\/api\/v1\/media\/food_image\/.+\.thumb\.webp$/),
         hero: expect.stringMatching(/\.hero\.webp$/),
       },
     });
     const path = (u: string) => new URL(u).pathname;
-    const served = await request(ctx.app).get(path(f.urls.original)).buffer(true);
+    expect(f.urls.original).toBeUndefined();
+    // FR-FILE-003: the original is not public; its owner gets it through a signed link.
+    expect(
+      (await request(ctx.app).get(path(f.urls.hero).replace('.hero.webp', '.jpg'))).status,
+    ).toBe(404);
+    const signed = new URL((await owner.browser.get(`/files/${f.id}/url`)).body.data.url);
+    const served = await request(ctx.app)
+      .get(signed.pathname + signed.search)
+      .buffer(true);
     expect(served.status).toBe(200);
     expect(served.headers['content-type']).toMatch(/image\/jpeg/);
-    expect(served.headers['cross-origin-resource-policy']).toBe('cross-origin');
     expect((await sharp(served.body as Buffer).metadata()).exif).toBeUndefined();
     const thumb = await request(ctx.app).get(path(f.urls.thumb)).buffer(true);
+    expect(thumb.headers['cross-origin-resource-policy']).toBe('cross-origin');
     expect(await sharp(thumb.body as Buffer).metadata()).toMatchObject({
       format: 'webp',
       width: 160,
@@ -158,7 +165,7 @@ suite('uploads (API-FILE-001…003, FR-FILE-001…006, BR-FILE-001)', () => {
     expect((await ctx.prisma.file.findUniqueOrThrow({ where: { id: a.id } })).status).toBe(
       'DELETED',
     );
-    expect((await request(ctx.app).get(new URL(a.urls.original).pathname)).status).toBe(404);
+    expect((await request(ctx.app).get(new URL(a.urls.thumb).pathname)).status).toBe(404);
 
     const b = (await upload(owner.browser, 'RESTAURANT', 'FOOD_IMAGE', await jpegWithExif())).body
       .data;

@@ -29,8 +29,9 @@ export interface Slot {
   opensAt: string;
   closesAt: string;
 }
+/** Public images expose WebP sizes only; originals are private (FR-FILE-003). */
 export interface FileUrls {
-  original: string;
+  original?: string;
   thumb?: string;
   card?: string;
   hero?: string;
