@@ -1,4 +1,8 @@
-import { DispatchService, registerDispatchConsumers } from './modules/dispatch';
+import {
+  DeliveryStagesService,
+  DispatchService,
+  registerDispatchConsumers,
+} from './modules/dispatch';
 import type { PrismaClient } from '@fos/db';
 import type { Env } from './config/env';
 import { appOrigins } from './config/env';
@@ -63,6 +67,7 @@ import {
 } from './modules/merchant';
 import {
   PartnerAvailabilityService,
+  PartnerEarningsService,
   PartnerOnboardingService,
   PresenceStore,
 } from './modules/partners';
@@ -282,6 +287,26 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  const partnerEarnings = new PartnerEarningsService(prisma, ledger, settings, clock);
+  dispatch.onCompensate = (tx, delivery, stage) =>
+    partnerEarnings.compensate(tx, delivery, stage).then(() => undefined);
+  const deliveryStages = new DeliveryStagesService(
+    prisma,
+    orderTransitions,
+    orderTimers,
+    orderSettlement,
+    partnerEarnings,
+    ledger,
+    presence,
+    partnerAvailability,
+    dispatch,
+    files,
+    audit,
+    settings,
+    env.AUTH_HMAC_SECRET,
+    clock,
+    logger,
+  );
   partnerAvailability.onLeave = (partnerId) => dispatch.withdrawFor(partnerId);
   partnerAvailability.onIdle = (partnerId) => dispatch.partnerIdle(partnerId);
   // BR-DEL-003: nobody would deliver it — cancel as a platform fault with a full refund.
@@ -368,6 +393,8 @@ export function createContainer(input: ContainerInput) {
     presence,
     partnerAvailability,
     dispatch,
+    partnerEarnings,
+    deliveryStages,
     restaurantOrders,
     outboxRelay,
     appOrigins: appOrigins(env),

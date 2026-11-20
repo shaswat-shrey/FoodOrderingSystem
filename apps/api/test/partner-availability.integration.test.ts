@@ -4,6 +4,7 @@ import { localParts, zonedInstant } from '../src/modules/catalog/local-time';
 import {
   createTestContext,
   integrationEnabled,
+  parkActiveDeliveries,
   PARTNERS,
   signInAs,
   type TestContext,
@@ -23,6 +24,7 @@ beforeEach(async () => {
   await Promise.all([ctx.redis.core.flushdb(), ctx.redis.cache.flushdb()]);
   const t = localParts(new Date(), 'Asia/Kolkata');
   ctx.clock.set(zonedInstant(t.year, t.month, t.day, 13 * 60, 'Asia/Kolkata'));
+  await parkActiveDeliveries(ctx);
 });
 
 const KORAMANGALA = { lat: 12.9352, lng: 77.6245 };

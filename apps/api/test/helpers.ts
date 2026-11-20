@@ -450,3 +450,26 @@ export const PARTNERS = [
   '+919000000404',
   '+919000000405',
 ] as const;
+
+/** Cancels deliveries and offers left by other tests so partners start free (test isolation only). */
+export async function parkActiveDeliveries(ctx: TestContext): Promise<void> {
+  await ctx.prisma.deliveryAssignment.updateMany({
+    where: { status: 'OFFERED' },
+    data: { status: 'WITHDRAWN' },
+  });
+  await ctx.prisma.delivery.updateMany({
+    where: {
+      status: {
+        in: [
+          'PENDING',
+          'SEARCHING',
+          'ASSIGNED',
+          'AT_RESTAURANT',
+          'EN_ROUTE_TO_CUSTOMER',
+          'AT_CUSTOMER',
+        ],
+      },
+    },
+    data: { status: 'CANCELLED' },
+  });
+}

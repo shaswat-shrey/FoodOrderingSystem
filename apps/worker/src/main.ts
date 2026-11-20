@@ -7,6 +7,7 @@ import {
   BranchOpsService,
   BranchRepository,
   CartExpiry,
+  DeliveryStagesService,
   DispatchService,
   registerDispatchConsumers,
   EstimatedRouting,
@@ -23,11 +24,13 @@ import {
   OrderCancellationService,
   OrderEffects,
   OrderPaymentReactions,
+  OrderSettlement,
   OrderTimerJobs,
   OrderTimers,
   OrderTransitions,
   OutboxRelay,
   PartnerAvailabilityService,
+  PartnerEarningsService,
   PresenceStore,
   ServiceabilityService,
   PaymentsService,
@@ -145,6 +148,33 @@ async function main(): Promise<void> {
       .catch((error: unknown) =>
         logger.warn({ err: error, orderId }, 'no-partner cancellation skipped'),
       );
+  const files = new FilesService(
+    prisma,
+    createStorageProvider(env, env.AUTH_HMAC_SECRET),
+    audit,
+    clock,
+    logger,
+  );
+  const earnings = new PartnerEarningsService(prisma, ledger, settings, clock);
+  dispatch.onCompensate = (tx, delivery, stage) =>
+    earnings.compensate(tx, delivery, stage).then(() => undefined);
+  const deliveryStages = new DeliveryStagesService(
+    prisma,
+    transitions,
+    timers,
+    new OrderSettlement(ledger),
+    earnings,
+    ledger,
+    presence,
+    partnerAvailability,
+    dispatch,
+    files,
+    audit,
+    settings,
+    env.AUTH_HMAC_SECRET,
+    clock,
+    logger,
+  );
   registerDispatchConsumers(outbox, dispatch);
   const registrations = buildRegistrations({
     sink,
@@ -165,13 +195,8 @@ async function main(): Promise<void> {
       clock,
       logger,
     ),
-    files: new FilesService(
-      prisma,
-      createStorageProvider(env, env.AUTH_HMAC_SECRET),
-      audit,
-      clock,
-      logger,
-    ),
+    files,
+    deliveryStages,
     deliverer: new NotificationDeliverer(prisma, sink, new LogPushSender(logger), clock, logger),
     logger,
   });

@@ -6,6 +6,7 @@ import {
   branchId,
   createTestContext,
   integrationEnabled,
+  parkActiveDeliveries,
   placeOrder,
   SAFFRON_STAFF,
   signInAs,
@@ -39,24 +40,15 @@ beforeEach(async () => {
   ctx.clock.set(zonedInstant(t.year, t.month, t.day, 13 * 60, 'Asia/Kolkata'));
   (ctx.container.jobs as RecordingJobQueue).jobs.length = 0;
   // Deliveries left by other tests must not compete for the partners here.
-  await ctx.prisma.deliveryAssignment.updateMany({
-    where: { status: 'OFFERED' },
-    data: { status: 'WITHDRAWN' },
-  });
-  await ctx.prisma.delivery.updateMany({
-    where: {
-      status: {
-        in: [
-          'PENDING',
-          'SEARCHING',
-          'ASSIGNED',
-          'AT_RESTAURANT',
-          'EN_ROUTE_TO_CUSTOMER',
-          'AT_CUSTOMER',
-        ],
-      },
+  await parkActiveDeliveries(ctx);
+  // Trips completed in other files change the idle/load ranking features.
+  await ctx.prisma.partnerStats.updateMany({
+    data: {
+      acceptanceRateBps30d: 10_000,
+      deliveriesToday: 0,
+      lastDeliveryCompletedAt: null,
+      consecutiveMissedOffers: 0,
     },
-    data: { status: 'CANCELLED' },
   });
   await ctx.prisma.partnerStats.updateMany({ data: { consecutiveMissedOffers: 0 } });
   await ctx.prisma.outboxEvent.updateMany({

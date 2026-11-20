@@ -10,6 +10,7 @@ export {
   OrderCancellationService,
   OrderEffects,
   OrderPaymentReactions,
+  OrderSettlement,
   OrderTimerJobs,
   OrderTimers,
   OrderTransitions,
@@ -42,6 +43,15 @@ export {
 export { BranchRepository } from '../modules/catalog/branch-repository';
 export { BranchOpsService } from '../modules/merchant/branch-ops.service';
 export { ServiceabilityService } from '../modules/catalog/serviceability.service';
-export { PartnerAvailabilityService, PresenceStore } from '../modules/partners';
+export {
+  PartnerAvailabilityService,
+  PartnerEarningsService,
+  PresenceStore,
+} from '../modules/partners';
 export { EstimatedRouting } from '../modules/geo';
-export { DISPATCH_JOBS, DispatchService, registerDispatchConsumers } from '../modules/dispatch';
+export {
+  DeliveryStagesService,
+  DISPATCH_JOBS,
+  DispatchService,
+  registerDispatchConsumers,
+} from '../modules/dispatch';
