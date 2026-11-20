@@ -2,7 +2,7 @@ import { createServer } from 'node:http';
 import { createPrismaClient, pingDatabase } from '@fos/db';
 import { loadEnv } from './config/env';
 import { createContainer } from './container';
-import { authRouter } from './modules/auth';
+import { authRouter, createSocketAuth, REALTIME_CONTROL_CHANNEL } from './modules/auth';
 import { QueueMessageDispatcher } from './modules/notifications';
 import { usersRouter } from './modules/users';
 import { systemClock } from './platform/clock';
@@ -53,7 +53,14 @@ async function main(): Promise<void> {
   });
 
   const httpServer = createServer(app);
-  const io = createSocketServer(httpServer, { corsOrigins, logger, redis: redis.core });
+  const io = createSocketServer(httpServer, {
+    corsOrigins,
+    logger,
+    redis: redis.core,
+    auth: createSocketAuth(container.tokens, container.sessions),
+    limiter: container.limiter,
+    controlChannel: REALTIME_CONTROL_CHANNEL,
+  });
 
   httpServer.listen(env.API_PORT, () => {
     logger.info({ port: env.API_PORT, env: env.NODE_ENV }, 'api listening');

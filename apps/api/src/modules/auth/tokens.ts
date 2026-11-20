@@ -66,6 +66,14 @@ export class TokenService {
 
   /** Verifies signature, issuer, audience (the calling app) and expiry. */
   async verify(token: string, expectedApp: ClientApp): Promise<AccessClaims> {
+    return (await this.verifyWithExpiry(token, expectedApp)).claims;
+  }
+
+  /** As verify(), also returning the expiry (sockets drop when it lapses, FR-RT-003). */
+  async verifyWithExpiry(
+    token: string,
+    expectedApp: ClientApp,
+  ): Promise<{ claims: AccessClaims; expiresAt: Date }> {
     try {
       const { payload } = await jwtVerify(
         token,
@@ -91,13 +99,16 @@ export class TokenService {
         throw new TokenError('INVALID');
       }
       return {
-        userId: payload.sub,
-        sessionId: payload.sid,
-        app: expectedApp,
-        roles: Array.isArray(payload.roles) ? payload.roles.map(String) : [],
-        scope: payload.scp,
-        permissionVersion: payload.pv,
-        tokenVersion: payload.tv,
+        claims: {
+          userId: payload.sub,
+          sessionId: payload.sid,
+          app: expectedApp,
+          roles: Array.isArray(payload.roles) ? payload.roles.map(String) : [],
+          scope: payload.scp,
+          permissionVersion: payload.pv,
+          tokenVersion: payload.tv,
+        },
+        expiresAt: new Date((payload.exp ?? 0) * 1000),
       };
     } catch (error) {
       if (error instanceof TokenError) throw error;
