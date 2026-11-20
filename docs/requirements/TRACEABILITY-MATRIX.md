@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.3.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; platform requirements delivered in Phase 2 are listed in §22.1a.
+> Part of FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database) and §22.1c (authentication).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -115,6 +115,38 @@ Code: `packages/db/prisma/schema/**`; tests: `packages/db/test/constraints.test.
 | BR-AUTH-014, BR-ADDR-001, BR-CART-001, BR-MENU-002…005, BR-COUPON-003/004, BR-DEL-014, BR-REVIEW-002, BR-REST-003, BR-ADMIN-001 | Rules with database backstops | Verified (database layer; service-level enforcement comes with each module) |
 | FR-DISP-006/007, FR-DISP-013, FR-PAY-004, FR-PAY-008, FR-REFUND-003, FR-CFG-002, FR-AUDIT-002, FR-ADMIN-070 | Database backstops for these requirements | Verified (database layer) |
 
+## 22.1c Authentication & security implemented in Phase 4
+
+Code: `apps/api/src/modules/{auth,iam,audit,notifications,users}`, `apps/api/src/platform/{rate-limit,crypto}.ts`, `apps/worker/src/processors.ts`, `packages/api-client/src/{client,auth-api,auth-store}.ts`, `packages/auth-web/**`, `packages/validation/src/auth.ts`. Tests: `apps/api/test/auth.integration.test.ts` (API), `apps/api/test/realtime.integration.test.ts` and `apps/api/src/platform/realtime/socket-server.test.ts` (sockets), `apps/api/src/modules/auth/auth-units.test.ts`, `packages/api-client/src/auth.test.ts`, `packages/auth-web/src/auth-web.test.tsx`, `tests/e2e/specs/auth.fullstack.spec.ts` (opt-in, real API + worker).
+
+Status is **Implemented** with tests passing locally; rows move to *Verified* once CI has run them (§27.2).
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| FR-AUTH-001, BR-AUTH-020 | Email + phone + password registration with consent; phone verification gate (`AUTH_VERIFICATION_REQUIRED`) | Implemented |
+| FR-AUTH-002 | Phone + OTP sign-in; first-time numbers create a customer account | Implemented (UI collects name and consent, then sends a fresh code) |
+| FR-AUTH-003 | Password sign-in by email or 10-digit phone | Implemented |
+| FR-AUTH-005, 006, 007 | Logout, logout-all, list and revoke device sessions | Implemented |
+| FR-AUTH-008, 009, 010 | Email link verification, phone verification, OTP issue/verify (HMAC-stored, cooldown, attempts) | Implemented |
+| FR-AUTH-011, 012, 013 | Forgot / reset (link or phone code) / change password | Implemented |
+| FR-AUTH-020, 021, 022 | Session + token issuance, access-token validation (audience, `tv`/`pv`, live session), refresh rotation with race grace and reuse detection | Implemented |
+| FR-AUTH-023 | Idle and absolute session expiry per app | Implemented (no dedicated test yet) |
+| FR-AUTH-024 | Role/permission changes apply on the next request | Implemented |
+| FR-AUTH-030, BR-AUTH-004 | Lockout (5 failures → 15 min, doubling, 24 h cap) and per-IP/per-identifier throttling | Implemented |
+| FR-AUTH-031, BR-AUTH-017 | Step-up re-authentication (5 min) | Implemented (used by account deletion) |
+| FR-AUTH-032, BR-AUTH-018 | Admin second factor: emailed code (TOTP is CORE) | Implemented (interim email code) |
+| FR-AUTH-040, BR-AUTH-012 | Suspended accounts cannot sign in | Implemented (admin suspend action: Phase 11) |
+| FR-AUTH-041, 042, BR-AUTH-011, 013 | Account deletion with 30-day grace, blockers, reactivation, anonymisation job | Implemented |
+| FR-AUTH-004, FR-AUTH-014 | OAuth sign-in, account recovery | Planned (CORE) |
+| BR-AUTH-001 | Password policy, Argon2id | Implemented, with discrepancy **D-4** (interim breached-password list) |
+| BR-AUTH-003, 005, 006, 007, 008, 009, 010, 014, 015, 016, 019 | OTP policy, session cap, token lifetimes, refresh grace, link lifetimes, revocation on credential change, app–role compatibility, uniqueness, generic conflicts, cookie endpoints require trusted Origin | Implemented |
+| BR-AUTH-002 | Verified phone before checkout | Partial (verification gate in place; checkout arrives in Phase 6) |
+| FR-AUDIT-001 | Security events written to the audit log with redaction | Implemented |
+| FR-RT-001…005, 007 | Socket handshake auth per app namespace, token refresh on the socket, revocation disconnects, personal/session rooms, connect rate limit | Implemented |
+| FR-FE-001, 002, 003 | Route guards, in-memory access token with silent restore, single-flight refresh across tabs | Implemented |
+| NFR-SEC-002, 004, 007, 009, 010, 011, 013, 014, 018, 020 | Authentication model, strict input schemas, CSRF origin check on cookie endpoints, CORS allowlist with credentials, rate limits, validated secrets, explicit response shapes, log redaction, audit logging, socket handshake security | Implemented (CAPTCHA adapter in NFR-SEC-010: Planned) |
+| NFR-ACCESS-001, 003 | Contrast ≥ 4.5:1 on auth screens; labelled fields with announced errors | Implemented (axe checks on sign-in and sign-up) |
+
 ## 22.2 Non-functional requirements
 
 | Requirement IDs | Verification method | Test / evidence | Status |
@@ -143,3 +175,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-20 | 0.1.0 | Initial matrix (group-level, all rows Planned). |
 | 2026-11-20 | 0.2.1 | Phase 2: added §22.1a with platform requirements implemented and verified. |
 | 2026-11-20 | 0.2.2 | Phase 3: added §22.1b with database requirements. |
+| 2026-11-20 | 0.3.1 | Phase 4: added §22.1c with authentication, session, realtime-auth and web-auth requirements. |

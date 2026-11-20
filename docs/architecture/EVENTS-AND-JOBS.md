@@ -1,6 +1,6 @@
 # Domain Events, Notification Matrix & Background Job Inventory
 
-> Phase 1 · v0.3.0 (APPROVED 2026-11-20). Real-time (socket) events are specified in SRS §13.5; this document covers internal domain events, the notification matrix, and BullMQ jobs.
+> Phase 1 · v0.3.1 (APPROVED 2026-11-20). Real-time (socket) events are specified in SRS §13.5; this document covers internal domain events, the notification matrix, and BullMQ jobs.
 
 ## 1. Domain events (outbox)
 

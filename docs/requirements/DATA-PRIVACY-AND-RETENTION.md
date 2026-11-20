@@ -1,6 +1,6 @@
 # SRS Section 20 — Data Privacy and Retention
 
-> Part of FOS-SRS-001 v0.3.0 (APPROVED 2026-11-20). **This section is an engineering proposal, not legal advice.** The platform does not claim compliance with any law or certification. Items marked ⚖ require review by qualified legal counsel before launch in India.
+> Part of FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20). **This section is an engineering proposal, not legal advice.** The platform does not claim compliance with any law or certification. Items marked ⚖ require review by qualified legal counsel before launch in India.
 
 ## 20.1 Applicable regulatory areas (India) ⚖
 

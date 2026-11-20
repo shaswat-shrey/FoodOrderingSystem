@@ -7,7 +7,7 @@
 | Path | Contents |
 | --- | --- |
 | `packages/db/prisma/schema/*.prisma` | Multi-file Prisma schema, one file per domain: `identity`, `customers`, `restaurants`, `menu`, `commerce`, `orders`, `payments`, `delivery`, `engagement`, `platform` (+ `base` for generator/datasource). 147 models, 105 enums. |
-| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints`, `…300_immutability`, `…400_payment_attempts_guard` (hand-written rules) |
+| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints`, `…300_immutability`, `…400_payment_attempts_guard` (hand-written rules) · `20261120151832_auth_enum_values` (Phase 4: OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT`) |
 | `packages/db/src/index.ts` | `createPrismaClient`, `pingDatabase` |
 | `packages/db/src/seed/` | Development seed (`data.ts` = dataset, `seed.ts` = loader) |
 | `packages/db/test/constraints.test.ts` | Integration tests proving every SQL rule (34 tests) |
@@ -122,7 +122,7 @@ Truncates every table and loads the pilot-city dataset; refuses to run with `NOD
 | Partners | 6 approved partners `+9190000004xx` with vehicles and last-known locations |
 | Config | Fee schedule & slabs, placeholder GST rules, 20 % commission, partner pay plan, settings, feature flags, coupons `WELCOME50`, `FLAT100`, `FREEDEL`, platform ledger accounts, permission catalog and role grants |
 
-Accounts have **no passwords yet**: credentials and OTP login arrive with the auth module in Phase 4.
+Seed accounts have **no passwords**. Sign in with a one-time code to the seeded phone number; without real SMS/email providers the worker writes every code and link to `.local/dev-messages.log` (`DEV_MESSAGE_SINK=file`). To give an account a password, use “Forgot password” and open the emailed link from the same file. The admin app needs a password plus an emailed code, so set an admin password this way first.
 
 ## 7. Running PostgreSQL locally
 

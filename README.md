@@ -72,6 +72,12 @@ No Docker? Run a project-local PostgreSQL 18 + PostGIS on port 5433 instead (mac
 infrastructure/scripts/local-postgres.sh init
 ```
 
+and a project-local Redis (core on 6390, cache on 6391; point `REDIS_CORE_URL`, `REDIS_CACHE_URL` and `TEST_REDIS_URL` there):
+
+```bash
+infrastructure/scripts/local-redis.sh start
+```
+
 5. Run the API, worker and all four web apps with hot reload:
 
 ```bash
@@ -85,6 +91,16 @@ pnpm dev
 | Customer / Restaurant / Delivery / Admin apps | http://localhost:5173 · 5174 · 5175 · 5176                             |
 | Mailpit (captured email)                      | http://localhost:8025                                                  |
 | S3 endpoint (SeaweedFS)                       | http://localhost:8333                                                  |
+
+### Signing in during development
+
+There are no real SMS or email providers until Phase 7. The worker writes every one-time code and email link to `.local/dev-messages.log`, so keep the worker running and read codes from there:
+
+```bash
+tail -f .local/dev-messages.log
+```
+
+Seed accounts sign in with a code to their phone number (see [SCHEMA-NOTES §6](docs/database/SCHEMA-NOTES.md)); new numbers create a customer account. The admin app is password + emailed code only, with no self sign-up.
 
 To run the API and worker in containers instead of on the host:
 
@@ -108,6 +124,12 @@ pnpm --filter @fos/e2e e2e:install
 
 ```bash
 pnpm --filter @fos/e2e e2e
+```
+
+Full-stack auth journeys (need the API, worker, database and Redis running):
+
+```bash
+E2E_FULL_STACK=1 pnpm --filter @fos/e2e e2e fullstack
 ```
 
 ## Documentation

@@ -501,7 +501,7 @@ Integrity: **0** duplicate definitions, **0** references to undefined IDs.
 | NFR-SCALE-001 | API instances are stateless (no in-memory session state, no local file storage) and horizontally scalable behi |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
 | NFR-SCALE-002 | Workers scale independently per queue (queue-specific concurrency; separate worker deployments for heavy queue |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
 | NFR-SCALE-003 | Socket.IO scales horizontally via the Redis adapter; room fan-out avoids per-socket loops; location broadcasts |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
-| NFR-SCALE-004 | Database: read replicas for analytics/reporting (CORE); partitioning for `audit_logs`, `delivery_locations`, ` |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
+| NFR-SCALE-004 | Database: read replicas for analytics/reporting (CORE); monthly partitioning for `audit_logs`, `delivery_locat |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
 | NFR-SCALE-005 | Redis: separate logical stores for cache (evictable), queues (noeviction), and realtime/geo (noeviction); can  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
 | NFR-SCALE-006 | Geographic expansion: zones, fees, taxes, partner pay and feature flags are zone/city-configurable; adding a c |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |
 | NFR-SCALE-007 | Module boundaries allow extracting dispatch/tracking into a separate service if location throughput exceeds a  |  |  | [NON-FUNCTIONAL-REQUIREMENTS.md](NON-FUNCTIONAL-REQUIREMENTS.md) |

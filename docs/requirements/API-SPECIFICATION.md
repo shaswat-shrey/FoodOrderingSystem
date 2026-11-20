@@ -1,6 +1,6 @@
 # SRS Section 14 — API Requirements (API Inventory & Specification)
 
-> Part of FOS-SRS-001 v0.3.0 (APPROVED 2026-11-20). This is the **planned** API inventory. No endpoint exists yet; implementation status is tracked in the Traceability Matrix. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
+> Part of FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20). This is the API inventory. Implemented so far: API-SYS-001/002, API-AUTH-001…016, 021…023 and API-USER-001/003 (see Traceability Matrix §22.1a/§22.1c); everything else is planned. The OpenAPI document will be **generated from the shared Zod schemas** used by the route validators (`zod-to-openapi`), so documentation cannot drift from implementation (NFR-MAINT-006).
 
 ---
 

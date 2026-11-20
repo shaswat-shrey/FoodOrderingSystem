@@ -1,6 +1,6 @@
 # SRS Section 18 — Business Rules Catalog
 
-> Part of FOS-SRS-001 v0.3.0 (APPROVED 2026-11-20). Business rules are **policy**: they can change without changing the functional requirement that enforces them. Every numeric value marked ⚙ is a platform setting (`cfg.*`) or effective-dated config editable by authorized admins; values shown are the **defaults approved by the owner on 2026-11-20** (open decisions OD-02…OD-11 resolved with these defaults); values flagged for legal/tax review remain subject to that review. Each rule is testable; the test reference column in the Traceability Matrix maps rules to test cases.
+> Part of FOS-SRS-001 v0.3.1 (APPROVED 2026-11-20). Business rules are **policy**: they can change without changing the functional requirement that enforces them. Every numeric value marked ⚙ is a platform setting (`cfg.*`) or effective-dated config editable by authorized admins; values shown are the **defaults approved by the owner on 2026-11-20** (open decisions OD-02…OD-11 resolved with these defaults); values flagged for legal/tax review remain subject to that review. Each rule is testable; the test reference column in the Traceability Matrix maps rules to test cases.
 
 ---
 

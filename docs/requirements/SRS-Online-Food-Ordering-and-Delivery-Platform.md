@@ -15,7 +15,7 @@
 | Project name | FoodOrderSystem — Online Food Ordering and Delivery Platform (working name; product brand name TBD — see OD-01) |
 | Document title | Software Requirements Specification (SRS) |
 | Document identifier | FOS-SRS-001 |
-| Document version | 0.3.0 |
+| Document version | 0.3.1 |
 | Document status | **APPROVED — Baseline for implementation** |
 | Date of creation | 2026-11-20 |
 | Author | Engineering (prepared with Claude Code acting as architecture partner) |
@@ -32,6 +32,7 @@
 | 0.2.1 | 2026-11-20 | Engineering | Development object storage changed from MinIO to SeaweedFS (S3 gateway) because MinIO no longer publishes community Docker images. Production storage (S3/R2) and the `StorageProvider` requirement are unchanged. Editorial (§3.2, §3.5, §3.8, FR-FILE-005, IF-STO-001). | Patch (no approval needed) |
 | 0.2.2 | 2026-11-20 | Engineering | Editorial: §15.3 entity count corrected to the 147 tables implemented in Phase 3; link to schema implementation notes. Three proposed requirement changes from Phase 3 are pending owner approval (PROJECT_STATUS.md → discrepancies) and are **not** applied. | Patch (no approval needed) |
 | 0.3.0 | 2026-11-20 | Engineering | Owner-approved Phase 3 changes: (D-1) §15.6 `payment_attempts` status may progress while provider ID, payment and amount stay immutable; (D-2) new DB-SCALE-001 defers monthly partitioning of `audit_logs`, `delivery_locations`, `notifications` until volume/retention thresholds, NFR-SCALE-004 aligned; (D-3) DB-CONV-005 money stored as `integer` for bounded per-transaction amounts and `bigint` for balances/totals (ADR-007 aligned). | Project owner |
+| 0.3.1 | 2026-11-20 | Engineering | Editorial (Phase 4): §19.2 catalogue now lists four codes already specified in §14 (`AUTH_EMAIL_ALREADY_VERIFIED`, `AUTH_MFA_INVALID`, `AUTH_SESSION_NOT_FOUND`, `ACCOUNT_NOT_REACTIVATABLE`); §14 header and §22 matrix note that auth endpoints are implemented (§22.1c). No requirement changed; proposed changes D-4…D-6 await approval in `PROJECT_STATUS.md`. | — |
 
 Versioning rule: MAJOR = approved baseline change that alters scope; MINOR = requirements added/changed; PATCH = editorial fixes. Every change to a requirement ID's text is recorded here and in the Traceability Matrix change log (§27).
 
