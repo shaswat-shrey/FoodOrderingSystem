@@ -141,6 +141,23 @@ export function merchantRouter(deps: MerchantRouterDeps): Router {
     }),
   );
 
+  /** Cuisine picker for applications and profiles (all active cuisines). */
+  router.get(
+    '/merchant/cuisines',
+    ...applicant,
+    handle({}, async ({ res }) => {
+      res.setHeader('Cache-Control', 'private, max-age=300');
+      sendOk(
+        res,
+        await deps.prisma.cuisine.findMany({
+          where: { isActive: true },
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+      );
+    }),
+  );
+
   router.post(
     '/merchant/applications',
     ...applicant,

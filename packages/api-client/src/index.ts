@@ -26,3 +26,5 @@ export {
 } from './auth-api';
 export { createCustomerApi, type CustomerApi } from './customer-api';
 export type * from './customer-api';
+export { createMerchantApi, type MerchantApi } from './merchant-api';
+export type * from './merchant-api';
