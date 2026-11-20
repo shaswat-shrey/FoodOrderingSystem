@@ -8,6 +8,10 @@ import {
   createPaymentProvider,
   InvoiceService,
   LedgerService,
+  LogPushSender,
+  NotificationDeliverer,
+  NotificationService,
+  registerNotificationConsumers,
   OffersService,
   OrderCancellationService,
   OrderEffects,
@@ -92,8 +96,13 @@ async function main(): Promise<void> {
     reactions,
     invoices: new InvoiceService(prisma, clock),
   });
+  const sink = createMessageSink(env, logger);
+  registerNotificationConsumers(outbox, {
+    prisma,
+    notifications: new NotificationService(prisma, jobs, clock, logger),
+  });
   const registrations = buildRegistrations({
-    sink: createMessageSink(env, logger),
+    sink,
     anonymizer,
     cartExpiry: new CartExpiry(prisma, clock),
     ledger,
@@ -101,6 +110,7 @@ async function main(): Promise<void> {
     refunds,
     orderJobs,
     outbox,
+    deliverer: new NotificationDeliverer(prisma, sink, new LogPushSender(logger), clock, logger),
     logger,
   });
   const workers = startWorkers(registrations, core, logger);

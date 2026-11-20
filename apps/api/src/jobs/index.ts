@@ -26,3 +26,10 @@ export { PaymentsService, PROCESS_WEBHOOK_JOB } from '../modules/payments/paymen
 export { RefundService, SUBMIT_REFUND_JOB } from '../modules/payments/refunds.service';
 export { BullJobQueue } from '../platform/jobs';
 export { OutboxRelay } from '../platform/outbox-relay';
+export {
+  DELIVER_NOTIFICATION_JOB,
+  LogPushSender,
+  NotificationDeliverer,
+  NotificationService,
+  registerNotificationConsumers,
+} from '../modules/notifications';

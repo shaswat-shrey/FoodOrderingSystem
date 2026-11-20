@@ -48,7 +48,11 @@ import {
 } from './modules/geo';
 import { AuthService, OtpService, SessionService, TokenService } from './modules/auth';
 import { IamService } from './modules/iam';
-import type { MessageDispatcher } from './modules/notifications';
+import {
+  NotificationService,
+  registerNotificationConsumers,
+  type MessageDispatcher,
+} from './modules/notifications';
 
 export interface ContainerInput {
   env: Env;
@@ -197,7 +201,9 @@ export function createContainer(input: ContainerInput) {
   const orderIssues = new OrderIssueService(prisma, support, refunds, settings, clock);
   // Consumers are registered here; the relay loop itself runs in the worker.
   const outboxRelay = new OutboxRelay(prisma, redis.core, clock, logger);
+  const notifications = new NotificationService(prisma, jobs, clock, logger);
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
+  registerNotificationConsumers(outboxRelay, { prisma, notifications });
   return {
     env,
     prisma,
@@ -247,6 +253,7 @@ export function createContainer(input: ContainerInput) {
     orderSettlement,
     support,
     orderIssues,
+    notifications,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

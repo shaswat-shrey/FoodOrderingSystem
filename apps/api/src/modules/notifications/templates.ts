@@ -7,7 +7,9 @@ export type MessageTemplate =
   | { template: 'OTP'; vars: { code: string; purpose: string; minutes: number } }
   | { template: 'VERIFY_EMAIL'; vars: { name: string; link: string } }
   | { template: 'RESET_PASSWORD_EMAIL'; vars: { name: string; link: string; minutes: number } }
-  | { template: 'SECURITY_ALERT'; vars: { name: string; event: SecurityEvent } };
+  | { template: 'SECURITY_ALERT'; vars: { name: string; event: SecurityEvent } }
+  /** Already rendered from a stored template (notification deliveries). */
+  | { template: 'RENDERED'; vars: { subject: string; text: string } };
 
 export type SecurityEvent =
   | 'PASSWORD_CHANGED'
@@ -73,5 +75,7 @@ export function render(message: MessageTemplate): RenderedMessage {
         subject: 'Security alert for your account',
         text: `Hi ${message.vars.name}, ${SECURITY_TEXT[message.vars.event]}`,
       };
+    case 'RENDERED':
+      return { subject: message.vars.subject, text: message.vars.text };
   }
 }

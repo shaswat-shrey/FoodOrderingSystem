@@ -3,6 +3,7 @@ import { Worker, type ConnectionOptions, type Processor } from 'bullmq';
 import type { QueueName } from '@fos/shared';
 import type { Logger } from '@fos/api/platform';
 import {
+  DELIVER_NOTIFICATION_JOB,
   FileMessageSink,
   LogMessageSink,
   SEND_MESSAGE_JOB,
@@ -15,6 +16,7 @@ import {
   type AccountAnonymizer,
   type CartExpiry,
   type LedgerService,
+  type NotificationDeliverer,
   type OrderTimerJobs,
   type OutboxRelay,
   type PaymentsService,
@@ -78,6 +80,7 @@ export interface JobServices {
   refunds: Pick<RefundService, 'submit' | 'sweep'>;
   orderJobs: Pick<OrderTimerJobs, 'run' | 'sweep'>;
   outbox: Pick<OutboxRelay, 'checkStale'>;
+  deliverer: Pick<NotificationDeliverer, 'deliver'>;
   logger: Logger;
 }
 
@@ -91,6 +94,7 @@ export function buildRegistrations({
   refunds,
   orderJobs,
   outbox,
+  deliverer,
   logger,
 }: JobServices): ProcessorRegistration[] {
   const maintenance: Record<string, () => Promise<void>> = {
@@ -175,6 +179,12 @@ export function buildRegistrations({
       queue: 'notifications',
       concurrency: 20,
       processor: async (job) => {
+        if (job.name === DELIVER_NOTIFICATION_JOB) {
+          // JOB-NOTIF-001
+          const data = job.data as { deliveryId: string; vars: Record<string, string | number> };
+          await deliverer.deliver(data.deliveryId, data.vars);
+          return;
+        }
         if (job.name !== SEND_MESSAGE_JOB)
           throw new Error(`Unknown notifications job: ${job.name}`);
         await sink.deliver(job.data as Message);
