@@ -13,6 +13,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const reqDir = join(root, 'docs', 'requirements');
 const scanDirs = [reqDir, join(root, 'docs', 'architecture'), join(root, 'docs', 'database')];
 const OUT = join(reqDir, 'REQUIREMENTS-INDEX.md');
+// Files that only reference IDs (their rows start with IDs but define nothing).
+const REFERENCE_ONLY = new Set(['TRACEABILITY-MATRIX.md']);
 
 // ID families that are *defined* in the SRS and must be unique.
 const FAMILIES = [
@@ -47,12 +49,15 @@ for (const file of scanDirs.flatMap(listMd)) {
   if (file === OUT) continue;
   const rel = relative(reqDir, file);
   const lines = readFileSync(file, 'utf8').split('\n');
+  const definesIds = !REFERENCE_ONLY.has(rel);
   for (const line of lines) {
     // Definition form 1: table row whose first cell is the ID.
     const row = line.match(/^\|\s*((?:FR|NFR|BR|AC|API|EVT)-[A-Z0-9-]+-\d{3})\s*\|(.*)$/);
     // Definition form 2: heading "#### FR-XXX-NNN — Title  [P0 · MVP]".
     const head = line.match(/^#{2,5}\s+((?:FR|NFR|BR|AC|API|EVT)-[A-Z0-9-]+-\d{3})\s+[—-]\s+(.*)$/);
-    if (row) {
+    if (!definesIds) {
+      // reference-only file: fall through to reference collection below
+    } else if (row) {
       const cells = row[2].split('|').map((c) => c.trim()).filter((c, i, a) => i < a.length - 1 || c);
       const pri = cells.find((c) => /^P[0-3]$/.test(c));
       const rel_ = cells.find((c) => /^(MVP|CORE|ADV|FUT)\b/.test(c));

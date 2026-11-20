@@ -12,7 +12,7 @@
 | API endpoints (`API-*`) | 494 |
 | Real-time events (`EVT-*`) | 49 |
 
-Integrity: **3** duplicate definitions, **0** references to undefined IDs.
+Integrity: **0** duplicate definitions, **0** references to undefined IDs.
 
 ## Functional requirements
 
