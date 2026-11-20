@@ -49,6 +49,8 @@ import {
 } from './modules/geo';
 import { AuthService, OtpService, SessionService, TokenService } from './modules/auth';
 import { IamService } from './modules/iam';
+import { MerchantAccess, OnboardingService, PermissionChanges } from './modules/merchant';
+import { fieldCipherFrom } from './platform/crypto';
 import {
   NotificationService,
   registerNotificationConsumers,
@@ -211,6 +213,18 @@ export function createContainer(input: ContainerInput) {
   // Consumers are registered here; the relay loop itself runs in the worker.
   const outboxRelay = new OutboxRelay(prisma, redis.core, clock, logger);
   const notifications = new NotificationService(prisma, jobs, clock, logger);
+  const fieldCipher = fieldCipherFrom(env);
+  const merchantAccess = new MerchantAccess(prisma, iam);
+  const permissionChanges = new PermissionChanges(iam, sessions);
+  const onboarding = new OnboardingService(
+    prisma,
+    files,
+    serviceability,
+    permissionChanges,
+    audit,
+    fieldCipher,
+    clock,
+  );
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
   registerNotificationConsumers(outboxRelay, { prisma, notifications });
   return {
@@ -264,6 +278,10 @@ export function createContainer(input: ContainerInput) {
     support,
     orderIssues,
     notifications,
+    fieldCipher,
+    merchantAccess,
+    permissionChanges,
+    onboarding,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

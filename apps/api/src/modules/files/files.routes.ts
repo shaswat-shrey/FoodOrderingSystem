@@ -82,7 +82,11 @@ const CONTENT_TYPES: Record<string, string> = Object.fromEntries(
  */
 export function fileUploadRouter(deps: FilesRouterDeps): Router {
   const router = Router();
-  const authed: RequestHandler[] = [requireClientApp(), authenticate(deps)];
+  // Applicants (onboarding scope) upload their documents and logo too.
+  const authed: RequestHandler[] = [
+    requireClientApp(),
+    authenticate(deps, { allowOnboarding: true }),
+  ];
   const auth = (res: Response) => res.locals.auth!;
   const uploads = rateLimit(deps.limiter, {
     name: 'rl:upload:user',
@@ -116,7 +120,11 @@ export function fileUploadRouter(deps: FilesRouterDeps): Router {
 /** API-FILE-002/003, plus local-driver media serving (development and tests only). */
 export function filesRouter(deps: FilesRouterDeps): Router {
   const router = Router();
-  const authed: RequestHandler[] = [requireClientApp(), authenticate(deps)];
+  // Applicants (onboarding scope) upload their documents and logo too.
+  const authed: RequestHandler[] = [
+    requireClientApp(),
+    authenticate(deps, { allowOnboarding: true }),
+  ];
   const auth = (res: Response) => res.locals.auth!;
 
   router.get(

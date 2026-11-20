@@ -45,7 +45,12 @@ export class IamService {
         },
       }),
       this.prisma.restaurantMember.findMany({
-        where: { userId, status: 'ACTIVE', restaurant: { status: 'ACTIVE' } },
+        // Draft and rejected applications grant nothing (FR-REST-004: approval activates).
+        where: {
+          userId,
+          status: 'ACTIVE',
+          restaurant: { status: 'ACTIVE', onboardingStatus: 'APPROVED' },
+        },
         select: {
           restaurantId: true,
           role: true,

@@ -137,7 +137,11 @@ suite('uploads (API-FILE-001…003, FR-FILE-001…006, BR-FILE-001)', () => {
       await ctx.prisma.auditLog.count({ where: { action: 'file.signed_url', targetId: doc.id } }),
     ).toBe(1);
 
-    const tampered = link.search.replace(/sig=[0-9a-f]/, 'sig=0');
+    // Flip the first signature digit (always a change, unlike overwriting it with a fixed one).
+    const tampered = link.search.replace(
+      /sig=([0-9a-f])/,
+      (_m, c: string) => `sig=${c === '0' ? '1' : '0'}`,
+    );
     expect((await request(ctx.app).get(link.pathname + tampered)).status).toBe(403);
     ctx.clock.advance(301_000);
     expect((await request(ctx.app).get(link.pathname + link.search)).status).toBe(403);

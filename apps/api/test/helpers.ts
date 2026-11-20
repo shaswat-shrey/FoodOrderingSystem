@@ -182,9 +182,9 @@ export async function setPassword(
 /** Registers via the API and verifies the phone, returning a signed-in customer browser. */
 export async function signUpCustomer(
   ctx: TestContext,
-  overrides: Partial<{ email: string; password: string }> = {},
+  overrides: Partial<{ email: string; password: string; app: App }> = {},
 ) {
-  const b = browser(ctx, 'CUSTOMER');
+  const b = browser(ctx, overrides.app ?? 'CUSTOMER');
   const phone = uniquePhone();
   const email = overrides.email ?? `user${phone.slice(-8)}@example.com`;
   const password = overrides.password ?? 'masala dosa every sunday';
@@ -390,3 +390,24 @@ export const SAFFRON_STAFF = {
   manager: '+919000000301',
   kitchen: '+919000000302',
 } as const;
+
+/** A new restaurant-app user (onboarding scope) with a verified phone. */
+export const signUpApplicant = (ctx: TestContext) => signUpCustomer(ctx, { app: 'RESTAURANT' });
+
+/** Multipart upload through the real endpoint. */
+export function uploadFile(
+  ctx: TestContext,
+  b: { token: string | undefined },
+  app: App,
+  purpose: string,
+  body: Buffer,
+  filename: string,
+) {
+  return request(ctx.app)
+    .post('/api/v1/files')
+    .set('X-Client-App', app)
+    .set('Origin', ORIGINS[app])
+    .set('Authorization', `Bearer ${b.token}`)
+    .field('purpose', purpose)
+    .attach('file', body, filename);
+}

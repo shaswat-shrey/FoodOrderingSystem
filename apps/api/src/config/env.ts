@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { ClientApp } from '@fos/shared';
 import { storageEnvFields, storageEnvProblems } from '../modules/files/config';
+import { parseFieldKeys } from '../platform/crypto';
 import { paymentEnvFields, paymentEnvProblems } from '../modules/payments/config';
 
 /**
@@ -74,6 +75,18 @@ export const envSchema = z
      * customers drop a map pin (FR-LOC-003 degraded path). A real provider follows OD-13.
      */
     GEO_PROVIDER: z.enum(['mock', 'none']).optional(),
+    /** "1:<base64 32 bytes>,2:<…>" — newest last. Derived from AUTH_HMAC_SECRET outside production. */
+    FIELD_ENCRYPTION_KEYS: z
+      .string()
+      .refine((v) => {
+        try {
+          const keys = parseFieldKeys(v);
+          return keys.every((k) => k.key.length === 32 && k.id >= 1 && k.id <= 255);
+        } catch {
+          return false;
+        }
+      }, 'Each key must be <id 1–255>:<base64 of 32 bytes>')
+      .optional(),
     ...paymentEnvFields,
     ...storageEnvFields,
   })
@@ -98,6 +111,13 @@ export const envSchema = z
         path: ['GEO_PROVIDER'],
         message:
           'The mock geocoder returns fictional data; use "none" until a provider is configured (OD-13)',
+      });
+    }
+    if (!env.FIELD_ENCRYPTION_KEYS) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['FIELD_ENCRYPTION_KEYS'],
+        message: 'Required in production (PAN and bank details are encrypted with it)',
       });
     }
     if (!env.COOKIE_SECURE) {

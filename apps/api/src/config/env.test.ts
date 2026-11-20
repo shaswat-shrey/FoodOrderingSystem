@@ -61,6 +61,7 @@ describe('loadEnv (NFR-SEC-011)', () => {
       STORAGE_ACCESS_KEY: 'access',
       STORAGE_SECRET_KEY: 'secret',
       API_PUBLIC_URL: 'https://api.example.com',
+      FIELD_ENCRYPTION_KEYS: `1:${Buffer.alloc(32, 7).toString('base64')}`,
     });
     expect(prod.COOKIE_SECURE).toBe(true);
     expect(prod.GEO_PROVIDER).toBe('none'); // degraded address search, never the fictional mock

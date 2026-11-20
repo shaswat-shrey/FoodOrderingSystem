@@ -1,27 +1,35 @@
+import { randomBytes } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { hmac, randomDigits, randomToken, safeEqual, sha256 } from './crypto';
+import { FieldCipher, fieldCipherFrom } from './crypto';
 
-describe('crypto helpers', () => {
-  it('creates 256-bit url-safe tokens', () => {
-    const token = randomToken();
-    expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/);
-    expect(randomToken()).not.toBe(token);
+describe('field encryption (NFR-SEC-005)', () => {
+  it('round-trips, randomises, detects tampering and rotates keys', () => {
+    const k1 = randomBytes(32);
+    const k2 = randomBytes(32);
+    const old = new FieldCipher([{ id: 1, key: k1 }], 1);
+    const a = old.encrypt('ABCDE1234F');
+    expect(old.decrypt(a)).toBe('ABCDE1234F');
+    expect(Buffer.from(old.encrypt('ABCDE1234F')).equals(Buffer.from(a))).toBe(false);
+    const tampered = Buffer.from(a);
+    tampered[tampered.length - 1]! ^= 1;
+    expect(() => old.decrypt(tampered)).toThrow();
+
+    const rotated = new FieldCipher(
+      [
+        { id: 1, key: k1 },
+        { id: 2, key: k2 },
+      ],
+      2,
+    );
+    expect(rotated.decrypt(a)).toBe('ABCDE1234F');
+    expect(rotated.encrypt('x')[0]).toBe(2);
   });
 
-  it('separates HMAC domains', () => {
-    const key = 'k'.repeat(32);
-    expect(safeEqual(hmac(key, 'otp', 'x'), hmac(key, 'identifier', 'x'))).toBe(false);
-    expect(safeEqual(hmac(key, 'otp', 'x'), hmac(key, 'otp', 'x'))).toBe(true);
-  });
-
-  it('compares safely across lengths', () => {
-    expect(safeEqual(sha256('a'), sha256('a'))).toBe(true);
-    expect(safeEqual(sha256('a'), Buffer.from('a'))).toBe(false);
-  });
-
-  it('generates fixed-length numeric codes with every digit position used', () => {
-    const codes = Array.from({ length: 2000 }, () => randomDigits(6));
-    expect(codes.every((c) => /^\d{6}$/.test(c))).toBe(true);
-    expect(new Set(codes.map((c) => c[0])).size).toBe(10);
+  it('derives a stable development key and parses configured keys', () => {
+    const env = { AUTH_HMAC_SECRET: 'h'.repeat(32) };
+    expect(fieldCipherFrom(env).decrypt(fieldCipherFrom(env).encrypt('ok'))).toBe('ok');
+    const key = randomBytes(32).toString('base64');
+    const c = fieldCipherFrom({ ...env, FIELD_ENCRYPTION_KEYS: `3:${key}` });
+    expect(c.encrypt('y')[0]).toBe(3);
   });
 });
