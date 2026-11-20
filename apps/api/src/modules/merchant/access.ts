@@ -44,6 +44,13 @@ export class MerchantAccess {
     return restaurantId;
   }
 
+  /** Like `restaurant()`, returning the caller's grant (role and branch scope) there. */
+  async grant(res: Response, restaurantId: string, permission: RestaurantPermission) {
+    const perms = await this.permissions(res);
+    this.check(perms, permission, restaurantId);
+    return perms.restaurants.find((g) => g.restaurantId === restaurantId)!;
+  }
+
   /** The caller may do `permission` at this branch; returns the branch's ids. */
   async branch(res: Response, branchId: string, permission: RestaurantPermission) {
     const branch = await this.prisma.branch.findFirst({

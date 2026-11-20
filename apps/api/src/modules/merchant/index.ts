@@ -7,3 +7,6 @@ export { branchRouter } from './branch.routes';
 export { RestaurantProfileService, type ProfilePatch } from './profile.service';
 export { MenuAdminService, type ItemInput } from './menu-admin.service';
 export { menuRouter } from './menu.routes';
+export { RestaurantAnalyticsService } from './analytics.service';
+export { INVITABLE_ROLES, StaffService } from './staff.service';
+export { staffRouter } from './staff.routes';

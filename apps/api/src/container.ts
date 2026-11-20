@@ -56,7 +56,9 @@ import {
   MerchantAccess,
   OnboardingService,
   PermissionChanges,
+  RestaurantAnalyticsService,
   RestaurantProfileService,
+  StaffService,
 } from './modules/merchant';
 import { fieldCipherFrom } from './platform/crypto';
 import {
@@ -236,6 +238,15 @@ export function createContainer(input: ContainerInput) {
   const branchOps = new BranchOpsService(prisma, branches, settings, audit, clock, logger);
   const restaurantProfile = new RestaurantProfileService(prisma, files, audit, fieldCipher, clock);
   const menuAdmin = new MenuAdminService(prisma, files, audit, clock);
+  const staff = new StaffService(
+    prisma,
+    messages,
+    permissionChanges,
+    audit,
+    clock,
+    env.APP_URLS.RESTAURANT,
+  );
+  const restaurantAnalytics = new RestaurantAnalyticsService(prisma, clock);
   const restaurantOrders = new RestaurantOrdersService(
     prisma,
     orderTransitions,
@@ -305,6 +316,8 @@ export function createContainer(input: ContainerInput) {
     branchOps,
     restaurantProfile,
     menuAdmin,
+    staff,
+    restaurantAnalytics,
     restaurantOrders,
     outboxRelay,
     appOrigins: appOrigins(env),
