@@ -51,6 +51,7 @@ import { AuthService, OtpService, SessionService, TokenService } from './modules
 import { IamService } from './modules/iam';
 import {
   BranchOpsService,
+  MenuAdminService,
   MerchantAccess,
   OnboardingService,
   PermissionChanges,
@@ -233,6 +234,7 @@ export function createContainer(input: ContainerInput) {
   );
   const branchOps = new BranchOpsService(prisma, branches, settings, audit, clock, logger);
   const restaurantProfile = new RestaurantProfileService(prisma, files, audit, fieldCipher, clock);
+  const menuAdmin = new MenuAdminService(prisma, files, audit, clock);
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
   registerNotificationConsumers(outboxRelay, { prisma, notifications });
   return {
@@ -292,6 +294,7 @@ export function createContainer(input: ContainerInput) {
     onboarding,
     branchOps,
     restaurantProfile,
+    menuAdmin,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

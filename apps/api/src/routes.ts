@@ -13,7 +13,7 @@ import type { Express } from 'express';
 import { searchHistoryRouter, searchRouter } from './modules/search';
 import { supportRouter } from './modules/support';
 import { notificationsRouter } from './modules/notifications';
-import { branchRouter, merchantRouter } from './modules/merchant';
+import { branchRouter, menuRouter, merchantRouter } from './modules/merchant';
 import { fileUploadRouter, filesRouter, localMediaRouter } from './modules/files';
 import { usersRouter } from './modules/users';
 
@@ -51,6 +51,7 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use(filesRouter(container));
   api.use(merchantRouter(container));
   api.use(branchRouter(container));
+  api.use(menuRouter(container));
   api.use('/checkout/sessions', checkoutRouter(container));
   api.use('/payments/methods', paymentMethodsRouter(container));
   api.use(paymentsRouter(container));

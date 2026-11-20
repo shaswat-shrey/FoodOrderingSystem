@@ -411,3 +411,33 @@ export function uploadFile(
     .field('purpose', purpose)
     .attach('file', body, filename);
 }
+
+/**
+ * An approved restaurant owned by a fresh user, with one branch that is still
+ * PENDING_APPROVAL so it never shows up in other suites' listings.
+ */
+export async function createOwnedRestaurant(ctx: TestContext, opts: { pureVeg?: boolean } = {}) {
+  const { uuidv7 } = await import('@fos/shared');
+  const owner = await signUpApplicant(ctx);
+  const restaurantId = uuidv7();
+  const branchId = uuidv7();
+  const zone = await ctx.prisma.zone.findFirstOrThrow({ where: { status: 'ACTIVE' } });
+  await ctx.prisma.restaurant.create({
+    data: {
+      id: restaurantId,
+      brandName: `Test Kitchen ${restaurantId.slice(-6)}`,
+      slug: `test-kitchen-${restaurantId}`,
+      legalName: 'Test Kitchen LLP',
+      entityType: 'LLP',
+      onboardingStatus: 'APPROVED',
+      pureVeg: opts.pureVeg ?? false,
+      members: { create: { userId: owner.userId, role: 'OWNER', allBranches: true } },
+    },
+  });
+  await ctx.prisma.$executeRaw`
+    INSERT INTO branches (id, restaurant_id, zone_id, name, line1, area, city, state, pincode, location, status, is_open_manual, updated_at)
+    VALUES (${branchId}::uuid, ${restaurantId}::uuid, ${zone.id}::uuid, 'Test Branch', '1 Test Road', 'Koramangala',
+      'Bengaluru', 'Karnataka', '560095', ST_GeogFromText('POINT(77.6245 12.9352)'), 'PENDING_APPROVAL', false, now())`;
+  await ctx.container.permissionChanges.changed(owner.userId);
+  return { ...owner, restaurantId, branchId };
+}
