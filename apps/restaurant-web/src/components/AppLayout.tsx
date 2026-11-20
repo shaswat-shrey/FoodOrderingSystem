@@ -10,6 +10,10 @@ const NAV = [
   { to: '/outlet', label: 'Outlet', perm: 'rest.branch:read' },
   { to: '/team', label: 'Team', perm: 'rest.staff:read' },
   { to: '/dashboard', label: 'Dashboard', perm: 'rest.analytics:read' },
+  { to: '/analytics', label: 'Analytics', perm: 'rest.analytics:read' },
+  { to: '/reviews', label: 'Reviews', perm: 'rest.review:read' },
+  { to: '/payouts', label: 'Payouts', perm: 'rest.finance:read' },
+  { to: '/profile', label: 'Profile', perm: 'rest.restaurant:read' },
 ];
 
 function WorkspaceBar() {

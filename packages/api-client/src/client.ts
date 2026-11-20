@@ -73,8 +73,8 @@ export interface ApiClient {
   readonly auth: AuthApi;
   get<T>(path: string, params?: Record<string, unknown>): Promise<T>;
   post<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T>;
-  delete<T>(path: string): Promise<T>;
-  patch<T>(path: string, body?: unknown): Promise<T>;
+  delete<T>(path: string, params?: Record<string, unknown>): Promise<T>;
+  patch<T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T>;
   put<T>(path: string, body?: unknown): Promise<T>;
   /** GET a cursor-paginated list (SRS §14.1): data plus the next cursor, if any. */
   getPage<T>(
@@ -198,8 +198,8 @@ export function createApiClient({
     auth: undefined as unknown as AuthApi,
     get: (path, params) => unwrap(http.get(`/api/v1${path}`, { params })),
     post: (path, body, headers) => unwrap(http.post(`/api/v1${path}`, body, { headers })),
-    delete: (path) => unwrap(http.delete(`/api/v1${path}`)),
-    patch: (path, body) => unwrap(http.patch(`/api/v1${path}`, body)),
+    delete: (path, params) => unwrap(http.delete(`/api/v1${path}`, { params })),
+    patch: (path, body, headers) => unwrap(http.patch(`/api/v1${path}`, body, { headers })),
     put: (path, body) => unwrap(http.put(`/api/v1${path}`, body)),
     async getPage<T>(path: string, params?: Record<string, unknown>) {
       try {

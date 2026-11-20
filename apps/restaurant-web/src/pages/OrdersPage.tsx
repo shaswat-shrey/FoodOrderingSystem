@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { OrderCard, QueueTab } from '@fos/api-client';
 import { Alert, Button, EmptyState, Spinner } from '@fos/ui';
 import { ServerError } from '../components/fields';
+import { OrderDrawer } from '../components/OrderDrawer';
 import { useOrderAlert } from '../lib/alert-sound';
 import { useBranchLive } from '../lib/live';
 import { clock, mmss } from '../lib/format';
@@ -24,12 +25,12 @@ const REJECT = [
   ['ADDRESS_ISSUE', 'Address problem'],
   ['OTHER', 'Other'],
 ] as const;
-/** Live updates arrive with the realtime gateway (Phase 10); until then the queue polls. */
 
 /** FR-RORD-008: order queue with tabs, counts and a repeating alert for new orders. */
 export function OrdersPage() {
   const { branchId, can } = useWorkspace();
   const [tab, setTab] = useState<QueueTab>('NEW');
+  const [openId, setOpenId] = useState<string | null>(null);
   const { pollMs: POLL_MS } = useBranchLive(branchId, 'branch-orders');
   const counts = useQuery({
     queryKey: ['orders', branchId, 'counts'],
@@ -89,6 +90,7 @@ export function OrdersPage() {
                 order={o}
                 canAccept={can('rest.order:accept')}
                 canPrepare={can('rest.order:prepare')}
+                onOpen={() => setOpenId(o.id)}
               />
             </li>
           ))}
@@ -96,6 +98,7 @@ export function OrdersPage() {
       ) : (
         <EmptyState title="Nothing here right now" description="New orders appear automatically." />
       )}
+      {openId && <OrderDrawer orderId={openId} onClose={() => setOpenId(null)} />}
     </div>
   );
 }
@@ -104,10 +107,12 @@ function OrderCardView({
   order,
   canAccept,
   canPrepare,
+  onOpen,
 }: {
   order: OrderCard;
   canAccept: boolean;
   canPrepare: boolean;
+  onOpen: () => void;
 }) {
   const qc = useQueryClient();
   const [rejecting, setRejecting] = useState(false);
@@ -247,6 +252,11 @@ function OrderCardView({
         {order.readyBy && order.status !== 'PLACED' && (
           <span className="text-sm text-gray-600">Ready by {clock(order.readyBy)}</span>
         )}
+        <Button size="sm" variant="ghost" className="ml-auto" onClick={onOpen}>
+          {order.status === 'PREPARING' || order.status === 'READY_FOR_PICKUP'
+            ? 'Details and handover'
+            : 'Details'}
+        </Button>
       </footer>
     </article>
   );

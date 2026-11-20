@@ -150,6 +150,22 @@ export function branchRouter(deps: BranchRouterDeps): Router {
       sendOk(res, await deps.restaurantProfile.changeRequests(params.rid));
     }),
   );
+  /** FR-RFIN-002: payout history (owners and anyone with finance access). */
+  router.get(
+    '/merchant/restaurants/:rid/payouts',
+    ...member,
+    handle(
+      { params: rid, query: schema.cursorPaginationSchema },
+      async ({ params, query, res }) => {
+        await access.restaurant(res, params.rid, 'rest.finance:read');
+        const page = await deps.restaurantProfile.payouts(params.rid, {
+          limit: Math.min(query.limit, 50),
+          cursor: query.cursor,
+        });
+        sendOk(res, page.items, { meta: { pagination: { nextCursor: page.nextCursor } } });
+      },
+    ),
+  );
   router.get(
     '/merchant/restaurants/:rid/branches',
     ...member,

@@ -255,6 +255,10 @@ suite('the trip (API-DPDEL-004…011, FR-DEL-020…035, T13/T15)', () => {
     const r = await rider('+919000000404');
     const o = await assigned(r);
     await o.manager.browser.post(`/merchant/orders/${o.orderId}/preparing`, {}, key());
+    // The order details tell the restaurant who is coming (first name only).
+    expect(
+      (await o.manager.browser.get(`/merchant/orders/${o.orderId}`)).body.data.partner,
+    ).toMatchObject({ firstName: expect.any(String), deliveryStatus: expect.any(String) });
     expect(
       (
         await o.manager.browser.post(

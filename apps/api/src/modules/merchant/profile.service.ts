@@ -3,6 +3,7 @@ import type { Clock } from '../../platform/clock';
 import type { FieldCipher } from '../../platform/crypto';
 import { AppError } from '../../platform/http/errors';
 import { writeOutbox } from '../../platform/outbox';
+import { decodeCursor, encodeCursor, queryFingerprint } from '../../platform/pagination';
 import type { AuditService } from '../audit';
 import type { FilesService } from '../files';
 
@@ -205,6 +206,79 @@ export class RestaurantProfileService {
       createdAt: c.createdAt,
       decidedAt: c.decidedAt,
     }));
+  }
+
+  /**
+   * FR-RFIN-002 (read-only): the restaurant's payouts from admin payout batches, newest
+   * first, with the settlement period they cover and where the money went (masked).
+   */
+  async payouts(restaurantId: string, page: { limit: number; cursor?: string | undefined }) {
+    const context = queryFingerprint(['restaurant-payouts', restaurantId]);
+    const after = page.cursor ? decodeCursor(page.cursor, context) : null;
+    const rows = await this.prisma.payout.findMany({
+      where: {
+        restaurantId,
+        ...(after
+          ? {
+              OR: [
+                { createdAt: { lt: new Date(after[0] as number) } },
+                { createdAt: new Date(after[0] as number), id: { lt: after[1] as string } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: page.limit + 1,
+      include: {
+        batch: { select: { periodStart: true, periodEnd: true } },
+        restaurantBankAccount: { select: { accountLast4: true, ifsc: true } },
+        settlement: {
+          select: {
+            grossAmount: true,
+            commissionAmount: true,
+            discountsAmount: true,
+            taxesAmount: true,
+            adjustmentsAmount: true,
+            netAmount: true,
+          },
+        },
+      },
+    });
+    const items = rows.slice(0, page.limit);
+    const last = items.at(-1);
+    return {
+      items: items.map((p) => ({
+        id: p.id,
+        periodStart: p.batch.periodStart,
+        periodEnd: p.batch.periodEnd,
+        amount: Number(p.amount),
+        status: p.status,
+        utr: p.utr,
+        failureReason: p.failureReason,
+        paidAt: p.paidAt,
+        createdAt: p.createdAt,
+        bank: p.restaurantBankAccount
+          ? {
+              accountMasked: `XXXXXX${p.restaurantBankAccount.accountLast4}`,
+              ifsc: p.restaurantBankAccount.ifsc,
+            }
+          : null,
+        settlement: p.settlement
+          ? {
+              gross: Number(p.settlement.grossAmount),
+              commission: Number(p.settlement.commissionAmount),
+              discounts: Number(p.settlement.discountsAmount),
+              taxes: Number(p.settlement.taxesAmount),
+              adjustments: Number(p.settlement.adjustmentsAmount),
+              net: Number(p.settlement.netAmount),
+            }
+          : null,
+      })),
+      nextCursor:
+        rows.length > page.limit && last
+          ? encodeCursor(context, [last.createdAt.getTime(), last.id])
+          : null,
+    };
   }
 
   /** API-MER-014: branches the caller can see. */

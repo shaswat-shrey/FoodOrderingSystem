@@ -198,7 +198,7 @@ export class RestaurantOrdersService {
       where: { id: orderId },
       include: include(),
     });
-    const [history, share, cancellation] = await Promise.all([
+    const [history, share, cancellation, delivery] = await Promise.all([
       this.prisma.orderStatusHistory.findMany({
         where: { orderId },
         orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
@@ -207,6 +207,21 @@ export class RestaurantOrdersService {
       this.prisma.orderCancellation.findUnique({
         where: { orderId },
         select: { reasonCode: true, initiatorType: true },
+      }),
+      this.prisma.delivery.findUnique({
+        where: { orderId },
+        select: {
+          status: true,
+          assignedAt: true,
+          arrivedRestaurantAt: true,
+          pickedUpAt: true,
+          partner: {
+            select: {
+              user: { select: { fullName: true } },
+              vehicles: { where: { isActive: true, deletedAt: null }, select: { type: true } },
+            },
+          },
+        },
       }),
     ]);
     return {
@@ -221,8 +236,17 @@ export class RestaurantOrdersService {
         : null,
       timeline: history.map((h) => ({ status: h.toStatus, at: h.createdAt, by: h.actorType })),
       cancellation,
-      // Partner card arrives with delivery (Phase 9).
-      partner: null,
+      // FR-RORD-007: who is coming for the order (first name only) and where they are.
+      partner: delivery?.partner
+        ? {
+            firstName: delivery.partner.user.fullName.split(/\s+/)[0] ?? '',
+            vehicleType: delivery.partner.vehicles[0]?.type ?? null,
+            deliveryStatus: delivery.status,
+            assignedAt: delivery.assignedAt,
+            arrivedAt: delivery.arrivedRestaurantAt,
+            pickedUpAt: delivery.pickedUpAt,
+          }
+        : null,
     };
   }
 

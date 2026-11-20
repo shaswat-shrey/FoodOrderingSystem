@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { MenuItem } from '@fos/api-client';
+import type { ManagedMenu, MenuItem } from '@fos/api-client';
 import { Button, DietaryMarker, EmptyState, Spinner } from '@fos/ui';
 import { Field, Section, Select, ServerError } from '../components/fields';
 import { rupees } from '../lib/format';
@@ -42,7 +43,12 @@ export function MenuPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Menu</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold">Menu</h1>
+        <Link to="/menu/groups" className="text-sm font-medium text-brand-700 underline">
+          Option groups
+        </Link>
+      </div>
       <ServerError error={toggle.error ?? addCategory.error} />
       {write && (
         <form
@@ -72,8 +78,21 @@ export function MenuPage() {
       {menu.data.categories.length === 0 && (
         <EmptyState title="Your menu is empty" description="Add a category, then your dishes." />
       )}
-      {menu.data.categories.map((c) => (
-        <Section key={c.id} title={`${c.name}${c.isActive ? '' : ' (hidden)'}`}>
+      {menu.data.categories.map((c, n) => (
+        <Section
+          key={c.id}
+          title={`${c.name}${c.isActive ? '' : ' (hidden)'}`}
+          aside={
+            write && (
+              <CategoryTools
+                restaurantId={restaurant.id}
+                categories={menu.data.categories}
+                index={n}
+                onSaved={refresh}
+              />
+            )
+          }
+        >
           <ul className="divide-y divide-gray-100">
             {c.items.map((i) => (
               <li key={i.id} className="flex items-center justify-between gap-2 py-2">
@@ -92,6 +111,13 @@ export function MenuPage() {
                     )}
                   </span>
                   {i.isHidden && <span className="text-xs text-gray-500">hidden</span>}
+                  <Link
+                    to={`/menu/items/${i.id}`}
+                    className="text-sm text-brand-700 underline"
+                    aria-label={`${write ? 'Edit' : 'View'} ${i.name}`}
+                  >
+                    {write ? 'Edit' : 'View'}
+                  </Link>
                 </div>
                 {branchId && can('rest.menu:availability') && (
                   <Button
@@ -203,5 +229,150 @@ function NewItem({
         </Button>
       </div>
     </form>
+  );
+}
+
+/** FR-MENU-001: rename, show/hide, reorder and delete a category (moving its dishes). */
+function CategoryTools({
+  restaurantId,
+  categories,
+  index,
+  onSaved,
+}: {
+  restaurantId: string;
+  categories: ManagedMenu['categories'];
+  index: number;
+  onSaved: () => void;
+}) {
+  const c = categories[index]!;
+  const others = categories.filter((x) => x.id !== c.id);
+  const [mode, setMode] = useState<'idle' | 'rename' | 'delete'>('idle');
+  const [name, setName] = useState(c.name);
+  const [target, setTarget] = useState(others[0]?.id ?? '');
+  const act = useMutation({
+    mutationFn: (fn: () => Promise<unknown>) => fn(),
+    onSuccess: () => {
+      setMode('idle');
+      onSaved();
+    },
+  });
+  const move = (to: number) => {
+    const ids = categories.map((x) => x.id);
+    ids.splice(index, 1);
+    ids.splice(to, 0, c.id);
+    act.mutate(() => merchant.menu.reorderCategories(restaurantId, ids));
+  };
+  if (mode === 'rename')
+    return (
+      <form
+        className="flex items-center gap-1"
+        onSubmit={(e) => {
+          e.preventDefault();
+          act.mutate(() => merchant.menu.updateCategory(restaurantId, c.id, { name: name.trim() }));
+        }}
+      >
+        <input
+          aria-label={`New name for ${c.name}`}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="h-9 w-40 rounded border border-gray-300 px-2 text-sm"
+        />
+        <Button size="sm" type="submit" disabled={name.trim().length < 2} loading={act.isPending}>
+          Save
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => setMode('idle')}>
+          Cancel
+        </Button>
+        <ServerError error={act.error} />
+      </form>
+    );
+  if (mode === 'delete')
+    return (
+      <div className="flex flex-wrap items-center gap-1 text-sm">
+        {c.items.length > 0 ? (
+          others.length > 0 ? (
+            <label>
+              Move its {c.items.length} dishes to{' '}
+              <select
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                className="h-9 rounded border border-gray-300 px-1"
+              >
+                {others.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <span>Add another category to move its dishes to first.</span>
+          )
+        ) : (
+          <span>Delete “{c.name}”?</span>
+        )}
+        <Button
+          size="sm"
+          variant="danger"
+          disabled={c.items.length > 0 && !target}
+          loading={act.isPending}
+          onClick={() =>
+            act.mutate(() =>
+              merchant.menu.deleteCategory(
+                restaurantId,
+                c.id,
+                c.items.length > 0 ? target : undefined,
+              ),
+            )
+          }
+        >
+          Delete
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => setMode('idle')}>
+          Cancel
+        </Button>
+        <ServerError error={act.error} />
+      </div>
+    );
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <Button
+        size="sm"
+        variant="ghost"
+        aria-label={`Move ${c.name} up`}
+        disabled={index === 0 || act.isPending}
+        onClick={() => move(index - 1)}
+      >
+        ↑
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        aria-label={`Move ${c.name} down`}
+        disabled={index === categories.length - 1 || act.isPending}
+        onClick={() => move(index + 1)}
+      >
+        ↓
+      </Button>
+      <Button size="sm" variant="ghost" onClick={() => setMode('rename')}>
+        Rename
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        loading={act.isPending}
+        onClick={() =>
+          act.mutate(() =>
+            merchant.menu.updateCategory(restaurantId, c.id, { isActive: !c.isActive }),
+          )
+        }
+      >
+        {c.isActive ? 'Hide' : 'Show'}
+      </Button>
+      <Button size="sm" variant="ghost" onClick={() => setMode('delete')}>
+        Delete
+      </Button>
+      {mode === 'idle' && <ServerError error={act.error} />}
+    </div>
   );
 }
