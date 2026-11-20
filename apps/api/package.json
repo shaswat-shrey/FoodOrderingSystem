@@ -1,0 +1,44 @@
+{
+  "name": "@fos/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "REST API + Socket.IO gateway (modular monolith)",
+  "exports": {
+    "./platform": "./src/platform/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/server.ts",
+    "build": "tsup",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fos/db": "workspace:*",
+    "@fos/shared": "workspace:*",
+    "@fos/types": "workspace:*",
+    "@prisma/client": "^6.19.3",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "ioredis": "^5.11.1",
+    "pino": "^9.14.0",
+    "socket.io": "^4.8.4",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@fos/config": "workspace:*",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.5",
+    "@types/supertest": "^6.0.3",
+    "socket.io-client": "^4.8.4",
+    "supertest": "^7.3.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}
