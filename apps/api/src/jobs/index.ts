@@ -56,3 +56,6 @@ export {
   registerDispatchConsumers,
 } from '../modules/dispatch';
 export { registerReviewConsumers, ReviewService } from '../modules/reviews';
+export { LiveTracking, registerRealtimeConsumers, wireRealtime } from '../modules/realtime';
+export { RedisRealtime } from '../platform/realtime/publisher';
+export { REALTIME_CONTROL_CHANNEL } from '../modules/auth/session.service';

@@ -18,6 +18,7 @@ import {
   type BranchOpsService,
   DISPATCH_JOBS,
   type DeliveryStagesService,
+  type LiveTracking,
   type DispatchService,
   type FilesService,
   type PartnerAvailabilityService,
@@ -104,6 +105,7 @@ export interface JobServices {
   partners: Pick<PartnerAvailabilityService, 'sweep'>;
   dispatch: Pick<DispatchService, 'start' | 'expire' | 'retry' | 'sweep'>;
   deliveryStages: Pick<DeliveryStagesService, 'heartbeatSweep'>;
+  liveTracking: Pick<LiveTracking, 'sweepStale'>;
   logger: Logger;
 }
 
@@ -123,6 +125,7 @@ export function buildRegistrations({
   partners,
   dispatch,
   deliveryStages,
+  liveTracking,
   logger,
 }: JobServices): ProcessorRegistration[] {
   const maintenance: Record<string, () => Promise<void>> = {
@@ -160,6 +163,7 @@ export function buildRegistrations({
       // Assigned partners who went silent: alert at 3 min, release at 5 (algorithm §8).
       const { released } = await deliveryStages.heartbeatSweep();
       if (released > 0) logger.warn({ released }, 'released deliveries from silent partners');
+      await liveTracking.sweepStale(); // FR-TRK-005
     },
     [SWEEP_PARTNERS_JOB]: async () => {
       await partners.sweep();

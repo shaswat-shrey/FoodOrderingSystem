@@ -39,6 +39,12 @@ export class PartnerAvailabilityService {
   onLeave: ((partnerId: string) => Promise<void>) | null = null;
   /** Set by dispatch: a partner became idle (new candidate for waiting deliveries). */
   onIdle: ((partnerId: string) => Promise<void>) | null = null;
+  /** EVT-DP-014: the server took the partner offline (auto-offline, cash cap, admin). */
+  onOffline: ((partnerId: string, reason: string) => Promise<void>) | null = null;
+  /** FR-TRK-006: an accepted fix, for live tracking (deliveryId when on a trip). */
+  onLocation:
+    | ((partnerId: string, deliveryId: string | null, fix: Fix & { at: number }) => Promise<void>)
+    | null = null;
 
   constructor(
     private readonly prisma: PrismaClient,
@@ -198,6 +204,7 @@ export class PartnerAvailabilityService {
       data: { endedAt: this.clock.now(), endReason: reason },
     });
     await this.onLeave?.(partnerId);
+    await this.onOffline?.(partnerId, reason);
   }
 
   /** API-DP-016 (FR-DP-011): with an active delivery the request waits until it's done. */
@@ -302,6 +309,7 @@ export class PartnerAvailabilityService {
     });
     if (!last?.lastLocationAt || now.getTime() - last.lastLocationAt.getTime() > 60_000)
       await this.persist(p.id, live.state, latest);
+    await this.onLocation?.(p.id, active?.id ?? null, { ...latest, at })?.catch(() => undefined);
     return { accepted: sorted.length, state: live.state };
   }
 

@@ -8,6 +8,7 @@ import { systemClock } from './platform/clock';
 import { createApp } from './platform/http/app';
 import { createLogger } from './platform/logger';
 import { mountRawRoutes, mountRoutes } from './routes';
+import { REALTIME_EVENTS_CHANNEL } from './platform/realtime/publisher';
 import { createSocketServer } from './platform/realtime/socket-server';
 import { closeRedis, createRedisClients, pingRedis } from './platform/redis';
 
@@ -51,6 +52,9 @@ async function main(): Promise<void> {
     auth: createSocketAuth(container.tokens, container.sessions),
     limiter: container.limiter,
     controlChannel: REALTIME_CONTROL_CHANNEL,
+    eventsChannel: REALTIME_EVENTS_CHANNEL,
+    rooms: container.rooms,
+    partner: container.partnerSocket,
   });
 
   httpServer.listen(env.API_PORT, () => {

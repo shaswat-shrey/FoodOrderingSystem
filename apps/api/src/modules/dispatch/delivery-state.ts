@@ -77,6 +77,8 @@ export async function moveDelivery(
       deliveryId: d.id,
       orderId: d.orderId,
       partnerId: updated.partnerId,
+      // Set when a partner was released or the trip ended, so rooms and apps can follow.
+      previousPartnerId: d.partnerId,
       from: d.status,
       to,
     },

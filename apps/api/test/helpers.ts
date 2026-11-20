@@ -16,6 +16,7 @@ import { ManualClock } from '../src/platform/clock';
 import { createApp } from '../src/platform/http/app';
 import { createLogger } from '../src/platform/logger';
 import { RecordingJobQueue } from '../src/platform/jobs';
+import { RecordingRealtime } from '../src/platform/realtime/publisher';
 import { mountRawRoutes, mountRoutes } from '../src/routes';
 import { apiTestDatabaseUrl } from './global-setup';
 
@@ -82,6 +83,7 @@ export async function createTestContext(
     messages,
     ...(options.geocoder ? { geocoder: options.geocoder } : {}),
     jobs: new RecordingJobQueue(),
+    realtime: new RecordingRealtime(),
     storage: new LocalStorageProvider(
       mkdtempSync(join(tmpdir(), 'fos-files-')),
       'http://localhost:4000',
@@ -479,3 +481,6 @@ export async function parkActiveDeliveries(ctx: TestContext): Promise<void> {
     data: { status: 'CANCELLED' },
   });
 }
+
+/** Socket pushes recorded by the test container (Phase 10). */
+export const pushes = (ctx: TestContext) => ctx.container.realtime as RecordingRealtime;

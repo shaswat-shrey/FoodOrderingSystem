@@ -7,8 +7,10 @@ import { createLogger } from '../logger';
 import { MemoryRateLimiter } from '../rate-limit';
 import {
   createSocketServer,
+  deliver,
   handleControl,
   SocketAuthError,
+  type LocationFix,
   type SocketAuth,
 } from './socket-server';
 
@@ -31,6 +33,11 @@ let io: Server;
 let url: string;
 const clients: ClientSocket[] = [];
 
+const ORDER = '0193b0b6-0000-7000-8000-000000000001';
+const OTHER = '0193b0b6-0000-7000-8000-000000000002';
+const fixes: { userId: string; fix: LocationFix }[] = [];
+const acks: string[] = [];
+
 async function start(expiryGraceMs = 60_000) {
   httpServer = createServer();
   io = createSocketServer(httpServer, {
@@ -40,6 +47,21 @@ async function start(expiryGraceMs = 60_000) {
     limiter: new MemoryRateLimiter(),
     controlChannel: 'rt:control',
     expiryGraceMs,
+    // Fake policy: u1 owns ORDER; partners get partner:<user>.
+    rooms: {
+      autoRooms: async (s) => (s.app === 'DELIVERY' ? [`partner:${s.userId}`] : []),
+      authorize: async (s, r) =>
+        r.type === 'order' && r.id === ORDER && s.userId === 'u1' ? `order:${r.id}` : null,
+    },
+    partner: {
+      location: async (userId, fix) => {
+        fixes.push({ userId, fix });
+      },
+      heartbeat: async () => undefined,
+      offerAck: async (_userId, offerId) => {
+        acks.push(offerId);
+      },
+    },
   });
   await new Promise<void>((resolve) => httpServer.listen(0, resolve));
   url = `http://localhost:${(httpServer.address() as AddressInfo).port}`;
@@ -67,6 +89,8 @@ const disconnected = (s: ClientSocket) =>
 
 beforeEach(async () => {
   revoked.clear();
+  fixes.length = 0;
+  acks.length = 0;
   await start();
 });
 afterEach(async () => {
@@ -142,5 +166,115 @@ describe('socket gateway authentication (FR-RT-001..004)', () => {
     // Connections race, so check counts rather than order: 20 allowed attempts, 1 limited.
     expect(results.filter((e) => e.data?.code === 'RATE_LIMITED')).toHaveLength(1);
     expect(results.filter((e) => e.data?.code === 'AUTH_TOKEN_INVALID')).toHaveLength(20);
+  });
+});
+
+describe('rooms and events (FR-RT-010…014, §13.5)', () => {
+  it('joins an authorized order room and answers FORBIDDEN alike for other and missing orders', async () => {
+    const owner = client('/customer', 'CUSTOMER:u1:s1:60000');
+    const other = client('/customer', 'CUSTOMER:u2:s2:60000');
+    await Promise.all([connected(owner), connected(other)]);
+    expect(
+      await owner.timeout(1000).emitWithAck('subscribe', { type: 'order', id: ORDER }),
+    ).toEqual({
+      ok: true,
+      room: `order:${ORDER}`,
+    });
+    const denied = await other.timeout(1000).emitWithAck('subscribe', { type: 'order', id: ORDER });
+    const missing = await other
+      .timeout(1000)
+      .emitWithAck('subscribe', { type: 'order', id: OTHER });
+    expect(denied).toEqual({ ok: false, code: 'FORBIDDEN' });
+    expect(missing).toEqual(denied);
+    expect(
+      await other.timeout(1000).emitWithAck('subscribe', { type: 'order', id: 'nope' }),
+    ).toEqual({
+      ok: false,
+      code: 'VALIDATION_ERROR',
+    });
+  });
+
+  it('delivers pushed events only to sockets in the rooms, in the right namespace', async () => {
+    const owner = client('/customer', 'CUSTOMER:u1:s1:60000');
+    const other = client('/customer', 'CUSTOMER:u2:s2:60000');
+    await Promise.all([connected(owner), connected(other)]);
+    await owner.timeout(1000).emitWithAck('subscribe', { type: 'order', id: ORDER });
+    const got = new Promise((resolve) => owner.on('order.status_changed', resolve));
+    let leaked = false;
+    other.on('order.status_changed', () => (leaked = true));
+    const envelope = { eventId: 'e1', event: 'order.status_changed', data: { to: 'ACCEPTED' } };
+    deliver(
+      io,
+      JSON.stringify({
+        namespace: '/customer',
+        rooms: [`order:${ORDER}`],
+        event: 'order.status_changed',
+        envelope,
+      }),
+      logger,
+    );
+    expect(await got).toEqual(envelope);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(leaked).toBe(false);
+  });
+
+  it('moves sockets between rooms on control messages (FR-RT-011)', async () => {
+    const p = client('/delivery', 'DELIVERY:p1:s9:60000');
+    await connected(p);
+    await new Promise((r) => setTimeout(r, 50));
+    const ns = io.of('/delivery');
+    expect(await ns.in('partner:p1').fetchSockets()).toHaveLength(1);
+    handleControl(
+      io,
+      JSON.stringify({
+        type: 'rooms.join',
+        namespace: '/delivery',
+        target: 'partner:p1',
+        room: 'delivery:d1',
+      }),
+      logger,
+    );
+    expect(await ns.in('delivery:d1').fetchSockets()).toHaveLength(1);
+    handleControl(
+      io,
+      JSON.stringify({
+        type: 'rooms.leave',
+        namespace: '/delivery',
+        target: 'partner:p1',
+        room: 'delivery:d1',
+      }),
+      logger,
+    );
+    expect(await ns.in('delivery:d1').fetchSockets()).toHaveLength(0);
+  });
+
+  it('validates and rate-limits partner locations, and records offer acks', async () => {
+    const p = client('/delivery', 'DELIVERY:p2:s10:60000');
+    await connected(p);
+    const fix = { lat: 12.93, lng: 77.62, accuracy: 9 };
+    expect(await p.timeout(1000).emitWithAck('partner:location', fix)).toEqual({ ok: true });
+    // FR-RT-014: one per 2 s.
+    expect(await p.timeout(1000).emitWithAck('partner:location', fix)).toEqual({
+      ok: false,
+      code: 'RATE_LIMITED',
+    });
+    expect(fixes).toEqual([{ userId: 'p2', fix }]);
+    expect(await p.timeout(1000).emitWithAck('offer:ack', { offerId: 'o1' })).toEqual({ ok: true });
+    expect(acks).toEqual(['o1']);
+    // Customers have no partner events.
+    const c = client('/customer', 'CUSTOMER:u3:s11:60000');
+    await connected(c);
+    await expect(c.timeout(300).emitWithAck('partner:location', fix)).rejects.toThrow();
+  });
+
+  it('rejects bad locations', async () => {
+    const p = client('/delivery', 'DELIVERY:p3:s12:60000');
+    await connected(p);
+    expect(
+      await p.timeout(1000).emitWithAck('partner:location', { lat: 200, lng: 1, accuracy: 1 }),
+    ).toEqual({
+      ok: false,
+      code: 'VALIDATION_ERROR',
+    });
   });
 });

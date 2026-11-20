@@ -117,11 +117,32 @@ export class NotificationService {
   }
 
   /** FR-NOTIF-001: one event to one recipient, every channel the template has. Idempotent per event. */
+  /** EVT-NTF-001: an in-app notification was stored (set by the realtime module). */
+  onInApp:
+    | ((n: {
+        id: string;
+        userId: string;
+        app: string;
+        title: string;
+        body: string;
+        category: string;
+        deepLink: string | null;
+      }) => Promise<void>)
+    | null = null;
+
   async notify(input: NotifyInput): Promise<void> {
     const def = this.definition(input.key);
     const templates = await this.templatesFor(input.key);
     const off = await this.optedOut(input.userId, def.category);
     const queued: string[] = [];
+    const inbox: {
+      id: string;
+      app: string;
+      title: string;
+      body: string;
+      category: string;
+      deepLink: string | null;
+    }[] = [];
     await this.prisma.$transaction(async (tx) => {
       for (const t of templates) {
         if (off.has(t.channel) || t.channel === 'SOCKET') continue;
@@ -143,7 +164,7 @@ export class NotificationService {
         });
         if (created.count === 0) continue; // already sent for this event
         if (t.channel === 'IN_APP') {
-          await tx.notification.create({
+          const n = await tx.notification.create({
             data: {
               userId: input.userId,
               app: def.app,
@@ -155,6 +176,7 @@ export class NotificationService {
               createdAt: this.clock.now(),
             },
           });
+          inbox.push(n);
         } else if (EXTERNAL.includes(t.channel)) {
           const row = await tx.notificationDelivery.findUniqueOrThrow({
             where: {
@@ -170,6 +192,8 @@ export class NotificationService {
         }
       }
     });
+    for (const n of inbox)
+      await this.onInApp?.({ ...n, userId: input.userId })?.catch(() => undefined);
     for (const id of queued) {
       await this.jobs
         .enqueue(

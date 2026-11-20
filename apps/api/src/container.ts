@@ -5,6 +5,14 @@ import {
   registerDispatchConsumers,
 } from './modules/dispatch';
 import { registerReviewConsumers, ReviewService } from './modules/reviews';
+import {
+  LiveTracking,
+  registerRealtimeConsumers,
+  RoomPolicy,
+  wireRealtime,
+} from './modules/realtime';
+import { RedisRealtime, type Realtime } from './platform/realtime/publisher';
+import type { PartnerSocketHandlers } from './platform/realtime/socket-server';
 import type { PrismaClient } from '@fos/db';
 import type { Env } from './config/env';
 import { appOrigins } from './config/env';
@@ -55,7 +63,13 @@ import {
   UnavailableGeocoder,
   type GeocodingProvider,
 } from './modules/geo';
-import { AuthService, OtpService, SessionService, TokenService } from './modules/auth';
+import {
+  AuthService,
+  OtpService,
+  REALTIME_CONTROL_CHANNEL,
+  SessionService,
+  TokenService,
+} from './modules/auth';
 import { IamService } from './modules/iam';
 import {
   BranchOpsService,
@@ -94,6 +108,8 @@ export interface ContainerInput {
   paymentProvider?: PaymentProvider;
   jobs?: JobQueue;
   storage?: StorageProvider;
+  /** Overrides socket pushes (tests record them). */
+  realtime?: Realtime;
 }
 
 /** Composition root: builds every service once per process (SYSTEM-ARCHITECTURE §3). */
@@ -343,6 +359,35 @@ export function createContainer(input: ContainerInput) {
   registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
   registerNotificationConsumers(outboxRelay, { prisma, notifications });
   registerDispatchConsumers(outboxRelay, dispatch);
+  const realtime =
+    input.realtime ?? new RedisRealtime(redis.core, REALTIME_CONTROL_CHANNEL, logger);
+  const rooms = new RoomPolicy(prisma, iam, () => clock.now());
+  const liveTracking = new LiveTracking(prisma, redis.core, realtime, presence, routing, clock);
+  wireRealtime({ realtime, dispatch, partnerAvailability, notifications, liveTracking });
+  registerRealtimeConsumers(outboxRelay, { prisma, realtime, offers: dispatch });
+  // EVT-C-004…006: the delivery namespace's client events.
+  const partnerSocket: PartnerSocketHandlers = {
+    location: async (userId, f) => {
+      await partnerAvailability.ingest(userId, [
+        {
+          lat: f.lat,
+          lng: f.lng,
+          accuracyM: f.accuracy,
+          recordedAt: f.recordedAt ? new Date(f.recordedAt) : undefined,
+          heading: f.heading === undefined ? undefined : Math.round(f.heading) % 360,
+          speedKmh: f.speed === undefined ? undefined : Math.round(f.speed),
+        },
+      ]);
+    },
+    // Liveness comes from location fixes (FR-RT-021); the heartbeat only confirms the socket.
+    heartbeat: async () => undefined,
+    offerAck: async (userId, offerId) => {
+      await prisma.deliveryAssignment.updateMany({
+        where: { id: offerId, displayedAt: null, partner: { userId } },
+        data: { displayedAt: clock.now() },
+      });
+    },
+  };
   registerReviewConsumers(outboxRelay, reviews);
   return {
     env,
@@ -413,6 +458,10 @@ export function createContainer(input: ContainerInput) {
     reviews,
     tracking,
     deliveryStages,
+    realtime,
+    rooms,
+    liveTracking,
+    partnerSocket,
     restaurantOrders,
     outboxRelay,
     appOrigins: appOrigins(env),

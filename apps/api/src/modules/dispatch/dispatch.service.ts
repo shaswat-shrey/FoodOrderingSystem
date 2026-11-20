@@ -56,6 +56,14 @@ export class DispatchService {
     | null = null;
   /** Set by orders: cancel an order nobody would deliver (BR-DEL-003). */
   onNoPartner: ((orderId: string) => Promise<void>) | null = null;
+  /** EVT-DP-002/003: an offer the partner may be looking at is gone. */
+  onOfferClosed:
+    | ((
+        partnerId: string,
+        offerId: string,
+        reason: 'EXPIRED' | 'ORDER_CANCELLED' | 'PARTNER_OFFLINE',
+      ) => Promise<void>)
+    | null = null;
 
   constructor(
     private readonly prisma: PrismaClient,
@@ -409,8 +417,17 @@ export class DispatchService {
   /** API-DPDEL-001: the open offer, if any (reconnect recovery). */
   async currentOffer(userId: string) {
     const partnerId = await this.partnerId(userId);
-    const a = await this.prisma.deliveryAssignment.findFirst({
+    const open = await this.prisma.deliveryAssignment.findFirst({
       where: { partnerId, status: 'OFFERED', expiresAt: { gt: this.now() } },
+      select: { id: true },
+    });
+    return open ? this.offerView(open.id) : null;
+  }
+
+  /** The offer card (EVT-DP-001 and API-DPDEL-001 share it). */
+  async offerView(assignmentId: string) {
+    const a = await this.prisma.deliveryAssignment.findFirst({
+      where: { id: assignmentId, status: 'OFFERED' },
       include: {
         delivery: {
           include: {
@@ -540,6 +557,7 @@ export class DispatchService {
         data: { consecutiveMissedOffers: { increment: 1 } },
       });
       await this.presence.releaseOfferSlot(a.partnerId);
+      await this.onOfferClosed?.(a.partnerId, a.id, 'EXPIRED');
       if (stats.consecutiveMissedOffers >= (await this.settings.get('partner.missedOffersOffline')))
         await this.availability.setOffline(a.partnerId, 'AUTO_MISSED_OFFERS');
       else await this.backToIdle(a.partnerId);
@@ -554,11 +572,12 @@ export class DispatchService {
       where: { partnerId, status: 'OFFERED' },
     });
     for (const a of open) {
-      await this.prisma.deliveryAssignment.updateMany({
+      const { count } = await this.prisma.deliveryAssignment.updateMany({
         where: { id: a.id, status: 'OFFERED' },
         data: { status: 'WITHDRAWN' },
       });
       await this.presence.releaseOfferSlot(partnerId);
+      if (count) await this.onOfferClosed?.(partnerId, a.id, 'PARTNER_OFFLINE');
       await this.next(a.deliveryId);
     }
   }
@@ -659,6 +678,7 @@ export class DispatchService {
     const d0 = await this.prisma.delivery.findUnique({ where: { orderId } });
     if (!d0) return;
     let freed: string | null = null;
+    let withdrawn: { id: string; partnerId: string }[] = [];
     await this.prisma.$transaction(async (tx) => {
       const d = await lockDelivery(tx, d0.id);
       if (['DELIVERED', 'FAILED', 'CANCELLED'].includes(d.status)) return;
@@ -669,6 +689,7 @@ export class DispatchService {
         where: { deliveryId: d.id, status: 'OFFERED' },
         data: { status: 'WITHDRAWN' },
       });
+      withdrawn = offers;
       for (const o of offers) {
         await this.presence.releaseOfferSlot(o.partnerId);
         freed = o.partnerId;
@@ -683,6 +704,7 @@ export class DispatchService {
         await this.onCompensate?.(tx, d, 'BEFORE_PICKUP');
       }
     });
+    for (const o of withdrawn) await this.onOfferClosed?.(o.partnerId, o.id, 'ORDER_CANCELLED');
     if (freed) await this.backToIdle(freed);
   }
 

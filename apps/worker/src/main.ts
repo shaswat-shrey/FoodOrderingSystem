@@ -35,6 +35,11 @@ import {
   ServiceabilityService,
   PaymentsService,
   RefundService,
+  LiveTracking,
+  REALTIME_CONTROL_CHANNEL,
+  RedisRealtime,
+  registerRealtimeConsumers,
+  wireRealtime,
   registerReviewConsumers,
   ReviewService,
   registerOrderConsumers,
@@ -116,10 +121,8 @@ async function main(): Promise<void> {
     invoices: new InvoiceService(prisma, clock),
   });
   const sink = createMessageSink(env, logger);
-  registerNotificationConsumers(outbox, {
-    prisma,
-    notifications: new NotificationService(prisma, jobs, clock, logger),
-  });
+  const notifications = new NotificationService(prisma, jobs, clock, logger);
+  registerNotificationConsumers(outbox, { prisma, notifications });
   const presence = new PresenceStore(core);
   const partnerAvailability = new PartnerAvailabilityService(
     prisma,
@@ -179,6 +182,11 @@ async function main(): Promise<void> {
   );
   registerDispatchConsumers(outbox, dispatch);
   registerReviewConsumers(outbox, new ReviewService(prisma, files, settings, clock));
+  // Phase 10: pushes go out through Redis to every API instance's sockets.
+  const realtime = new RedisRealtime(core, REALTIME_CONTROL_CHANNEL, logger);
+  const liveTracking = new LiveTracking(prisma, core, realtime, presence, routing, clock);
+  wireRealtime({ realtime, dispatch, partnerAvailability, notifications, liveTracking });
+  registerRealtimeConsumers(outbox, { prisma, realtime, offers: dispatch });
   const registrations = buildRegistrations({
     sink,
     anonymizer,
@@ -200,6 +208,7 @@ async function main(): Promise<void> {
     ),
     files,
     deliveryStages,
+    liveTracking,
     deliverer: new NotificationDeliverer(prisma, sink, new LogPushSender(logger), clock, logger),
     logger,
   });
