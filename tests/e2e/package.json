@@ -1,0 +1,18 @@
+{
+  "name": "@fos/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Playwright end-to-end tests across the web apps",
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@fos/config": "workspace:*",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3"
+  }
+}

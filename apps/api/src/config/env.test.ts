@@ -18,7 +18,11 @@ describe('loadEnv (NFR-SEC-011)', () => {
 
   it('fails loudly on missing or malformed values without echoing secret values', () => {
     const attempt = () =>
-      loadEnv({ ...valid, DATABASE_URL: 'mysql://secret-password@host/db', REDIS_CORE_URL: undefined });
+      loadEnv({
+        ...valid,
+        DATABASE_URL: 'mysql://secret-password@host/db',
+        REDIS_CORE_URL: undefined,
+      });
     expect(attempt).toThrow(EnvValidationError);
     try {
       attempt();

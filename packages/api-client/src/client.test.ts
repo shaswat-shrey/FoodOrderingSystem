@@ -10,9 +10,16 @@ function adapterReturning(reply: Reply, seen: InternalAxiosRequestConfig[] = [])
   return async (config) => {
     seen.push(config);
     if (reply === 'network-error') throw new AxiosError('Network Error', 'ERR_NETWORK', config);
-    const response = { data: reply.data, status: reply.status, statusText: '', headers: new AxiosHeaders(), config };
+    const response = {
+      data: reply.data,
+      status: reply.status,
+      statusText: '',
+      headers: new AxiosHeaders(),
+      config,
+    };
     const valid = config.validateStatus ? config.validateStatus(reply.status) : reply.status < 400;
-    if (!valid) throw new AxiosError('Request failed', 'ERR_BAD_RESPONSE', config, undefined, response);
+    if (!valid)
+      throw new AxiosError('Request failed', 'ERR_BAD_RESPONSE', config, undefined, response);
     return response;
   };
 }
@@ -22,7 +29,10 @@ describe('api client', () => {
     const seen: InternalAxiosRequestConfig[] = [];
     const client = createApiClient({
       clientApp: 'CUSTOMER',
-      adapter: adapterReturning({ status: 200, data: { success: true, message: 'OK', data: { id: 1 }, meta: {} } }, seen),
+      adapter: adapterReturning(
+        { status: 200, data: { success: true, message: 'OK', data: { id: 1 }, meta: {} } },
+        seen,
+      ),
     });
     await expect(client.get('/things')).resolves.toEqual({ id: 1 });
     expect(seen[0]?.url).toBe('/api/v1/things');
@@ -55,13 +65,25 @@ describe('api client', () => {
   });
 
   it('reports network failures as retryable NETWORK_ERROR', async () => {
-    const client = createApiClient({ clientApp: 'DELIVERY', adapter: adapterReturning('network-error') });
-    await expect(client.get('/x')).rejects.toMatchObject({ code: 'NETWORK_ERROR', retryable: true });
+    const client = createApiClient({
+      clientApp: 'DELIVERY',
+      adapter: adapterReturning('network-error'),
+    });
+    await expect(client.get('/x')).rejects.toMatchObject({
+      code: 'NETWORK_ERROR',
+      retryable: true,
+    });
   });
 
   it('treats a 503 readiness report as data, not an error', async () => {
-    const report = { status: 'unavailable', checks: { database: { status: 'down', error: 'unreachable' } } };
-    const client = createApiClient({ clientApp: 'ADMIN', adapter: adapterReturning({ status: 503, data: report }) });
+    const report = {
+      status: 'unavailable',
+      checks: { database: { status: 'down', error: 'unreachable' } },
+    };
+    const client = createApiClient({
+      clientApp: 'ADMIN',
+      adapter: adapterReturning({ status: 503, data: report }),
+    });
     await expect(client.readiness()).resolves.toEqual(report);
   });
 });

@@ -24,14 +24,16 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   /** Shows a spinner, disables the button and sets aria-busy. */
   loading?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, loading = false, disabled, children, type = 'button', ...props }, ref) => (
+  (
+    { className, variant, size, loading = false, disabled, children, type = 'button', ...props },
+    ref,
+  ) => (
     <button
       ref={ref}
       type={type}

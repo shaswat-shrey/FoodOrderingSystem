@@ -23,14 +23,20 @@ async function runCheck(name: string, check: DependencyCheck, onFailure?: CheckF
     await Promise.race([
       check(),
       new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new CheckTimeoutError(`timed out after ${CHECK_TIMEOUT_MS} ms`)), CHECK_TIMEOUT_MS);
+        timer = setTimeout(
+          () => reject(new CheckTimeoutError(`timed out after ${CHECK_TIMEOUT_MS} ms`)),
+          CHECK_TIMEOUT_MS,
+        );
       }),
     ]);
     return { status: 'up' as const, latencyMs: Math.round(performance.now() - started) };
   } catch (error) {
     onFailure?.(name, error);
     // Generic reason only: raw driver errors contain hostnames and ports.
-    return { status: 'down' as const, error: error instanceof CheckTimeoutError ? 'timeout' : 'unreachable' };
+    return {
+      status: 'down' as const,
+      error: error instanceof CheckTimeoutError ? 'timeout' : 'unreachable',
+    };
   } finally {
     clearTimeout(timer);
   }
@@ -44,12 +50,18 @@ export async function evaluateReadiness(
     ...Object.entries(checks.critical).map(([name, check]) => ({ name, check, critical: true })),
     ...Object.entries(checks.degradable).map(([name, check]) => ({ name, check, critical: false })),
   ];
-  const results = await Promise.all(entries.map(async (e) => ({ ...e, result: await runCheck(e.name, e.check, onFailure) })));
+  const results = await Promise.all(
+    entries.map(async (e) => ({ ...e, result: await runCheck(e.name, e.check, onFailure) })),
+  );
   const report: ReadinessReport = { status: 'ok', checks: {} };
   for (const { name, critical, result } of results) {
     report.checks[name] = result;
     if (result.status === 'down') {
-      report.status = critical ? 'unavailable' : report.status === 'unavailable' ? 'unavailable' : 'degraded';
+      report.status = critical
+        ? 'unavailable'
+        : report.status === 'unavailable'
+          ? 'unavailable'
+          : 'degraded';
     }
   }
   return report;

@@ -4,7 +4,10 @@ import { evaluateReadiness } from './readiness';
 describe('evaluateReadiness', () => {
   it('times out hanging checks instead of hanging the probe', async () => {
     vi.useFakeTimers();
-    const pending = evaluateReadiness({ critical: { database: () => new Promise(() => {}) }, degradable: {} });
+    const pending = evaluateReadiness({
+      critical: { database: () => new Promise(() => {}) },
+      degradable: {},
+    });
     await vi.advanceTimersByTimeAsync(2001);
     const report = await pending;
     vi.useRealTimers();

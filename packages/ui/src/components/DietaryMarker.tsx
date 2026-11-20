@@ -36,11 +36,25 @@ export function DietaryMarker({
       aria-label={LABELS[type]}
       title={LABELS[type]}
       data-marker={type}
-      className={cn('inline-flex shrink-0 items-center justify-center rounded-[2px] border-[1.5px]', COLOR[type], className)}
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center rounded-[2px] border-[1.5px]',
+        COLOR[type],
+        className,
+      )}
       style={{ width: px, height: px }}
     >
-      <svg viewBox="0 0 10 10" width={px * 0.55} height={px * 0.55} aria-hidden="true" fill="currentColor">
-        {type === 'NON_VEG' ? <polygon points="5,1 9.5,9 0.5,9" /> : <circle cx="5" cy="5" r="4.5" />}
+      <svg
+        viewBox="0 0 10 10"
+        width={px * 0.55}
+        height={px * 0.55}
+        aria-hidden="true"
+        fill="currentColor"
+      >
+        {type === 'NON_VEG' ? (
+          <polygon points="5,1 9.5,9 0.5,9" />
+        ) : (
+          <circle cx="5" cy="5" r="4.5" />
+        )}
       </svg>
     </span>
   );

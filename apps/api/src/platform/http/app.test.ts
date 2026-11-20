@@ -12,7 +12,9 @@ const down = async () => {
   throw new Error('connection refused');
 };
 
-function makeApp(readiness: ReadinessChecks = { critical: { database: up }, degradable: { redisCore: up } }) {
+function makeApp(
+  readiness: ReadinessChecks = { critical: { database: up }, degradable: { redisCore: up } },
+) {
   return createApp({ logger, corsOrigins: ['http://localhost:5173'], readiness });
 }
 
@@ -62,7 +64,9 @@ describe('HTTP platform', () => {
   it('NFR-OBS-002 echoes a safe client request id and replaces unsafe ones', async () => {
     const ok = await request(makeApp()).get('/health/live').set('X-Request-Id', 'client-req-12345');
     expect(ok.headers['x-request-id']).toBe('client-req-12345');
-    const unsafe = await request(makeApp()).get('/health/live').set('X-Request-Id', 'bad id <script>');
+    const unsafe = await request(makeApp())
+      .get('/health/live')
+      .set('X-Request-Id', 'bad id <script>');
     expect(unsafe.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/);
   });
 
@@ -81,17 +85,24 @@ describe('HTTP platform', () => {
     expect(huge.status).toBe(413);
     expect(huge.body.error.code).toBe('PAYLOAD_TOO_LARGE');
 
-    const text = await request(app).post('/api/v1/anything').set('Content-Type', 'text/plain').send('hi');
+    const text = await request(app)
+      .post('/api/v1/anything')
+      .set('Content-Type', 'text/plain')
+      .send('hi');
     expect(text.status).toBe(415);
     expect(text.body.error.code).toBe('UNSUPPORTED_MEDIA_TYPE');
   });
 
   it('NFR-SEC-008/009 sets security headers and only allows listed origins', async () => {
-    const allowed = await request(makeApp()).get('/health/live').set('Origin', 'http://localhost:5173');
+    const allowed = await request(makeApp())
+      .get('/health/live')
+      .set('Origin', 'http://localhost:5173');
     expect(allowed.headers['access-control-allow-origin']).toBe('http://localhost:5173');
     expect(allowed.headers['x-content-type-options']).toBe('nosniff');
     expect(allowed.headers['x-powered-by']).toBeUndefined();
-    const denied = await request(makeApp()).get('/health/live').set('Origin', 'https://evil.example');
+    const denied = await request(makeApp())
+      .get('/health/live')
+      .set('Origin', 'https://evil.example');
     expect(denied.headers['access-control-allow-origin']).toBeUndefined();
   });
 });
@@ -123,7 +134,9 @@ describe('error handler (ERR-002/004)', () => {
   });
 
   it('never leaks internals for unexpected errors', async () => {
-    const res = await errorResponse(new Error('relation "users" does not exist at /srv/app/db.ts:42'));
+    const res = await errorResponse(
+      new Error('relation "users" does not exist at /srv/app/db.ts:42'),
+    );
     expect(res.status).toBe(500);
     expect(res.body.error.code).toBe('INTERNAL_ERROR');
     expect(JSON.stringify(res.body)).not.toContain('relation');

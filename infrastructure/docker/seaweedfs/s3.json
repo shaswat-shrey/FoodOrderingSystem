@@ -2,9 +2,7 @@
   "identities": [
     {
       "name": "fos-dev",
-      "credentials": [
-        { "accessKey": "fos_storage", "secretKey": "fos_storage_dev_password" }
-      ],
+      "credentials": [{ "accessKey": "fos_storage", "secretKey": "fos_storage_dev_password" }],
       "actions": ["Admin", "Read", "Write", "List", "Tagging"]
     }
   ]

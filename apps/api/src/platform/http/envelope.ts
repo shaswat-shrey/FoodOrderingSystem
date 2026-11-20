@@ -9,7 +9,11 @@ function requestIdOf(res: Response): string | undefined {
 export function sendOk<T>(
   res: Response,
   data: T,
-  { status = 200, message = 'OK', meta = {} }: { status?: number; message?: string; meta?: ApiMeta } = {},
+  {
+    status = 200,
+    message = 'OK',
+    meta = {},
+  }: { status?: number; message?: string; meta?: ApiMeta } = {},
 ): void {
   const body: ApiSuccess<T> = {
     success: true,
@@ -20,7 +24,17 @@ export function sendOk<T>(
   res.status(status).json(body);
 }
 
-export function sendError(res: Response, status: number, error: ApiFailure['error'], message: string): void {
-  const body: ApiFailure = { success: false, message, error, meta: { requestId: requestIdOf(res) } };
+export function sendError(
+  res: Response,
+  status: number,
+  error: ApiFailure['error'],
+  message: string,
+): void {
+  const body: ApiFailure = {
+    success: false,
+    message,
+    error,
+    meta: { requestId: requestIdOf(res) },
+  };
   res.status(status).json(body);
 }

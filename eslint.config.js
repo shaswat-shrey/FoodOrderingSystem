@@ -27,19 +27,27 @@ export default tseslint.config(
       globals: { ...globals.node },
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       '@typescript-eslint/consistent-type-imports': 'error',
       'no-console': 'error',
       // NFR-SEC-005: raw SQL only through tagged templates.
       'no-restricted-properties': [
         'error',
         { property: '$queryRawUnsafe', message: 'Use $queryRaw tagged templates (NFR-SEC-005).' },
-        { property: '$executeRawUnsafe', message: 'Use $executeRaw tagged templates (NFR-SEC-005).' },
+        {
+          property: '$executeRawUnsafe',
+          message: 'Use $executeRaw tagged templates (NFR-SEC-005).',
+        },
       ],
       // NFR-MAINT-001: packages are consumed through their public entry points only.
       'no-restricted-imports': [
         'error',
-        { patterns: [{ group: ['@fos/*/src/*'], message: 'Import from the package entry point.' }] },
+        {
+          patterns: [{ group: ['@fos/*/src/*'], message: 'Import from the package entry point.' }],
+        },
       ],
     },
   },
@@ -62,7 +70,11 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/*-web/**/*.{ts,tsx}', 'packages/ui/**/*.{ts,tsx}', 'packages/api-client/**/*.{ts,tsx}'],
+    files: [
+      'apps/*-web/**/*.{ts,tsx}',
+      'packages/ui/**/*.{ts,tsx}',
+      'packages/api-client/**/*.{ts,tsx}',
+    ],
     languageOptions: { globals: { ...globals.browser } },
     plugins: { 'react-hooks': reactHooks },
     rules: {

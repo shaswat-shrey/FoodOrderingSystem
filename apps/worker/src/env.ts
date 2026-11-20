@@ -12,7 +12,9 @@ export type WorkerEnv = z.infer<typeof workerEnvSchema>;
 export function loadWorkerEnv(source: NodeJS.ProcessEnv = process.env): WorkerEnv {
   const result = workerEnvSchema.safeParse(source);
   if (!result.success) {
-    const problems = result.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
+    const problems = result.error.issues
+      .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
+      .join('\n');
     throw new Error(`Invalid worker environment configuration:\n${problems}`);
   }
   return result.data;

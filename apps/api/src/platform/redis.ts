@@ -40,8 +40,14 @@ export function connectRedis(url: string, name: string, logger: Logger): Redis {
   return client;
 }
 
-export function createRedisClients(urls: { core: string; cache: string }, logger: Logger): RedisClients {
-  return { core: connectRedis(urls.core, 'core', logger), cache: connectRedis(urls.cache, 'cache', logger) };
+export function createRedisClients(
+  urls: { core: string; cache: string },
+  logger: Logger,
+): RedisClients {
+  return {
+    core: connectRedis(urls.core, 'core', logger),
+    cache: connectRedis(urls.cache, 'cache', logger),
+  };
 }
 
 export async function pingRedis(client: Redis): Promise<void> {

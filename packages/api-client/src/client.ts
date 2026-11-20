@@ -38,7 +38,13 @@ function toClientError(error: unknown): ApiClientError {
         error.response.status >= 500,
       );
     }
-    return new ApiClientError('NETWORK_ERROR', "Can't reach the server. Check your connection.", undefined, [], true);
+    return new ApiClientError(
+      'NETWORK_ERROR',
+      "Can't reach the server. Check your connection.",
+      undefined,
+      [],
+      true,
+    );
   }
   return new ApiClientError('UNKNOWN_ERROR', 'Something went wrong.', undefined);
 }
@@ -61,7 +67,8 @@ export function createApiClient({ baseURL = '', clientApp, adapter }: ApiClientO
 
   http.interceptors.request.use((config) => {
     config.headers.set(CLIENT_APP_HEADER, clientApp);
-    if (!config.headers.has(REQUEST_ID_HEADER)) config.headers.set(REQUEST_ID_HEADER, newRequestId());
+    if (!config.headers.has(REQUEST_ID_HEADER))
+      config.headers.set(REQUEST_ID_HEADER, newRequestId());
     return config;
   });
 

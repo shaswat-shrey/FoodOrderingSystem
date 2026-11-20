@@ -16,19 +16,29 @@ async function main(): Promise<void> {
     url: env.DATABASE_URL,
     onQueryError: (message) => logger.error({ db: 'prisma' }, message.replace(/\s+/g, ' ').trim()),
   });
-  const redis = createRedisClients({ core: env.REDIS_CORE_URL, cache: env.REDIS_CACHE_URL }, logger);
+  const redis = createRedisClients(
+    { core: env.REDIS_CORE_URL, cache: env.REDIS_CACHE_URL },
+    logger,
+  );
 
   const app = createApp({
     logger,
     corsOrigins: env.CORS_ORIGINS,
     readiness: {
       critical: { database: () => pingDatabase(prisma) },
-      degradable: { redisCore: () => pingRedis(redis.core), redisCache: () => pingRedis(redis.cache) },
+      degradable: {
+        redisCore: () => pingRedis(redis.core),
+        redisCache: () => pingRedis(redis.cache),
+      },
     },
   });
 
   const httpServer = createServer(app);
-  const io = createSocketServer(httpServer, { corsOrigins: env.CORS_ORIGINS, logger, redis: redis.core });
+  const io = createSocketServer(httpServer, {
+    corsOrigins: env.CORS_ORIGINS,
+    logger,
+    redis: redis.core,
+  });
 
   httpServer.listen(env.API_PORT, () => {
     logger.info({ port: env.API_PORT, env: env.NODE_ENV }, 'api listening');
@@ -45,7 +55,11 @@ async function main(): Promise<void> {
     }, SHUTDOWN_GRACE_MS);
     force.unref();
     await new Promise<void>((resolve) => io.close(() => resolve())); // also closes httpServer
-    await Promise.allSettled([prisma.$disconnect(), closeRedis(redis.core), closeRedis(redis.cache)]);
+    await Promise.allSettled([
+      prisma.$disconnect(),
+      closeRedis(redis.core),
+      closeRedis(redis.cache),
+    ]);
     logger.info('shutdown complete');
     process.exit(0);
   };

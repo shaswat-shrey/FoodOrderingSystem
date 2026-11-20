@@ -9,7 +9,8 @@ const BODY_METHODS = new Set(['POST', 'PUT', 'PATCH']);
  */
 export function requireJsonBody(): RequestHandler {
   return (req, _res, next) => {
-    const hasBody = Number(req.header('content-length') ?? 0) > 0 || req.header('transfer-encoding');
+    const hasBody =
+      Number(req.header('content-length') ?? 0) > 0 || req.header('transfer-encoding');
     if (BODY_METHODS.has(req.method) && hasBody && !req.is('application/json')) {
       next(new AppError('UNSUPPORTED_MEDIA_TYPE', { message: 'Request body must be JSON.' }));
       return;

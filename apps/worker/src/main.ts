@@ -10,10 +10,18 @@ async function main(): Promise<void> {
   const core = connectRedis(env.REDIS_CORE_URL, 'core', logger);
 
   const workers = startWorkers(registrations, core, logger);
-  logger.info({ processors: registrations.map((r) => r.queue) }, `worker started with ${workers.length} processors`);
+  logger.info(
+    { processors: registrations.map((r) => r.queue) },
+    `worker started with ${workers.length} processors`,
+  );
 
-  const health = createHealthServer({ critical: { redisCore: () => pingRedis(core) }, degradable: {} }, logger);
-  health.listen(env.WORKER_HEALTH_PORT, () => logger.info({ port: env.WORKER_HEALTH_PORT }, 'worker health listening'));
+  const health = createHealthServer(
+    { critical: { redisCore: () => pingRedis(core) }, degradable: {} },
+    logger,
+  );
+  health.listen(env.WORKER_HEALTH_PORT, () =>
+    logger.info({ port: env.WORKER_HEALTH_PORT }, 'worker health listening'),
+  );
 
   let shuttingDown = false;
   const shutdown = async (signal: string) => {

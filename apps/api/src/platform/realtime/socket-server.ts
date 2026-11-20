@@ -36,13 +36,19 @@ export function createSocketServer(httpServer: HttpServer, options: SocketServer
   for (const app of CLIENT_APPS) {
     io.of(SOCKET_NAMESPACES[app]).use((_socket, next) => {
       const error = new Error('AUTH_TOKEN_INVALID') as Error & { data?: unknown };
-      error.data = { code: 'AUTH_TOKEN_INVALID', message: 'Real-time authentication is not available yet.' };
+      error.data = {
+        code: 'AUTH_TOKEN_INVALID',
+        message: 'Real-time authentication is not available yet.',
+      };
       next(error);
     });
   }
   // The default namespace is not used by any client.
   io.use((_socket, next) => next(new Error('FORBIDDEN')));
 
-  options.logger.info({ namespaces: Object.values(SOCKET_NAMESPACES) }, 'socket gateway initialised');
+  options.logger.info(
+    { namespaces: Object.values(SOCKET_NAMESPACES) },
+    'socket gateway initialised',
+  );
   return io;
 }

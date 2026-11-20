@@ -23,7 +23,9 @@ async function serve(redisUp: boolean) {
 
 describe('worker', () => {
   it('validates its environment', () => {
-    expect(loadWorkerEnv({ REDIS_CORE_URL: 'redis://localhost:6379' }).WORKER_HEALTH_PORT).toBe(4001);
+    expect(loadWorkerEnv({ REDIS_CORE_URL: 'redis://localhost:6379' }).WORKER_HEALTH_PORT).toBe(
+      4001,
+    );
     expect(() => loadWorkerEnv({})).toThrow(/REDIS_CORE_URL/);
   });
 
@@ -33,7 +35,10 @@ describe('worker', () => {
     close?.();
     const down = await fetch(`${await serve(false)}/health/ready`);
     expect(down.status).toBe(503);
-    expect(await down.json()).toMatchObject({ status: 'unavailable', checks: { redisCore: { error: 'unreachable' } } });
+    expect(await down.json()).toMatchObject({
+      status: 'unavailable',
+      checks: { redisCore: { error: 'unreachable' } },
+    });
   });
 
   it('has no processors registered before feature modules exist', () => {
