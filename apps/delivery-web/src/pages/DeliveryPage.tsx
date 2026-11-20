@@ -26,7 +26,10 @@ export function DeliveryPage() {
   const delivery = useQuery({
     queryKey: key,
     queryFn: partner.deliveries.active,
-    refetchInterval: connected ? 60_000 : 15_000,
+    // A restaurant handover (API-RORD-009) moves the trip on without a push to the
+    // partner, so poll briskly while waiting at the restaurant.
+    refetchInterval: (q) =>
+      q.state.data?.status === 'AT_RESTAURANT' ? 5_000 : connected ? 60_000 : 15_000,
   });
   if (delivery.isPending) return <Spinner />;
   if (delivery.isError) return <ServerError error={delivery.error} />;
