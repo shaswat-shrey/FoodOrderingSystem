@@ -1,0 +1,53 @@
+/*
+ * FoodOrderSystem design tokens (SRS §17.1.0, UI-DS-001..003).
+ * Apps import this file once: @import "@fos/ui/styles.css";
+ */
+@import 'tailwindcss';
+
+/* Tailwind ignores node_modules by default; scan the shared components explicitly. */
+@source './';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Brand: warm orange; the 700 shade meets 4.5:1 contrast on white for text. */
+  --color-brand-50: #fff4ed;
+  --color-brand-100: #ffe6d4;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-700: #c2410c;
+  --color-brand-800: #9a3412;
+
+  /* Semantic */
+  --color-success-600: #15803d;
+  --color-warning-600: #b45309;
+  --color-danger-600: #b91c1c;
+  --color-info-600: #1d4ed8;
+
+  /* Dietary markers — reserved, never reused for other meaning (UI-DS-003). */
+  --color-veg: #0f8a3b;
+  --color-nonveg: #c62828;
+  --color-egg: #e0a100;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-white text-gray-900;
+  }
+  /* NFR-ACCESS-002: always-visible keyboard focus. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-700;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@fos/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Typed HTTP client for the four web apps (Axios + TanStack Query)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fos/shared": "workspace:*",
+    "@fos/types": "workspace:*",
+    "@tanstack/react-query": "^5.108.2",
+    "axios": "^1.21.1"
+  },
+  "devDependencies": {
+    "@fos/config": "workspace:*",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.8",
+    "vitest": "^3.2.7"
+  },
+  "peerDependencies": {
+    "react": "^19.3.1"
+  }
+}
