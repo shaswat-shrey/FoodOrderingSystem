@@ -3,6 +3,16 @@
 export { AccountAnonymizer } from '../modules/auth/account-anonymizer';
 export { AuditService } from '../modules/audit';
 export { CartExpiry } from '../modules/checkout/cart-expiry';
+export { SettingsService } from '../modules/config';
+export { OffersService } from '../modules/offers';
+export {
+  OrderEffects,
+  OrderPaymentReactions,
+  OrderTimerJobs,
+  OrderTimers,
+  OrderTransitions,
+  registerOrderConsumers,
+} from '../modules/orders';
 export { LedgerService } from '../modules/ledger/ledger.service';
 export {
   createPaymentProvider,
@@ -13,3 +23,4 @@ export { WalletService } from '../modules/ledger/wallet.service';
 export { PaymentsService, PROCESS_WEBHOOK_JOB } from '../modules/payments/payments.service';
 export { RefundService, SUBMIT_REFUND_JOB } from '../modules/payments/refunds.service';
 export { BullJobQueue } from '../platform/jobs';
+export { OutboxRelay } from '../platform/outbox-relay';

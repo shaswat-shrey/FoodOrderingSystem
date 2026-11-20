@@ -2,7 +2,7 @@ import { Writable } from 'node:stream';
 import { Redis } from 'ioredis';
 import request from 'supertest';
 import type TestAgent from 'supertest/lib/agent';
-import { PrismaClient } from '@fos/db';
+import { PrismaClient, type OrderStatus } from '@fos/db';
 import { loadEnv } from '../src/config/env';
 import { createContainer, type Container } from '../src/container';
 import { hashPassword } from '../src/modules/auth/password';
@@ -227,7 +227,7 @@ export async function createFixtureOrder(
   input: {
     userId: string;
     branchId: string;
-    status?: 'PAYMENT_PENDING' | 'PLACED' | 'DELIVERED' | 'CANCELLED' | 'FAILED';
+    status?: OrderStatus;
     paymentMethod?: 'ONLINE' | 'COD' | 'WALLET';
     payableAmount?: number;
     walletAppliedAmount?: number;
@@ -282,6 +282,10 @@ export async function createFixtureOrder(
       commissionRateBps: 2000,
       contactName: 'Fixture',
       contactPhone: '+919000000999',
+      ...(status === 'PAYMENT_PENDING' ? {} : { placedAt: ctx.clock.now() }),
+      ...(['ACCEPTED', 'PREPARING', 'READY_FOR_PICKUP', 'PICKED_UP', 'DELIVERED'].includes(status)
+        ? { acceptedAt: ctx.clock.now() }
+        : {}),
       ...(status === 'DELIVERED' ? { deliveredAt: new Date() } : {}),
     },
   });

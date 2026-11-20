@@ -48,11 +48,25 @@ export class BullJobQueue implements JobQueue {
   }
 }
 
-/** Test double: records jobs instead of queueing them. */
+/** Test double: records jobs instead of queueing them; like BullMQ, a repeated jobId is ignored. */
 export class RecordingJobQueue implements JobQueue {
-  readonly jobs: { queue: QueueName; name: string; data: Record<string, unknown> }[] = [];
-  async enqueue(queue: QueueName, name: string, data: Record<string, unknown>): Promise<void> {
-    this.jobs.push({ queue, name, data });
+  readonly jobs: {
+    queue: QueueName;
+    name: string;
+    data: Record<string, unknown>;
+    jobId?: string;
+    delayMs?: number;
+  }[] = [];
+  async enqueue(
+    queue: QueueName,
+    name: string,
+    data: Record<string, unknown>,
+    opts: { jobId?: string; delayMs?: number } = {},
+  ): Promise<void> {
+    if (opts.jobId && opts.jobId.split(':').length === 2)
+      throw new Error('Custom Id cannot contain :');
+    if (opts.jobId && this.jobs.some((j) => j.queue === queue && j.jobId === opts.jobId)) return;
+    this.jobs.push({ queue, name, data, ...opts });
   }
   async close(): Promise<void> {}
 }

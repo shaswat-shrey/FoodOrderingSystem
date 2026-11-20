@@ -25,4 +25,13 @@ export class CartExpiry {
     });
     return count;
   }
+
+  /** JOB-CHK-001: checkout sessions past their TTL (nothing is reserved until confirm). */
+  async expireSessions(): Promise<number> {
+    const { count } = await this.prisma.checkoutSession.updateMany({
+      where: { status: 'OPEN', expiresAt: { lt: this.clock.now() } },
+      data: { status: 'EXPIRED' },
+    });
+    return count;
+  }
 }

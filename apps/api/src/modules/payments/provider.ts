@@ -54,6 +54,8 @@ export interface PaymentProvider {
     notes: Record<string, string>;
   }): Promise<{ providerOrderId: string }>;
   getPayment(providerPaymentId: string): Promise<ProviderPayment>;
+  /** Every payment made against a provider order (finds captures whose callback and webhook were lost). */
+  listOrderPayments(providerOrderId: string): Promise<ProviderPayment[]>;
   /** Client callback check, no network (FR-PAY-003). */
   verifyClientSignature(input: {
     providerOrderId: string;

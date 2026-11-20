@@ -87,6 +87,14 @@ export class RazorpayProvider implements PaymentProvider {
     );
   }
 
+  async listOrderPayments(providerOrderId: string): Promise<ProviderPayment[]> {
+    const res = await this.call<{ items: unknown[] }>(
+      'GET',
+      `/orders/${encodeURIComponent(providerOrderId)}/payments`,
+    );
+    return res.items.map((p) => toProviderPayment(p as never));
+  }
+
   verifyClientSignature(input: {
     providerOrderId: string;
     providerPaymentId: string;

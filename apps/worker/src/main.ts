@@ -7,8 +7,17 @@ import {
   CartExpiry,
   createPaymentProvider,
   LedgerService,
+  OffersService,
+  OrderEffects,
+  OrderPaymentReactions,
+  OrderTimerJobs,
+  OrderTimers,
+  OrderTransitions,
+  OutboxRelay,
   PaymentsService,
   RefundService,
+  registerOrderConsumers,
+  SettingsService,
   WalletService,
 } from '@fos/api/jobs';
 import { closeRedis, connectRedis, createLogger, pingRedis } from '@fos/api/platform';
@@ -34,15 +43,8 @@ async function main(): Promise<void> {
   const jobs = new BullJobQueue(core);
   const provider = createPaymentProvider(env);
   const audit = new AuditService(prisma);
-  const refunds = new RefundService(
-    prisma,
-    provider,
-    ledger,
-    new WalletService(prisma, ledger, clock),
-    jobs,
-    clock,
-    logger,
-  );
+  const wallet = new WalletService(prisma, ledger, clock);
+  const refunds = new RefundService(prisma, provider, ledger, wallet, jobs, clock, logger);
   const payments = new PaymentsService(
     prisma,
     provider,
@@ -53,6 +55,21 @@ async function main(): Promise<void> {
     clock,
     logger,
   );
+  const transitions = new OrderTransitions(clock);
+  const timers = new OrderTimers(jobs, new SettingsService(prisma, logger), logger, clock);
+  const reactions = new OrderPaymentReactions(
+    prisma,
+    transitions,
+    new OrderEffects(new OffersService(prisma, clock), wallet),
+    payments,
+    refunds,
+    timers,
+    logger,
+  );
+  const orderJobs = new OrderTimerJobs(prisma, transitions, reactions, timers, clock, logger);
+  // ADR-010 puts the relay in the API; it runs here so API instances stay request-only.
+  const outbox = new OutboxRelay(prisma, core, clock, logger);
+  registerOrderConsumers(outbox, reactions);
   const registrations = buildRegistrations({
     sink: createMessageSink(env, logger),
     anonymizer,
@@ -60,9 +77,12 @@ async function main(): Promise<void> {
     ledger,
     payments,
     refunds,
+    orderJobs,
+    outbox,
     logger,
   });
   const workers = startWorkers(registrations, core, logger);
+  outbox.start();
   logger.info(
     { processors: registrations.map((r) => r.queue) },
     `worker started with ${workers.length} processors`,
@@ -93,6 +113,7 @@ async function main(): Promise<void> {
     logger.info({ signal }, 'shutting down');
     const force = setTimeout(() => process.exit(1), 25_000);
     force.unref();
+    await outbox.stop();
     // Worker.close() waits for active jobs to finish (NFR-REL-007).
     await Promise.allSettled(workers.map((w) => w.close()));
     await Promise.allSettled([

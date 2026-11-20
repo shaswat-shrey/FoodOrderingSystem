@@ -66,6 +66,13 @@ export class MockPaymentProvider implements PaymentProvider {
     return toProviderPayment(p as never);
   }
 
+  async listOrderPayments(providerOrderId: string): Promise<ProviderPayment[]> {
+    if (this.down) throw new ProviderError('mock provider unavailable', 503);
+    return [...this.payments.values()]
+      .filter((p) => p.order_id === providerOrderId)
+      .map((p) => toProviderPayment(p as never));
+  }
+
   verifyClientSignature(input: {
     providerOrderId: string;
     providerPaymentId: string;

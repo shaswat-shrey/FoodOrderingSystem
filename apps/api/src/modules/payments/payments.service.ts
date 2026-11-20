@@ -512,6 +512,49 @@ export class PaymentsService {
     return resolved;
   }
 
+  /**
+   * JOB-ORD-001 (FR-PAY-006): before expiring an order, ask the provider about
+   * every payment made against its provider orders, so a capture whose callback
+   * and webhook were both lost still places the order.
+   */
+  async pollOrder(orderId: string): Promise<void> {
+    const open = await this.prisma.payment.findMany({
+      where: {
+        orderId,
+        status: { in: ['CREATED', 'PENDING', 'AUTHORIZED'] },
+        provider: this.provider.name,
+        providerOrderId: { not: null },
+      },
+    });
+    for (const p of open) {
+      let found: ProviderPayment[];
+      try {
+        found = await this.provider.listOrderPayments(p.providerOrderId!);
+      } catch (error) {
+        if (!(error instanceof ProviderError)) throw error;
+        // Can't confirm with the provider: don't expire on a guess; the job retries.
+        throw new AppError('PAYMENT_PROVIDER_UNAVAILABLE', { retryable: true, cause: error });
+      }
+      // Captures first, so a failed attempt never masks a later success.
+      found.sort((a, b) => Number(b.status === 'CAPTURED') - Number(a.status === 'CAPTURED'));
+      for (const pp of found) await this.apply(p.id, pp, 'poll');
+    }
+  }
+
+  /** T04/T05: open payments of a dead order become EXPIRED / CANCELLED (never after capture). */
+  async closeOpenPayments(tx: Tx, orderId: string, to: 'EXPIRED' | 'CANCELLED'): Promise<void> {
+    const open = await tx.payment.findMany({
+      where: { orderId, status: { in: ['CREATED', 'PENDING', 'AUTHORIZED'] } },
+    });
+    for (const p of open) {
+      if (canTransition(p.status, to))
+        await tx.payment.update({
+          where: { id: p.id },
+          data: { status: to, version: { increment: 1 } },
+        });
+    }
+  }
+
   /* ----------------------------- reads ----------------------------- */
 
   /** API-PAY-003 */

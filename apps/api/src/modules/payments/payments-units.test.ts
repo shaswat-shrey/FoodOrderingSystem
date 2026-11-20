@@ -80,6 +80,45 @@ describe('Razorpay adapter (FR-PAY-001, 003, 004, 014)', () => {
     });
   });
 
+  it('lists the payments made against a provider order (FR-PAY-006)', async () => {
+    calls.length = 0;
+    const rzp = new RazorpayProvider({
+      keyId: 'rzp_test_k',
+      keySecret: 'sk',
+      webhookSecrets: ['w1'],
+      fetch: fake([
+        reply(200, {
+          entity: 'collection',
+          count: 2,
+          items: [
+            {
+              id: 'pay_a',
+              order_id: 'order_1',
+              amount: 500,
+              currency: 'INR',
+              status: 'failed',
+              method: 'upi',
+            },
+            {
+              id: 'pay_b',
+              order_id: 'order_1',
+              amount: 500,
+              currency: 'INR',
+              status: 'captured',
+              method: 'upi',
+              vpa: 'x@y',
+            },
+          ],
+        }),
+      ]),
+    });
+    expect((await rzp.listOrderPayments('order_1')).map((p) => p.status)).toEqual([
+      'FAILED',
+      'CAPTURED',
+    ]);
+    expect(calls[0]!.url).toBe('https://api.razorpay.com/v1/orders/order_1/payments');
+  });
+
   it('turns provider errors into ProviderError', async () => {
     const rzp = new RazorpayProvider({
       keyId: 'k',

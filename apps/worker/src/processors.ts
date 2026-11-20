@@ -15,6 +15,8 @@ import {
   type AccountAnonymizer,
   type CartExpiry,
   type LedgerService,
+  type OrderTimerJobs,
+  type OutboxRelay,
   type PaymentsService,
   type RefundService,
 } from '@fos/api/jobs';
@@ -43,6 +45,9 @@ export const VERIFY_LEDGER_JOB = 'verify-ledger';
 export const SWEEP_WEBHOOKS_JOB = 'sweep-payment-webhooks';
 export const SWEEP_REFUNDS_JOB = 'sweep-refunds';
 export const RESOLVE_STUCK_PAYMENTS_JOB = 'resolve-stuck-payments';
+export const SWEEP_ORDER_TIMERS_JOB = 'sweep-order-timers';
+export const EXPIRE_CHECKOUT_SESSIONS_JOB = 'expire-checkout-sessions';
+export const OUTBOX_HEALTH_JOB = 'outbox-health';
 
 /** Repeatable jobs (BullMQ job schedulers), registered idempotently at boot. */
 export const SCHEDULES = [
@@ -57,15 +62,22 @@ export const SCHEDULES = [
   { queue: 'maintenance', id: SWEEP_REFUNDS_JOB, everyMs: 60 * 1000 },
   // FR-RECON-004 / JOB-PAY-004: payments stuck PENDING/AUTHORIZED.
   { queue: 'maintenance', id: RESOLVE_STUCK_PAYMENTS_JOB, everyMs: 60 * 60 * 1000 },
+  // JOB-ORD-007: self-healing order timers; JOB-CHK-001: expired checkout sessions.
+  { queue: 'orders', id: SWEEP_ORDER_TIMERS_JOB, everyMs: 5 * 60 * 1000 },
+  { queue: 'maintenance', id: EXPIRE_CHECKOUT_SESSIONS_JOB, everyMs: 5 * 60 * 1000 },
+  // JOB-OUTBOX-001: stale-event alert.
+  { queue: 'maintenance', id: OUTBOX_HEALTH_JOB, everyMs: 60 * 1000 },
 ] as const satisfies { queue: QueueName; id: string; everyMs: number }[];
 
 export interface JobServices {
   sink: MessageSink;
   anonymizer: AccountAnonymizer;
-  cartExpiry: CartExpiry;
+  cartExpiry: Pick<CartExpiry, 'run' | 'expireSessions'>;
   ledger: Pick<LedgerService, 'verify'>;
   payments: Pick<PaymentsService, 'processWebhook' | 'processPendingWebhooks' | 'resolveStuck'>;
   refunds: Pick<RefundService, 'submit' | 'sweep'>;
+  orderJobs: Pick<OrderTimerJobs, 'run' | 'sweep'>;
+  outbox: Pick<OutboxRelay, 'checkStale'>;
   logger: Logger;
 }
 
@@ -77,6 +89,8 @@ export function buildRegistrations({
   ledger,
   payments,
   refunds,
+  orderJobs,
+  outbox,
   logger,
 }: JobServices): ProcessorRegistration[] {
   const maintenance: Record<string, () => Promise<void>> = {
@@ -105,6 +119,13 @@ export function buildRegistrations({
       const count = await payments.resolveStuck();
       if (count > 0) logger.info({ count }, 'resolved stuck payments from the provider');
     },
+    [EXPIRE_CHECKOUT_SESSIONS_JOB]: async () => {
+      const count = await cartExpiry.expireSessions();
+      if (count > 0) logger.info({ count }, 'expired checkout sessions');
+    },
+    [OUTBOX_HEALTH_JOB]: async () => {
+      await outbox.checkStale();
+    },
     [EXPIRE_IDLE_CARTS_JOB]: async () => {
       const count = await cartExpiry.run();
       if (count > 0) logger.info({ count }, 'expired idle carts');
@@ -118,6 +139,18 @@ export function buildRegistrations({
         const run = maintenance[job.name];
         if (!run) throw new Error(`Unknown maintenance job: ${job.name}`);
         await run();
+      },
+    },
+    {
+      // JOB-ORD-001…007: per-order timers (job data carries the order id) and the sweeper.
+      queue: 'orders',
+      concurrency: 10,
+      processor: async (job) => {
+        if (job.name === SWEEP_ORDER_TIMERS_JOB) {
+          await orderJobs.sweep();
+          return;
+        }
+        await orderJobs.run(job.name, String((job.data as { orderId: string }).orderId));
       },
     },
     {

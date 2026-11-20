@@ -13,7 +13,16 @@ import { CartService, CheckoutService, QuoteBuilder } from './modules/checkout';
 import { DiscoveryService } from './modules/discovery';
 import { LedgerService, WalletService } from './modules/ledger';
 import { OffersService } from './modules/offers';
-import { OrderCreationService, OrderTimers, OrderTransitions } from './modules/orders';
+import {
+  OrderCreationService,
+  OrderEffects,
+  OrderPaymentReactions,
+  OrderTimerJobs,
+  OrderTimers,
+  OrderTransitions,
+  registerOrderConsumers,
+} from './modules/orders';
+import { OutboxRelay } from './platform/outbox-relay';
 import {
   createPaymentProvider,
   PaymentsService,
@@ -128,7 +137,7 @@ export function createContainer(input: ContainerInput) {
     logger,
   );
   const orderTransitions = new OrderTransitions(clock);
-  const orderTimers = new OrderTimers(jobs, settings, logger);
+  const orderTimers = new OrderTimers(jobs, settings, logger, clock);
   const orderCreation = new OrderCreationService(
     prisma,
     checkout,
@@ -142,6 +151,27 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  const orderEffects = new OrderEffects(offers, wallet);
+  const orderPaymentReactions = new OrderPaymentReactions(
+    prisma,
+    orderTransitions,
+    orderEffects,
+    payments,
+    refunds,
+    orderTimers,
+    logger,
+  );
+  const orderTimerJobs = new OrderTimerJobs(
+    prisma,
+    orderTransitions,
+    orderPaymentReactions,
+    orderTimers,
+    clock,
+    logger,
+  );
+  // Consumers are registered here; the relay loop itself runs in the worker.
+  const outboxRelay = new OutboxRelay(prisma, redis.core, clock, logger);
+  registerOrderConsumers(outboxRelay, orderPaymentReactions);
   return {
     env,
     prisma,
@@ -181,6 +211,10 @@ export function createContainer(input: ContainerInput) {
     orderTransitions,
     orderTimers,
     orderCreation,
+    orderEffects,
+    orderPaymentReactions,
+    orderTimerJobs,
+    outboxRelay,
     appOrigins: appOrigins(env),
   };
 }
