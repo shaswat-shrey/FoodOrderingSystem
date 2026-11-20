@@ -14,7 +14,11 @@ import { DiscoveryService } from './modules/discovery';
 import { LedgerService, WalletService } from './modules/ledger';
 import { OffersService } from './modules/offers';
 import {
+  InvoiceService,
   OrderCancellationService,
+  OrderQueryService,
+  OrderSettlement,
+  ReorderService,
   OrderCreationService,
   OrderEffects,
   OrderPaymentReactions,
@@ -183,9 +187,13 @@ export function createContainer(input: ContainerInput) {
     logger,
   );
   orderTimerJobs.onAcceptTimeout = (orderId) => orderCancellation.acceptTimeout(orderId);
+  const orderQueries = new OrderQueryService(prisma);
+  const reorders = new ReorderService(prisma, cart);
+  const invoices = new InvoiceService(prisma, clock);
+  const orderSettlement = new OrderSettlement(ledger);
   // Consumers are registered here; the relay loop itself runs in the worker.
   const outboxRelay = new OutboxRelay(prisma, redis.core, clock, logger);
-  registerOrderConsumers(outboxRelay, orderPaymentReactions);
+  registerOrderConsumers(outboxRelay, { prisma, reactions: orderPaymentReactions, invoices });
   return {
     env,
     prisma,
@@ -229,6 +237,10 @@ export function createContainer(input: ContainerInput) {
     orderPaymentReactions,
     orderTimerJobs,
     orderCancellation,
+    orderQueries,
+    reorders,
+    invoices,
+    orderSettlement,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

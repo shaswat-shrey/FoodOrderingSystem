@@ -300,7 +300,7 @@ export async function placeOrder(
   ctx: TestContext,
   input: {
     branchId: string;
-    items: { foodItemId: string; optionIds: string[]; quantity: number }[];
+    items: { foodItemId: string; variantId?: string; optionIds: string[]; quantity: number }[];
     paymentMethod: 'COD' | 'ONLINE';
     walletCredit?: number;
     coupon?: string;
@@ -332,8 +332,10 @@ export async function placeOrder(
       location: { lat: 12.9352, lng: 77.6245 },
     })
   ).body.data;
-  for (const item of input.items)
-    await c.browser.post('/cart/items', { branchId: input.branchId, ...item });
+  for (const item of input.items) {
+    const added = await c.browser.post('/cart/items', { branchId: input.branchId, ...item });
+    if (added.status >= 300) throw new Error(`add to cart failed: ${JSON.stringify(added.body)}`);
+  }
   if (input.coupon) await c.browser.post('/cart/coupon', { code: input.coupon });
   const s = (
     await c.browser.post('/checkout/sessions', {
@@ -358,5 +360,6 @@ export async function placeOrder(
     payment,
     payable: s.data.payableAmount as number,
     session: s.data,
+    addressId: home.id as string,
   };
 }

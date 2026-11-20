@@ -17,3 +17,7 @@ export { registerOrderConsumers } from './outbox-consumers';
 export { OrderPaymentReactions } from './payment-reactions';
 export { allocate, customerTerms, quoteIdFor } from './cancellation-policy';
 export { CUSTOMER_REASONS, OrderCancellationService } from './cancellation.service';
+export { financialYear, INVOICE_SERIES, InvoiceService } from './invoice.service';
+export { OrderQueryService, STATUS_GROUPS, type StatusGroup } from './order-query.service';
+export { ReorderService } from './reorder.service';
+export { OrderSettlement, settlementSplit } from './settlement';

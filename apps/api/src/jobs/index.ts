@@ -6,6 +6,7 @@ export { CartExpiry } from '../modules/checkout/cart-expiry';
 export { SettingsService } from '../modules/config';
 export { OffersService } from '../modules/offers';
 export {
+  InvoiceService,
   OrderCancellationService,
   OrderEffects,
   OrderPaymentReactions,

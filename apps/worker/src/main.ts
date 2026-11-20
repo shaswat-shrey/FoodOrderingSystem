@@ -6,6 +6,7 @@ import {
   BullJobQueue,
   CartExpiry,
   createPaymentProvider,
+  InvoiceService,
   LedgerService,
   OffersService,
   OrderCancellationService,
@@ -86,7 +87,11 @@ async function main(): Promise<void> {
   orderJobs.onAcceptTimeout = (orderId) => cancellations.acceptTimeout(orderId);
   // ADR-010 puts the relay in the API; it runs here so API instances stay request-only.
   const outbox = new OutboxRelay(prisma, core, clock, logger);
-  registerOrderConsumers(outbox, reactions);
+  registerOrderConsumers(outbox, {
+    prisma,
+    reactions,
+    invoices: new InvoiceService(prisma, clock),
+  });
   const registrations = buildRegistrations({
     sink: createMessageSink(env, logger),
     anonymizer,

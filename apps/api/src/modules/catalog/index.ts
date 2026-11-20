@@ -18,3 +18,4 @@ export {
   type RawMenu,
 } from './menu.service';
 export { branchCard, ratingView } from './views';
+export { localParts, zonedInstant } from './local-time';
