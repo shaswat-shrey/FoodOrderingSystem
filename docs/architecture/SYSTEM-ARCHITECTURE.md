@@ -35,7 +35,7 @@ flowchart TB
   PG[(PostgreSQL 16 + PostGIS)]
   RC[(Redis — cache<br/>allkeys-lru)]
   RQ[(Redis — queues, locks, realtime, geo<br/>noeviction, AOF)]
-  S3[(Object storage<br/>S3 / R2 / MinIO)]
+  S3[(Object storage<br/>S3 / R2 / SeaweedFS-dev)]
   EXT[[Razorpay · Maps · SMS · Email · Web Push]]
   CW & RW & DW & AW --> LB --> REST & GW
   REST --> PG & RC & RQ & S3
@@ -359,7 +359,7 @@ Service worker (Workbox via vite-plugin-pwa) caches shell; IndexedDB queue for s
 
 | Environment | Purpose | Composition |
 |---|---|---|
-| Local | Development | Docker Compose: postgres (postgis/postgis:16-3.4), redis-core, redis-cache, minio, mailpit, api (tsx watch), worker, 4 Vite dev servers; seed script |
+| Local | Development | Docker Compose: postgres (postgis/postgis:16-3.4), redis-core, redis-cache, seaweedfs (S3), mailpit, api (tsx watch), worker, 4 Vite dev servers; seed script |
 | CI | Tests | GitHub Actions: lint, typecheck, unit, integration (Testcontainers / service containers Postgres+Redis), E2E (Playwright against compose stack), OpenAPI drift, ID checker for SRS |
 | Staging | Pre-prod | Same images as prod; test payment keys; synthetic data |
 | Production | Live | Container platform (TBD, OD-12), managed Postgres (PITR), managed Redis (HA), S3-compatible storage + CDN, Nginx/ALB with WebSocket support |

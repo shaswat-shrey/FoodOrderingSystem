@@ -102,7 +102,7 @@ Defined in §14.1. Additionally:
 
 | ID | Requirement |
 |---|---|
-| IF-STO-001 | `StorageProvider`: `putObject`, `getSignedReadUrl(key, ttl)`, `getSignedUploadUrl` (CORE, direct-to-bucket uploads), `deleteObject`, `headObject`. Implementations: LocalDisk (unit/dev without docker), S3-compatible (MinIO in docker, S3/R2 in production). |
+| IF-STO-001 | `StorageProvider`: `putObject`, `getSignedReadUrl(key, ttl)`, `getSignedUploadUrl` (CORE, direct-to-bucket uploads), `deleteObject`, `headObject`. Implementations: LocalDisk (unit/dev without docker), S3-compatible (SeaweedFS in docker, S3/R2 in production). |
 | IF-STO-002 | Buckets: `public-media` (food/logos/covers/avatars derivatives, served via CDN), `private-docs` (KYC, proofs, invoices, exports; signed URLs only). |
 | IF-STO-003 | Object keys are random (`{purpose}/{yyyy}/{mm}/{uuid}.{ext}`); never derived from user-supplied filenames. |
 

@@ -60,7 +60,7 @@ Requirements for straightforward create/read/update/delete operations use the **
 | FR-FILE-002 | Content validation | The system shall verify file type by magic bytes (not extension or client MIME), reject mismatches, enforce size limits, and strip EXIF metadata (including GPS) from images. | System | `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE` | P0 | MVP |
 | FR-FILE-003 | Image derivatives | The system shall generate resized WebP derivatives (thumbnail 160 px, card 480 px, hero 1200 px) for public images asynchronously and serve the original only to owners. | System | JOB-FILE-001 | P1 | MVP |
 | FR-FILE-004 | Private documents | The system shall store verification documents and delivery proofs in a private bucket, accessible only via signed URLs valid ≤ 5 minutes, issued after an authorization check. | Owner, Admin | Access logged | P0 | MVP |
-| FR-FILE-005 | Storage abstraction | The system shall access storage only through the `StorageProvider` interface (local, MinIO, S3/R2 implementations). | System | — | P0 | MVP |
+| FR-FILE-005 | Storage abstraction | The system shall access storage only through the `StorageProvider` interface (local, S3-compatible implementations — SeaweedFS in development, S3/R2 in production). | System | — | P0 | MVP |
 | FR-FILE-006 | Orphan cleanup | The system shall delete uploaded files not attached to any entity within 24 hours. | System | JOB-FILE-002 | P2 | CORE |
 | FR-FILE-007 | Malware scanning | The system should scan document uploads with an antivirus adapter (ClamAV) before marking them available. | System | ADV if infra cost too high in MVP | P2 | CORE |
 

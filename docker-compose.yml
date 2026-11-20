@@ -1,0 +1,116 @@
+# Local development infrastructure. Application processes (api, worker, web apps)
+# run on the host with `pnpm dev`; the `app` profile runs api + worker in containers.
+name: fos
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: fos
+      POSTGRES_PASSWORD: fos_dev_password
+      POSTGRES_DB: fos
+    ports: ['5432:5432']
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fos -d fos']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Queues, locks, rate limits, sessions, socket adapter, live geo state.
+  # Must never evict keys (BullMQ requirement, C-09); AOF limits job loss.
+  redis-core:
+    image: redis:7.4-alpine
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
+    ports: ['6379:6379']
+    volumes: [redis-core-data:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # Disposable read cache (allkeys-lru).
+  redis-cache:
+    image: redis:7.4-alpine
+    command: ['redis-server', '--save', '', '--appendonly', 'no', '--maxmemory', '256mb', '--maxmemory-policy', 'allkeys-lru']
+    ports: ['6380:6379']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # S3-compatible object storage for development (SeaweedFS S3 gateway on :8333).
+  # MinIO no longer publishes community Docker images; production uses S3/R2.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.51
+    command: ['server', '-dir=/data', '-s3', '-s3.port=8333', '-s3.config=/etc/seaweedfs/s3.json']
+    ports: ['8333:8333']
+    volumes:
+      - seaweedfs-data:/data
+      - ./infrastructure/docker/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null http://localhost:8333/healthz || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Creates the two buckets from IF-STO-002 once storage is healthy.
+  storage-init:
+    image: amazon/aws-cli:2.38.6
+    depends_on:
+      seaweedfs: { condition: service_healthy }
+    environment:
+      AWS_ACCESS_KEY_ID: fos_storage
+      AWS_SECRET_ACCESS_KEY: fos_storage_dev_password
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - >
+        aws --endpoint-url http://seaweedfs:8333 s3 mb s3://fos-public-media || true;
+        aws --endpoint-url http://seaweedfs:8333 s3 mb s3://fos-private-docs || true;
+        aws --endpoint-url http://seaweedfs:8333 s3 ls
+
+  # Captures all outgoing email (and dev SMS/OTP sink) at http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.24
+    ports: ['1025:1025', '8025:8025']
+
+  api:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: infrastructure/docker/api.Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://fos:fos_dev_password@postgres:5432/fos
+      REDIS_CORE_URL: redis://redis-core:6379
+      REDIS_CACHE_URL: redis://redis-cache:6379
+    ports: ['4000:4000']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis-core: { condition: service_healthy }
+      redis-cache: { condition: service_healthy }
+
+  worker:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: infrastructure/docker/worker.Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://fos:fos_dev_password@postgres:5432/fos
+      REDIS_CORE_URL: redis://redis-core:6379
+      REDIS_CACHE_URL: redis://redis-cache:6379
+    ports: ['4001:4001']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis-core: { condition: service_healthy }
+
+volumes:
+  postgres-data:
+  redis-core-data:
+  seaweedfs-data:

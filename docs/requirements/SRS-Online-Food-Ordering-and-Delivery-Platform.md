@@ -15,7 +15,7 @@
 | Project name | FoodOrderSystem — Online Food Ordering and Delivery Platform (working name; product brand name TBD — see OD-01) |
 | Document title | Software Requirements Specification (SRS) |
 | Document identifier | FOS-SRS-001 |
-| Document version | 0.2.0 |
+| Document version | 0.2.1 |
 | Document status | **APPROVED — Baseline for implementation** |
 | Date of creation | 2026-11-20 |
 | Author | Engineering (prepared with Claude Code acting as architecture partner) |
@@ -29,6 +29,7 @@
 |---|---|---|---|---|
 | 0.1.0 | 2026-11-20 | Engineering | Initial complete draft of all 28 SRS sections, Phase 1 architecture, ADRs, API inventory, ERD, roadmap. | — |
 | 0.2.0 | 2026-11-20 | Engineering | Owner approval recorded. OD-01…OD-16 resolved with proposed defaults; assumptions A-01…A-20 confirmed; ADR-001…014 Accepted; documents re-labelled APPROVED. No requirement text changed. | Project owner |
+| 0.2.1 | 2026-11-20 | Engineering | Development object storage changed from MinIO to SeaweedFS (S3 gateway) because MinIO no longer publishes community Docker images. Production storage (S3/R2) and the `StorageProvider` requirement are unchanged. Editorial (§3.2, §3.5, §3.8, FR-FILE-005, IF-STO-001). | Patch (no approval needed) |
 
 Versioning rule: MAJOR = approved baseline change that alters scope; MINOR = requirements added/changed; PATCH = editorial fixes. Every change to a requirement ID's text is recorded here and in the Traceability Matrix change log (§27).
 
@@ -364,7 +365,7 @@ flowchart LR
 - **Redis:** cache (discovery, menus), rate limits, OTP throttles, distributed locks, BullMQ queues, Socket.IO adapter (multi-instance fan-out), live partner locations (GEO sets), idempotency key store (with DB fallback for payments/orders).
 - **Real-time:** Socket.IO with JWT auth at handshake, server-authorized rooms, events emitted from the outbox relay so that only committed state changes are broadcast.
 - **Payments:** `PaymentProvider` adapter interface; Razorpay adapter (primary, India) and a deterministic `MockProvider` for development/testing; Stripe adapter as a later addition. Hosted checkout / provider SDK only — card data never touches our servers.
-- **Storage:** `StorageProvider` abstraction; local disk (dev), MinIO (docker), S3/R2 (prod). Private documents served via short-lived signed URLs.
+- **Storage:** `StorageProvider` abstraction; local disk (unit tests), SeaweedFS S3 gateway (docker), S3/R2 (prod). Private documents served via short-lived signed URLs.
 
 **Backend domain modules** (owner of the listed capabilities):
 
@@ -448,7 +449,7 @@ A single user account **may** hold multiple platform roles (e.g., a restaurant o
 | API & worker | Node.js 22 LTS on Linux containers (x86_64/arm64). |
 | Database | PostgreSQL 16 with PostGIS 3.4+, `pg_trgm`, `unaccent`, `citext`, `pgcrypto` extensions. |
 | Cache/queue | Redis 7.2+ (single instance in dev; managed HA/Sentinel in production; Redis Cluster deferred). |
-| Object storage | S3-compatible (MinIO in docker, S3/R2 in production). |
+| Object storage | S3-compatible (SeaweedFS in docker, S3/R2 in production). |
 | Containers | Docker 24+, Docker Compose v2 for local; any OCI-compatible orchestrator for production (deployment target TBD — OD-12). |
 | Reverse proxy | Nginx (local/prod) or cloud load balancer with WebSocket + sticky sessions *not required* (Socket.IO with Redis adapter and WebSocket-only transport). |
 
@@ -516,7 +517,7 @@ A single user account **may** hold multiple platform roles (e.g., a restaurant o
 | Email | SMTP provider (Mailpit in dev) | Templates, retries, preferences | Delivery |
 | SMS / OTP | DLT-compliant SMS provider | OTP generation/verification (we generate), templates | Delivery |
 | Push | Web Push (VAPID) / FCM | Subscriptions, payloads | Delivery |
-| File storage | S3/R2/MinIO | Validation, access control, signed URLs | Durable storage |
+| File storage | S3 / R2 (SeaweedFS in development) | Validation, access control, signed URLs | Durable storage |
 | Payouts (CORE) | Payout API (e.g., RazorpayX) | Batches, reconciliation | Bank transfers |
 | OAuth | Google, Apple | Token verification, account linking | Identity |
 

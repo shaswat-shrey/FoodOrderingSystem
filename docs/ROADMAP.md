@@ -7,7 +7,7 @@
 | Phase | Goal | Key outputs | Exit criteria | Release |
 |---|---|---|---|---|
 | 1 | Requirements & architecture | SRS, architecture, ADRs, ERD, API inventory, roadmap | **Owner approval** | — |
-| 2 | Repository & infrastructure | pnpm/Turborepo monorepo, TS configs, ESLint/Prettier, boundary rules, Docker Compose (Postgres+PostGIS, Redis×2, MinIO, Mailpit), API & worker skeletons (health, config, logger, error handling, envelope), 4 Vite app shells with design-system package, Vitest/Playwright setup, CI pipeline | `docker compose up` brings everything up; CI green; health checks pass | — |
+| 2 | Repository & infrastructure | pnpm/Turborepo monorepo, TS configs, ESLint/Prettier, boundary rules, Docker Compose (Postgres+PostGIS, Redis×2, SeaweedFS (S3), Mailpit), API & worker skeletons (health, config, logger, error handling, envelope), 4 Vite app shells with design-system package, Vitest/Playwright setup, CI pipeline | `docker compose up` brings everything up; CI green; health checks pass | — |
 | 3 | Database | Prisma schema for all MVP entities, SQL migrations (PostGIS, partial uniques, checks, triggers, partitions), seed data (pilot city), DB docs | Migrations apply cleanly; constraint tests pass; seed loads | — |
 | 4 | Auth & security | Registration/login/OTP, sessions, rotation & reuse detection, logout(-all), email/phone verification, password flows, RBAC + policies, rate limiting, audit log, security headers | AC-AUTH-*, AC-RBAC-001…006 pass | MVP |
 | 5 | Core customer backend | Profile, addresses, geo adapters, zones/serviceability, restaurants & branches read, menus, discovery, search, favorites | AC-DISC-*, AC-MENU-004 | MVP |
@@ -30,7 +30,7 @@
 ### Phase 2 — Repository & infrastructure
 1. Initialize pnpm workspace, Turborepo, `tsconfig.base.json` (strict), `.editorconfig`, `.nvmrc` (Node 22).
 2. `packages/config`: ESLint (typescript-eslint, import, boundaries), Prettier, Tailwind preset, Vite base.
-3. Docker Compose: postgis/postgis:16-3.4, redis (core: noeviction+AOF), redis (cache: allkeys-lru), minio (+ bucket init), mailpit; healthchecks; named volumes.
+3. Docker Compose: postgis/postgis:16-3.4, redis (core: noeviction+AOF), redis (cache: allkeys-lru), seaweedfs S3 gateway (+ bucket init), mailpit; healthchecks; named volumes.
 4. `apps/api`: Express app factory, config (Zod env), pino logger with redaction, requestId middleware, error middleware & envelope, health/readiness, graceful shutdown, Socket.IO bootstrap (no features).
 5. `apps/worker`: BullMQ connection, queue registry, graceful shutdown, health endpoint.
 6. `packages/db`: Prisma init, migration scripts, client export.
