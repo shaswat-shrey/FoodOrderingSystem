@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express';
-import type { PlatformPermission } from '@fos/shared';
+import type { ClientApp, PlatformPermission } from '@fos/shared';
 import { AppError } from '../../platform/http/errors';
 import { appScopeFor, type IamService } from '../iam';
 import type { SessionService } from './session.service';
@@ -97,3 +97,10 @@ export function authorize(iam: IamService, permission: PlatformPermission): Requ
     next();
   };
 }
+
+/** Restricts a route to one app's users (the "Cust"/"Rest"/… access column in API-*). */
+export const requireApp =
+  (app: ClientApp): RequestHandler =>
+  (_req, res, next) => {
+    next(res.locals.auth?.app === app ? undefined : new AppError('FORBIDDEN'));
+  };

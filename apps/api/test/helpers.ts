@@ -195,3 +195,16 @@ export async function signUpCustomer(
     initialRefreshToken: refreshCookie(res)!,
   };
 }
+
+/** ID of a seeded branch, by brand and branch name. */
+export async function branchId(
+  ctx: TestContext,
+  brandName: string,
+  branchName: string,
+): Promise<string> {
+  const branch = await ctx.prisma.branch.findFirstOrThrow({
+    where: { name: branchName, restaurant: { brandName } },
+    select: { id: true },
+  });
+  return branch.id;
+}

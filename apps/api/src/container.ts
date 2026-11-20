@@ -8,7 +8,7 @@ import type { RedisClients } from './platform/redis';
 import { AuditService } from './modules/audit';
 import { BranchRepository, ServiceabilityService } from './modules/catalog';
 import { SettingsService } from './modules/config';
-import { ProfileService } from './modules/customers';
+import { AddressService, ProfileService } from './modules/customers';
 import {
   EstimatedRouting,
   GeoService,
@@ -69,6 +69,7 @@ export function createContainer(input: ContainerInput) {
   const profiles = new ProfileService(prisma, clock);
   const branches = new BranchRepository(prisma);
   const serviceability = new ServiceabilityService(prisma, branches, routing, settings, clock);
+  const addresses = new AddressService(prisma, geo, serviceability, settings);
   return {
     env,
     prisma,
@@ -89,6 +90,7 @@ export function createContainer(input: ContainerInput) {
     routing,
     branches,
     serviceability,
+    addresses,
     appOrigins: appOrigins(env),
   };
 }

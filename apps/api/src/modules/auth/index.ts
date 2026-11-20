@@ -1,6 +1,7 @@
 export {
   authenticate,
   authorize,
+  requireApp,
   type AuthenticateOptions,
   type AuthMiddlewareDeps,
 } from './auth.middleware';

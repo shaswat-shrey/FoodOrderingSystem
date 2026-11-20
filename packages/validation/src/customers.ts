@@ -53,3 +53,45 @@ export const confirmPhoneChangeBody = z
   .object({ phone: indianMobileSchema, code: otpCodeSchema })
   .strict();
 export const acceptConsentBody = z.object({ legalDocumentId: idSchema }).strict();
+
+const point = z
+  .object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
+  .strict();
+
+const addressFields = {
+  label: z.enum(['HOME', 'WORK', 'OTHER']),
+  customLabel: z.string().trim().min(1).max(40).optional(),
+  line1: z.string().trim().min(1, 'Enter house / flat number').max(200),
+  line2: z.string().trim().max(200).optional(),
+  landmark: z.string().trim().max(120).optional(),
+  area: z.string().trim().min(2, 'Enter the area').max(120),
+  city: z.string().trim().min(2).max(80),
+  state: z.string().trim().min(2).max(80),
+  pincode: z
+    .string()
+    .trim()
+    .regex(/^[1-9]\d{5}$/, 'Enter a valid 6-digit PIN code'),
+  /** BR-ADDR-002: the map pin is required and authoritative (FR-LOC-004). */
+  location: point,
+  contactName: fullNameSchema.optional(),
+  contactPhone: indianMobileSchema.optional(),
+  instructions: z.string().trim().max(200).optional(),
+};
+
+/** FR-ADDR-001 */
+export const createAddressBody = z
+  .object({ ...addressFields, isDefault: z.boolean().optional() })
+  .strict();
+
+/** FR-ADDR-003: any subset of fields. */
+export const updateAddressBody = z
+  .object(addressFields)
+  .partial()
+  .strict()
+  .refine((b) => Object.keys(b).length > 0, { message: 'Nothing to update' });
+
+export const addressIdParams = z.object({ id: idSchema }).strict();
+export const listAddressesQuery = z.object({ branchId: idSchema.optional() }).strict();
+
+export type CreateAddressBody = z.infer<typeof createAddressBody>;
+export type UpdateAddressBody = z.infer<typeof updateAddressBody>;

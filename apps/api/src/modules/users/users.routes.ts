@@ -1,14 +1,18 @@
-import type { RequestHandler } from 'express';
 import { Router } from 'express';
 import type { ClientApp } from '@fos/shared';
 import * as schema from '@fos/validation';
 import { sendOk } from '../../platform/http/envelope';
-import { AppError } from '../../platform/http/errors';
 import { handle } from '../../platform/http/handler';
 import { requireClientApp } from '../../platform/http/middleware/client-app';
 import { rateLimit } from '../../platform/http/middleware/rate-limit';
 import type { RateLimiter } from '../../platform/rate-limit';
-import { authenticate, requestMeta, type AuthMiddlewareDeps, type AuthService } from '../auth';
+import {
+  authenticate,
+  requestMeta,
+  requireApp,
+  type AuthMiddlewareDeps,
+  type AuthService,
+} from '../auth';
 import type { ProfileService } from '../customers';
 
 export interface UsersRouterDeps extends AuthMiddlewareDeps {
@@ -16,13 +20,6 @@ export interface UsersRouterDeps extends AuthMiddlewareDeps {
   profiles: ProfileService;
   limiter: RateLimiter;
 }
-
-/** Restricts a route to one app's users (e.g. "Cust" endpoints in API-USER-*). */
-export const requireApp =
-  (app: ClientApp): RequestHandler =>
-  (_req, res, next) => {
-    next(res.locals.auth?.app === app ? undefined : new AppError('FORBIDDEN'));
-  };
 
 /** API-USER-001…003, 006…011, 013, 014 (avatar and data export arrive later; see PROJECT_STATUS). */
 export function usersRouter(deps: UsersRouterDeps): Router {

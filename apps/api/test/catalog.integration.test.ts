@@ -1,7 +1,13 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { localParts, zonedInstant } from '../src/modules/catalog/local-time';
 import { UnavailableGeocoder } from '../src/modules/geo';
-import { browser, createTestContext, integrationEnabled, type TestContext } from './helpers';
+import {
+  branchId,
+  browser,
+  createTestContext,
+  integrationEnabled,
+  type TestContext,
+} from './helpers';
 
 const suite = integrationEnabled ? describe : describe.skip;
 let ctx: TestContext;
@@ -11,18 +17,6 @@ function todayAt(hm: string): Date {
   const [h, m] = hm.split(':').map(Number);
   const today = localParts(new Date(), 'Asia/Kolkata');
   return zonedInstant(today.year, today.month, today.day, h! * 60 + m!, 'Asia/Kolkata');
-}
-
-export async function branchId(
-  ctx: TestContext,
-  brandName: string,
-  branchName: string,
-): Promise<string> {
-  const branch = await ctx.prisma.branch.findFirstOrThrow({
-    where: { name: branchName, restaurant: { brandName } },
-    select: { id: true },
-  });
-  return branch.id;
 }
 
 const KORAMANGALA = { lat: 12.9352, lng: 77.6245 }; // blr-south
