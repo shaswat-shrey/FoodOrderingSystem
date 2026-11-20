@@ -1,0 +1,300 @@
+// Platform: files, audit, configuration, approvals, alerts, reports, outbox,
+// analytics aggregates (SRS §15.3.9).
+
+enum FilePurpose {
+  AVATAR
+  RESTAURANT_LOGO
+  RESTAURANT_COVER
+  FOOD_IMAGE
+  CUISINE_IMAGE
+  BANNER_IMAGE
+  RESTAURANT_DOCUMENT
+  PARTNER_DOCUMENT
+  PARTNER_PHOTO
+  DELIVERY_PROOF
+  SUPPORT_ATTACHMENT
+  REVIEW_PHOTO
+  ORDER_ISSUE_PHOTO
+  INVOICE
+  REPORT_EXPORT
+}
+
+enum FileVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum FileStatus {
+  UPLOADED
+  ATTACHED
+  DELETED
+}
+
+enum ScanStatus {
+  NOT_SCANNED
+  CLEAN
+  INFECTED
+}
+
+enum AuditSensitivity {
+  NORMAL
+  HIGH
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum ExportStatus {
+  QUEUED
+  RUNNING
+  READY
+  FAILED
+  EXPIRED
+}
+
+/// Object storage metadata; binaries never live in PostgreSQL (DB-TECH-005).
+model File {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  ownerUserId String?        @map("owner_user_id") @db.Uuid
+  purpose     FilePurpose
+  bucket      String         @db.VarChar(63)
+  objectKey   String         @map("object_key") @db.VarChar(300)
+  mimeType    String         @map("mime_type") @db.VarChar(100)
+  sizeBytes   Int            @map("size_bytes")
+  sha256      Bytes
+  width       Int?
+  height      Int?
+  visibility  FileVisibility
+  status      FileStatus     @default(UPLOADED)
+  scanStatus  ScanStatus     @default(NOT_SCANNED) @map("scan_status")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  owner               User?                     @relation("FileOwner", fields: [ownerUserId], references: [id])
+  userAvatars         User[]                    @relation("UserAvatar")
+  restaurantLogos     Restaurant[]              @relation("RestaurantLogo")
+  restaurantCovers    Restaurant[]              @relation("RestaurantCover")
+  cuisineImages       Cuisine[]                 @relation("CuisineImage")
+  bannerImages        Banner[]                  @relation("BannerImage")
+  partnerPhotos       DeliveryPartner[]         @relation("PartnerPhoto")
+  deliveryProofs      Delivery[]                @relation("DeliveryProof")
+  restaurantDocuments RestaurantDocument[]
+  partnerDocuments    PartnerDocument[]
+  foodItemImages      FoodItemImage[]
+  orderIssuePhotos    OrderIssuePhoto[]
+  invoices            Invoice[]
+  reviewPhotos        ReviewPhoto[]
+  ticketAttachments   SupportTicketAttachment[]
+  reportExports       ReportExport[]
+
+  @@unique([bucket, objectKey])
+  @@index([status, createdAt])
+  @@map("files")
+}
+
+/// Append-only audit trail (FR-AUDIT-001/002). SQL: UPDATE/DELETE rejected by trigger.
+model AuditLog {
+  id          String           @id @default(uuid(7)) @db.Uuid
+  actorUserId String?          @map("actor_user_id") @db.Uuid
+  actorRoles  String[]         @map("actor_roles")
+  sessionId   String?          @map("session_id") @db.Uuid
+  action      String           @db.VarChar(80)
+  targetType  String           @map("target_type") @db.VarChar(40)
+  targetId    String?          @map("target_id") @db.VarChar(100)
+  reason      String?          @db.VarChar(1000)
+  before      Json?
+  after       Json?
+  ip          String?          @db.Inet
+  userAgent   String?          @map("user_agent") @db.VarChar(512)
+  requestId   String?          @map("request_id") @db.VarChar(64)
+  sensitivity AuditSensitivity @default(NORMAL)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  actor   User?        @relation(fields: [actorUserId], references: [id])
+  session UserSession? @relation(fields: [sessionId], references: [id])
+
+  @@index([targetType, targetId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+/// Typed settings (FR-CFG-001); `value` is validated by the config module's schema.
+model PlatformSetting {
+  key           String   @id @db.VarChar(100)
+  value         Json
+  schemaVersion Int      @default(1) @map("schema_version")
+  isCritical    Boolean  @default(false) @map("is_critical")
+  updatedBy     String?  @map("updated_by") @db.Uuid
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  history PlatformSettingHistory[]
+
+  @@map("platform_settings")
+}
+
+model PlatformSettingHistory {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  key       String   @db.VarChar(100)
+  oldValue  Json?    @map("old_value")
+  newValue  Json     @map("new_value")
+  changedBy String?  @map("changed_by") @db.Uuid
+  reason    String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  setting PlatformSetting @relation(fields: [key], references: [key])
+  changer User?           @relation(fields: [changedBy], references: [id])
+
+  @@index([key, createdAt])
+  @@map("platform_setting_history")
+}
+
+model FeatureFlag {
+  key         String   @id @db.VarChar(100)
+  description String   @db.VarChar(300)
+  enabled     Boolean  @default(false)
+  /// Targeting rules (zones, roles, percentage, allowlist) — FR-CFG-003.
+  rules       Json     @default("{}")
+  updatedBy   String?  @map("updated_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("feature_flags")
+}
+
+/// Maker-checker requests (CORE). SQL: CHECK decided_by <> requested_by (BR-ADMIN-001).
+model ApprovalRequest {
+  id          String         @id @default(uuid(7)) @db.Uuid
+  action      String         @db.VarChar(80)
+  payload     Json
+  reason      String         @db.VarChar(1000)
+  requestedBy String         @map("requested_by") @db.Uuid
+  status      ApprovalStatus @default(PENDING)
+  decidedBy   String?        @map("decided_by") @db.Uuid
+  decidedAt   DateTime?      @map("decided_at") @db.Timestamptz(3)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  requester User  @relation("ApprovalRequestedBy", fields: [requestedBy], references: [id])
+  decider   User? @relation("ApprovalDecidedBy", fields: [decidedBy], references: [id])
+
+  @@index([status, createdAt])
+  @@map("approval_requests")
+}
+
+/// Operational alerts. SQL: partial unique dedupe_key while OPEN.
+model OpsAlert {
+  id             String        @id @default(uuid(7)) @db.Uuid
+  type           String        @db.VarChar(60)
+  severity       AlertSeverity
+  refType        String?       @map("ref_type") @db.VarChar(40)
+  refId          String?       @map("ref_id") @db.Uuid
+  message        String        @db.VarChar(500)
+  status         AlertStatus   @default(OPEN)
+  dedupeKey      String        @map("dedupe_key") @db.VarChar(160)
+  acknowledgedBy String?       @map("acknowledged_by") @db.Uuid
+  acknowledgedAt DateTime?     @map("acknowledged_at") @db.Timestamptz(3)
+  resolvedAt     DateTime?     @map("resolved_at") @db.Timestamptz(3)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  acknowledger User? @relation(fields: [acknowledgedBy], references: [id])
+
+  @@index([status, severity, createdAt])
+  @@map("ops_alerts")
+}
+
+model ReportExport {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  requestedBy String       @map("requested_by") @db.Uuid
+  type        String       @db.VarChar(60)
+  params      Json
+  status      ExportStatus @default(QUEUED)
+  fileId      String?      @map("file_id") @db.Uuid
+  expiresAt   DateTime?    @map("expires_at") @db.Timestamptz(3)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  requester User  @relation(fields: [requestedBy], references: [id])
+  file      File? @relation(fields: [fileId], references: [id])
+
+  @@index([requestedBy, createdAt])
+  @@map("report_exports")
+}
+
+/// Transactional outbox (ADR-010). `sequence` gives commit-ordered publication.
+model OutboxEvent {
+  sequence         BigInt    @id @default(autoincrement())
+  eventId          String    @unique @map("event_id") @db.Uuid
+  aggregateType    String    @map("aggregate_type") @db.VarChar(40)
+  aggregateId      String    @map("aggregate_id") @db.Uuid
+  aggregateVersion Int       @map("aggregate_version")
+  eventType        String    @map("event_type") @db.VarChar(80)
+  payload          Json
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  publishedAt      DateTime? @map("published_at") @db.Timestamptz(3)
+  attempts         Int       @default(0)
+
+  @@index([aggregateType, aggregateId])
+  @@map("outbox_events")
+}
+
+/// Hourly branch metrics feeding restaurant dashboards (JOB-ANL-001).
+model AnalyticsBranchHourly {
+  branchId         String   @map("branch_id") @db.Uuid
+  hour             DateTime @db.Timestamptz(3)
+  ordersPlaced     Int      @default(0) @map("orders_placed")
+  ordersDelivered  Int      @default(0) @map("orders_delivered")
+  ordersCancelled  Int      @default(0) @map("orders_cancelled")
+  ordersRejected   Int      @default(0) @map("orders_rejected")
+  grossAmount      BigInt   @default(0) @map("gross_amount")
+  netPayableAmount BigInt   @default(0) @map("net_payable_amount")
+  acceptSecondsSum BigInt   @default(0) @map("accept_seconds_sum")
+  prepSecondsSum   BigInt   @default(0) @map("prep_seconds_sum")
+
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@id([branchId, hour])
+  @@map("analytics_branch_hourly")
+}
+
+model AnalyticsPlatformDaily {
+  day              DateTime @db.Date
+  zoneId           String   @default("00000000-0000-0000-0000-000000000000") @map("zone_id") @db.Uuid
+  ordersPlaced     Int      @default(0) @map("orders_placed")
+  ordersDelivered  Int      @default(0) @map("orders_delivered")
+  ordersCancelled  Int      @default(0) @map("orders_cancelled")
+  gmvAmount        BigInt   @default(0) @map("gmv_amount")
+  revenueAmount    BigInt   @default(0) @map("revenue_amount")
+  refundsAmount    BigInt   @default(0) @map("refunds_amount")
+  newCustomers     Int      @default(0) @map("new_customers")
+  avgAssignSeconds Int?     @map("avg_assign_seconds")
+
+  @@id([day, zoneId])
+  @@map("analytics_platform_daily")
+}
+
+model AnalyticsItemDaily {
+  day           DateTime @db.Date
+  foodItemId    String   @map("food_item_id") @db.Uuid
+  branchId      String   @map("branch_id") @db.Uuid
+  quantity      Int      @default(0)
+  revenueAmount BigInt   @default(0) @map("revenue_amount")
+
+  @@id([day, foodItemId, branchId])
+  @@index([branchId, day])
+  @@map("analytics_item_daily")
+}

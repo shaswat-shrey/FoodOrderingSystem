@@ -1,0 +1,313 @@
+// Menu: categories, items, variants, customizations, branch availability (SRS §15.3.4).
+
+enum DietaryMarker {
+  VEG
+  NON_VEG
+  EGG
+}
+
+enum DietaryTag {
+  VEGAN
+  JAIN
+  GLUTEN_FREE
+  DAIRY_FREE
+  SPICY
+  KETO
+  HIGH_PROTEIN
+}
+
+/// Closed regulatory allergen list (DB-CONV-006).
+enum Allergen {
+  GLUTEN
+  CRUSTACEANS
+  EGGS
+  FISH
+  PEANUTS
+  SOY
+  MILK
+  TREE_NUTS
+  CELERY
+  MUSTARD
+  SESAME
+  SULPHITES
+  LUPIN
+  MOLLUSCS
+}
+
+enum ScheduleTarget {
+  ITEM
+  CATEGORY
+}
+
+/// SQL: partial unique (restaurant, lower(name)) among non-deleted.
+model MenuCategory {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  restaurantId String    @map("restaurant_id") @db.Uuid
+  name         String    @db.VarChar(80)
+  description  String?   @db.VarChar(300)
+  position     Int       @default(0)
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(3)
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  items      FoodItem[]
+
+  @@index([restaurantId, position])
+  @@map("menu_categories")
+}
+
+/// Orderable item. SQL: price CHECKs (BR-MENU-002/005), search_vector trigger,
+/// GIN(search_vector), trigram GIN(name).
+model FoodItem {
+  id                    String                   @id @default(uuid(7)) @db.Uuid
+  restaurantId          String                   @map("restaurant_id") @db.Uuid
+  categoryId            String                   @map("category_id") @db.Uuid
+  name                  String                   @db.VarChar(120)
+  description           String?                  @db.VarChar(1000)
+  basePriceAmount       Int                      @map("base_price_amount")
+  discountedPriceAmount Int?                     @map("discounted_price_amount")
+  dietaryMarker         DietaryMarker            @map("dietary_marker")
+  /// 0 none … 3 very spicy.
+  spiceLevel            Int?                     @map("spice_level") @db.SmallInt
+  servingSize           String?                  @map("serving_size") @db.VarChar(60)
+  prepMinutes           Int?                     @map("prep_minutes")
+  calories              Int?
+  isBestseller          Boolean                  @default(false) @map("is_bestseller")
+  isRecommended         Boolean                  @default(false) @map("is_recommended")
+  isTodaysSpecial       Boolean                  @default(false) @map("is_todays_special")
+  isFeatured            Boolean                  @default(false) @map("is_featured")
+  isCombo               Boolean                  @default(false) @map("is_combo")
+  isHidden              Boolean                  @default(false) @map("is_hidden")
+  hiddenReason          String?                  @map("hidden_reason") @db.VarChar(300)
+  packagingFeeAmount    Int?                     @map("packaging_fee_amount")
+  position              Int                      @default(0)
+  searchVector          Unsupported("tsvector")? @map("search_vector")
+  version               Int                      @default(0)
+  createdAt             DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt             DateTime?                @map("deleted_at") @db.Timestamptz(3)
+
+  restaurant          Restaurant                   @relation(fields: [restaurantId], references: [id])
+  category            MenuCategory                 @relation(fields: [categoryId], references: [id])
+  tags                FoodItemTag[]
+  allergens           FoodItemAllergen[]
+  ingredients         FoodItemIngredient[]
+  images              FoodItemImage[]
+  variants            FoodItemVariant[]
+  customizationGroups FoodItemCustomizationGroup[]
+  branchAvailability  BranchItemAvailability[]
+  stock               BranchItemStock[]
+  comboComponents     ComboComponent[]             @relation("ComboItem")
+  usedInCombos        ComboComponent[]             @relation("ComboComponentItem")
+  favorites           FavoriteItem[]
+  cartItems           CartItem[]
+  orderItems          OrderItem[]
+  promotionItems      PromotionItem[]
+  reviews             Review[]
+
+  @@index([categoryId, position])
+  @@index([restaurantId])
+  @@map("food_items")
+}
+
+model FoodItemTag {
+  foodItemId String     @map("food_item_id") @db.Uuid
+  tag        DietaryTag
+
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+
+  @@id([foodItemId, tag])
+  @@map("food_item_tags")
+}
+
+model FoodItemAllergen {
+  foodItemId String   @map("food_item_id") @db.Uuid
+  allergen   Allergen
+
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+
+  @@id([foodItemId, allergen])
+  @@map("food_item_allergens")
+}
+
+model FoodItemIngredient {
+  id         String @id @default(uuid(7)) @db.Uuid
+  foodItemId String @map("food_item_id") @db.Uuid
+  name       String @db.VarChar(80)
+  position   Int    @default(0)
+
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+
+  @@index([foodItemId])
+  @@map("food_item_ingredients")
+}
+
+model FoodItemImage {
+  id         String @id @default(uuid(7)) @db.Uuid
+  foodItemId String @map("food_item_id") @db.Uuid
+  fileId     String @map("file_id") @db.Uuid
+  position   Int    @default(0)
+
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+  file     File     @relation(fields: [fileId], references: [id])
+
+  @@unique([foodItemId, position])
+  @@map("food_item_images")
+}
+
+/// SQL: partial unique — one default variant per item; CHECK price > 0.
+model FoodItemVariant {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  foodItemId  String    @map("food_item_id") @db.Uuid
+  name        String    @db.VarChar(60)
+  priceAmount Int       @map("price_amount")
+  isDefault   Boolean   @default(false) @map("is_default")
+  position    Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
+
+  foodItem            FoodItem                     @relation(fields: [foodItemId], references: [id])
+  customizationGroups FoodItemCustomizationGroup[]
+  cartItems           CartItem[]
+  comboComponents     ComboComponent[]
+
+  @@index([foodItemId])
+  @@map("food_item_variants")
+}
+
+/// Reusable option group. SQL: CHECK 0 ≤ min ≤ max, max ≥ 1 (BR-MENU-003).
+model CustomizationGroup {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  restaurantId String    @map("restaurant_id") @db.Uuid
+  name         String    @db.VarChar(80)
+  minSelect    Int       @default(0) @map("min_select")
+  maxSelect    Int       @default(1) @map("max_select")
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(3)
+
+  restaurant  Restaurant                   @relation(fields: [restaurantId], references: [id])
+  options     CustomizationOption[]
+  attachments FoodItemCustomizationGroup[]
+
+  @@index([restaurantId])
+  @@map("customization_groups")
+}
+
+/// SQL: CHECK price_delta_amount ≥ 0.
+model CustomizationOption {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  groupId          String        @map("group_id") @db.Uuid
+  name             String        @db.VarChar(80)
+  priceDeltaAmount Int           @default(0) @map("price_delta_amount")
+  dietaryMarker    DietaryMarker @map("dietary_marker")
+  isDefault        Boolean       @default(false) @map("is_default")
+  position         Int           @default(0)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt        DateTime?     @map("deleted_at") @db.Timestamptz(3)
+
+  group              CustomizationGroup         @relation(fields: [groupId], references: [id])
+  branchAvailability BranchOptionAvailability[]
+  cartItemOptions    CartItemOption[]
+  orderItemOptions   OrderItemOption[]
+
+  @@index([groupId, position])
+  @@map("customization_options")
+}
+
+/// Attaches a group to an item (optionally only for one variant).
+/// SQL: unique (item, group, coalesce(variant)) to treat NULL variant as a value.
+model FoodItemCustomizationGroup {
+  id         String  @id @default(uuid(7)) @db.Uuid
+  foodItemId String  @map("food_item_id") @db.Uuid
+  groupId    String  @map("group_id") @db.Uuid
+  variantId  String? @map("variant_id") @db.Uuid
+  position   Int     @default(0)
+
+  foodItem FoodItem           @relation(fields: [foodItemId], references: [id], onDelete: Cascade)
+  group    CustomizationGroup @relation(fields: [groupId], references: [id])
+  variant  FoodItemVariant?   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([foodItemId])
+  @@index([groupId])
+  @@map("food_item_customization_groups")
+}
+
+/// Branch override of item availability; absence of a row means available.
+model BranchItemAvailability {
+  branchId         String    @map("branch_id") @db.Uuid
+  foodItemId       String    @map("food_item_id") @db.Uuid
+  isAvailable      Boolean   @map("is_available")
+  unavailableUntil DateTime? @map("unavailable_until") @db.Timestamptz(3)
+  updatedBy        String?   @map("updated_by") @db.Uuid
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  branch        Branch   @relation(fields: [branchId], references: [id])
+  foodItem      FoodItem @relation(fields: [foodItemId], references: [id])
+  updatedByUser User?    @relation(fields: [updatedBy], references: [id])
+
+  @@id([branchId, foodItemId])
+  @@index([unavailableUntil])
+  @@map("branch_item_availability")
+}
+
+model BranchOptionAvailability {
+  branchId         String    @map("branch_id") @db.Uuid
+  optionId         String    @map("option_id") @db.Uuid
+  isAvailable      Boolean   @map("is_available")
+  unavailableUntil DateTime? @map("unavailable_until") @db.Timestamptz(3)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  branch Branch              @relation(fields: [branchId], references: [id])
+  option CustomizationOption @relation(fields: [optionId], references: [id])
+
+  @@id([branchId, optionId])
+  @@map("branch_option_availability")
+}
+
+/// Stock count (CORE). SQL: CHECK quantity ≥ 0.
+model BranchItemStock {
+  branchId   String   @map("branch_id") @db.Uuid
+  foodItemId String   @map("food_item_id") @db.Uuid
+  quantity   Int
+  version    Int      @default(0)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  branch   Branch   @relation(fields: [branchId], references: [id])
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+
+  @@id([branchId, foodItemId])
+  @@map("branch_item_stock")
+}
+
+/// Time windows for items or categories (CORE). target_id is polymorphic by target_type.
+model AvailabilitySchedule {
+  id         String         @id @default(uuid(7)) @db.Uuid
+  targetType ScheduleTarget @map("target_type")
+  targetId   String         @map("target_id") @db.Uuid
+  weekday    Int            @db.SmallInt
+  startsAt   DateTime       @map("starts_at") @db.Time(0)
+  endsAt     DateTime       @map("ends_at") @db.Time(0)
+
+  @@index([targetType, targetId])
+  @@map("availability_schedules")
+}
+
+/// Combo composition (CORE, BR-MENU-009).
+model ComboComponent {
+  comboItemId     String  @map("combo_item_id") @db.Uuid
+  componentItemId String  @map("component_item_id") @db.Uuid
+  quantity        Int     @default(1)
+  variantId       String? @map("variant_id") @db.Uuid
+
+  comboItem     FoodItem         @relation("ComboItem", fields: [comboItemId], references: [id], onDelete: Cascade)
+  componentItem FoodItem         @relation("ComboComponentItem", fields: [componentItemId], references: [id])
+  variant       FoodItemVariant? @relation(fields: [variantId], references: [id])
+
+  @@id([comboItemId, componentItemId])
+  @@map("combo_components")
+}

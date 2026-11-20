@@ -1,0 +1,456 @@
+// Identity, access control and sessions (SRS §15.3.1, ADR-002, ADR-003).
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+  ANONYMIZED
+}
+
+enum ClientApp {
+  CUSTOMER
+  RESTAURANT
+  DELIVERY
+  ADMIN
+}
+
+enum SessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum SessionRevokeReason {
+  LOGOUT
+  LOGOUT_ALL
+  USER_REVOKED
+  ADMIN_REVOKED
+  PASSWORD_CHANGED
+  PASSWORD_RESET
+  REFRESH_REUSE
+  SESSION_LIMIT
+  SUSPENDED
+  ROLE_REMOVED
+}
+
+enum RefreshTokenStatus {
+  ACTIVE
+  ROTATED
+  REVOKED
+}
+
+enum OtpPurpose {
+  LOGIN
+  VERIFY_PHONE
+  RESET_PASSWORD
+  CHANGE_PHONE
+  DELETE_ACCOUNT
+}
+
+enum VerificationTokenPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+  MFA_LOGIN
+}
+
+enum OAuthProvider {
+  GOOGLE
+  APPLE
+}
+
+enum PermissionScope {
+  PLATFORM
+  RESTAURANT
+}
+
+enum LoginOutcome {
+  SUCCESS
+  INVALID_CREDENTIALS
+  LOCKED
+  SUSPENDED
+  APP_NOT_PERMITTED
+  MFA_REQUIRED
+  MFA_FAILED
+}
+
+enum LegalDocumentType {
+  TERMS
+  PRIVACY
+  REFUND_POLICY
+  PARTNER_TERMS
+  RESTAURANT_TERMS
+}
+
+model User {
+  id                  String     @id @default(uuid(7)) @db.Uuid
+  email               String?    @db.Citext
+  phone               String?    @db.VarChar(16)
+  fullName            String     @map("full_name") @db.VarChar(80)
+  status              UserStatus @default(PENDING_VERIFICATION)
+  emailVerifiedAt     DateTime?  @map("email_verified_at") @db.Timestamptz(3)
+  phoneVerifiedAt     DateTime?  @map("phone_verified_at") @db.Timestamptz(3)
+  /// Bumped to invalidate every outstanding access token (FR-AUTH-006).
+  tokenVersion        Int        @default(0) @map("token_version")
+  /// Bumped when roles or memberships change (FR-AUTH-024).
+  permissionVersion   Int        @default(0) @map("permission_version")
+  suspendedUntil      DateTime?  @map("suspended_until") @db.Timestamptz(3)
+  suspensionReason    String?    @map("suspension_reason") @db.VarChar(500)
+  deletionScheduledAt DateTime?  @map("deletion_scheduled_at") @db.Timestamptz(3)
+  locale              String     @default("en-IN") @db.VarChar(10)
+  avatarFileId        String?    @map("avatar_file_id") @db.Uuid
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  avatarFile         File?               @relation("UserAvatar", fields: [avatarFileId], references: [id])
+  credential         UserCredential?
+  oauthAccounts      OAuthAccount[]
+  roles              UserRole[]          @relation("UserRoles")
+  rolesGranted       UserRole[]          @relation("RoleGrantedBy")
+  sessions           UserSession[]
+  loginAttempts      LoginAttempt[]
+  otpCodes           OtpCode[]
+  verificationTokens VerificationToken[]
+  mfaFactors         MfaFactor[]
+  mfaRecoveryCodes   MfaRecoveryCode[]
+  consents           UserConsent[]
+  pushSubscriptions  PushSubscription[]
+  idempotencyKeys    IdempotencyKey[]
+
+  customerProfile     CustomerProfile?
+  dietaryPreferences  CustomerDietaryPreference[]
+  allergens           CustomerAllergen[]
+  addresses           CustomerAddress[]
+  searchHistory       SearchHistory[]
+  favoriteRestaurants FavoriteRestaurant[]
+  favoriteItems       FavoriteItem[]
+
+  restaurantMemberships RestaurantMember[]
+  invitationsSent       RestaurantInvitation[]
+  applicationReviews    RestaurantApplicationReview[]
+  restaurantsApproved   Restaurant[]                  @relation("RestaurantApprovedBy")
+  changeRequestsMade    RestaurantChangeRequest[]     @relation("ChangeRequestedBy")
+  changeRequestsDecided RestaurantChangeRequest[]     @relation("ChangeDecidedBy")
+  branchStatusEvents    BranchStatusEvent[]
+  availabilityUpdates   BranchItemAvailability[]
+
+  deliveryPartner       DeliveryPartner?
+  carts                 Cart[]
+  checkoutSessions      CheckoutSession[]
+  couponUsers           CouponUser[]
+  couponRedemptions     CouponRedemption[]
+  orders                Order[]
+  orderStatusChanges    OrderStatusHistory[]
+  orderCancellations    OrderCancellation[]
+  refundsInitiated      Refund[]
+  deliveryStatusChanges DeliveryStatusHistory[]
+  assignmentsMade       DeliveryAssignment[]    @relation("AssignmentAssignedBy")
+
+  reviews                 Review[]
+  reviewResponses         ReviewResponse[]
+  reviewReports           ReviewReport[]
+  notifications           Notification[]
+  notificationDeliveries  NotificationDelivery[]
+  notificationPreferences NotificationPreference[]
+  ticketsRequested        SupportTicket[]          @relation("TicketRequester")
+  ticketsAssigned         SupportTicket[]          @relation("TicketAssignee")
+  ticketMessages          SupportTicketMessage[]
+  disputesRaised          Dispute[]                @relation("DisputeRaisedBy")
+  disputesDecided         Dispute[]                @relation("DisputeDecidedBy")
+
+  filesOwned            File[]                   @relation("FileOwner")
+  auditLogs             AuditLog[]
+  settingChanges        PlatformSettingHistory[]
+  approvalsRequested    ApprovalRequest[]        @relation("ApprovalRequestedBy")
+  approvalsDecided      ApprovalRequest[]        @relation("ApprovalDecidedBy")
+  alertsAcknowledged    OpsAlert[]
+  reportExports         ReportExport[]
+  payoutBatchesCreated  PayoutBatch[]            @relation("PayoutBatchCreatedBy")
+  payoutBatchesApproved PayoutBatch[]            @relation("PayoutBatchApprovedBy")
+  ledgerTransactions    LedgerTransaction[]
+
+  @@index([status])
+  @@map("users")
+}
+
+/// Password hash kept out of `users` so it is never selected by accident.
+model UserCredential {
+  userId            String   @id @map("user_id") @db.Uuid
+  passwordHash      String   @map("password_hash")
+  passwordUpdatedAt DateTime @default(now()) @map("password_updated_at") @db.Timestamptz(3)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_credentials")
+}
+
+model OAuthAccount {
+  id             String        @id @default(uuid(7)) @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  provider       OAuthProvider
+  providerUserId String        @map("provider_user_id") @db.VarChar(255)
+  email          String?       @db.Citext
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model Role {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  key         String     @unique @db.VarChar(64)
+  name        String     @db.VarChar(100)
+  description String?    @db.VarChar(500)
+  isSystem    Boolean    @default(false) @map("is_system")
+  appScope    ClientApp? @map("app_scope")
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  /// `resource:action`; restaurant-scoped keys are prefixed `rest.` (ADR-002).
+  key         String          @unique @db.VarChar(100)
+  description String          @db.VarChar(500)
+  scopeType   PermissionScope @map("scope_type")
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId    String   @map("user_id") @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  grantedBy String?  @map("granted_by") @db.Uuid
+  grantedAt DateTime @default(now()) @map("granted_at") @db.Timestamptz(3)
+
+  user          User  @relation("UserRoles", fields: [userId], references: [id], onDelete: Cascade)
+  role          Role  @relation(fields: [roleId], references: [id])
+  grantedByUser User? @relation("RoleGrantedBy", fields: [grantedBy], references: [id])
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model UserSession {
+  id                String               @id @default(uuid(7)) @db.Uuid
+  userId            String               @map("user_id") @db.Uuid
+  app               ClientApp
+  status            SessionStatus        @default(ACTIVE)
+  revokeReason      SessionRevokeReason? @map("revoke_reason")
+  ip                String?              @db.Inet
+  userAgent         String?              @map("user_agent") @db.VarChar(512)
+  deviceLabel       String?              @map("device_label") @db.VarChar(120)
+  lastActiveAt      DateTime             @default(now()) @map("last_active_at") @db.Timestamptz(3)
+  idleExpiresAt     DateTime             @map("idle_expires_at") @db.Timestamptz(3)
+  absoluteExpiresAt DateTime             @map("absolute_expires_at") @db.Timestamptz(3)
+  reauthAt          DateTime?            @map("reauth_at") @db.Timestamptz(3)
+  mfaVerifiedAt     DateTime?            @map("mfa_verified_at") @db.Timestamptz(3)
+  endedAt           DateTime?            @map("ended_at") @db.Timestamptz(3)
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user              User               @relation(fields: [userId], references: [id])
+  refreshTokens     RefreshToken[]
+  pushSubscriptions PushSubscription[]
+  auditLogs         AuditLog[]
+
+  @@index([userId, status])
+  @@index([absoluteExpiresAt])
+  @@map("user_sessions")
+}
+
+/// Refresh tokens are stored only as SHA-256 hashes. Partial unique index
+/// (SQL): one ACTIVE token per session.
+model RefreshToken {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  sessionId String             @map("session_id") @db.Uuid
+  tokenHash Bytes              @unique @map("token_hash")
+  parentId  String?            @unique @map("parent_id") @db.Uuid
+  status    RefreshTokenStatus @default(ACTIVE)
+  issuedAt  DateTime           @default(now()) @map("issued_at") @db.Timestamptz(3)
+  rotatedAt DateTime?          @map("rotated_at") @db.Timestamptz(3)
+  expiresAt DateTime           @map("expires_at") @db.Timestamptz(3)
+
+  session    UserSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  parent     RefreshToken? @relation("TokenRotation", fields: [parentId], references: [id], onDelete: SetNull)
+  replacedBy RefreshToken? @relation("TokenRotation")
+
+  @@index([sessionId, status])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model LoginAttempt {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  identifierHash Bytes        @map("identifier_hash")
+  userId         String?      @map("user_id") @db.Uuid
+  ip             String?      @db.Inet
+  app            ClientApp
+  outcome        LoginOutcome
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([identifierHash, createdAt])
+  @@index([ip, createdAt])
+  @@map("login_attempts")
+}
+
+/// OTP challenges: only an HMAC of the code is stored (FR-AUTH-010).
+model OtpCode {
+  id              String     @id @default(uuid(7)) @db.Uuid
+  destinationHash Bytes      @map("destination_hash")
+  purpose         OtpPurpose
+  codeHmac        Bytes      @map("code_hmac")
+  attempts        Int        @default(0)
+  maxAttempts     Int        @default(5) @map("max_attempts")
+  expiresAt       DateTime   @map("expires_at") @db.Timestamptz(3)
+  consumedAt      DateTime?  @map("consumed_at") @db.Timestamptz(3)
+  userId          String?    @map("user_id") @db.Uuid
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([destinationHash, purpose, createdAt])
+  @@map("otp_codes")
+}
+
+model VerificationToken {
+  id        String                   @id @default(uuid(7)) @db.Uuid
+  userId    String                   @map("user_id") @db.Uuid
+  purpose   VerificationTokenPurpose
+  tokenHash Bytes                    @unique @map("token_hash")
+  expiresAt DateTime                 @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime?                @map("used_at") @db.Timestamptz(3)
+  createdAt DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@map("verification_tokens")
+}
+
+model MfaFactor {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  type            String    @default("TOTP") @db.VarChar(16)
+  /// AES-256-GCM ciphertext (NFR-SEC-012).
+  secretEncrypted Bytes     @map("secret_encrypted")
+  confirmedAt     DateTime? @map("confirmed_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@map("mfa_factors")
+}
+
+model MfaRecoveryCode {
+  id       String    @id @default(uuid(7)) @db.Uuid
+  userId   String    @map("user_id") @db.Uuid
+  codeHash Bytes     @map("code_hash")
+  usedAt   DateTime? @map("used_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("mfa_recovery_codes")
+}
+
+model LegalDocument {
+  id          String            @id @default(uuid(7)) @db.Uuid
+  type        LegalDocumentType
+  version     String            @db.VarChar(20)
+  content     String
+  isMaterial  Boolean           @default(false) @map("is_material")
+  publishedAt DateTime          @map("published_at") @db.Timestamptz(3)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  consents UserConsent[]
+
+  @@unique([type, version])
+  @@map("legal_documents")
+}
+
+/// Immutable acceptance record (BR-AUTH-020).
+model UserConsent {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  legalDocumentId String   @map("legal_document_id") @db.Uuid
+  acceptedAt      DateTime @default(now()) @map("accepted_at") @db.Timestamptz(3)
+  ip              String?  @db.Inet
+  userAgent       String?  @map("user_agent") @db.VarChar(512)
+
+  user          User          @relation(fields: [userId], references: [id])
+  legalDocument LegalDocument @relation(fields: [legalDocumentId], references: [id])
+
+  @@unique([userId, legalDocumentId])
+  @@map("user_consents")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  sessionId String   @map("session_id") @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session UserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+/// Request de-duplication for endpoints that require Idempotency-Key (FR-ORDER-002).
+model IdempotencyKey {
+  userId       String            @map("user_id") @db.Uuid
+  key          String            @db.Uuid
+  method       String            @db.VarChar(10)
+  path         String            @db.VarChar(255)
+  requestHash  Bytes             @map("request_hash")
+  status       IdempotencyStatus @default(IN_PROGRESS)
+  responseCode Int?              @map("response_code")
+  responseBody Json?             @map("response_body")
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt    DateTime          @map("expires_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, key])
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}

@@ -1,0 +1,385 @@
+// Reviews, notifications, support, complaints, disputes (SRS §15.3.9).
+
+enum ReviewTarget {
+  RESTAURANT
+  PARTNER
+  ITEM
+}
+
+enum ReviewStatus {
+  PUBLISHED
+  HIDDEN
+  REMOVED
+}
+
+enum ReviewReportReason {
+  SPAM
+  ABUSIVE
+  IRRELEVANT
+  FAKE
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  UPHELD
+  DISMISSED
+}
+
+enum NotificationChannel {
+  IN_APP
+  SOCKET
+  PUSH
+  SMS
+  EMAIL
+}
+
+enum NotificationCategory {
+  TRANSACTIONAL
+  SECURITY
+  ORDER_UPDATES
+  PROMOTIONS
+  RECOMMENDATIONS
+  REVIEW_REMINDERS
+}
+
+enum DeliveryAttemptStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+enum TicketRequesterType {
+  CUSTOMER
+  RESTAURANT
+  PARTNER
+}
+
+enum TicketPriority {
+  URGENT
+  HIGH
+  NORMAL
+  LOW
+}
+
+enum TicketStatus {
+  OPEN
+  PENDING_CUSTOMER
+  PENDING_INTERNAL
+  RESOLVED
+  CLOSED
+}
+
+enum ComplaintAgainst {
+  RESTAURANT
+  PARTNER
+  CUSTOMER
+}
+
+enum ComplaintStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  DISMISSED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  DECIDED
+  CLOSED
+}
+
+/// SQL: CHECK rating 1–5; CHECK the target id matching target_type is set;
+/// unique (order, target_type, coalesce(food_item_id)) — one review per target per order.
+model Review {
+  id            String       @id @default(uuid(7)) @db.Uuid
+  orderId       String       @map("order_id") @db.Uuid
+  authorId      String       @map("author_id") @db.Uuid
+  targetType    ReviewTarget @map("target_type")
+  restaurantId  String?      @map("restaurant_id") @db.Uuid
+  branchId      String?      @map("branch_id") @db.Uuid
+  partnerId     String?      @map("partner_id") @db.Uuid
+  foodItemId    String?      @map("food_item_id") @db.Uuid
+  rating        Int          @db.SmallInt
+  text          String?      @db.VarChar(1000)
+  status        ReviewStatus @default(PUBLISHED)
+  editableUntil DateTime     @map("editable_until") @db.Timestamptz(3)
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt     DateTime?    @map("deleted_at") @db.Timestamptz(3)
+
+  order      Order            @relation(fields: [orderId], references: [id])
+  author     User             @relation(fields: [authorId], references: [id])
+  restaurant Restaurant?      @relation(fields: [restaurantId], references: [id])
+  branch     Branch?          @relation(fields: [branchId], references: [id])
+  partner    DeliveryPartner? @relation(fields: [partnerId], references: [id])
+  foodItem   FoodItem?        @relation(fields: [foodItemId], references: [id])
+  tags       ReviewTag[]
+  photos     ReviewPhoto[]
+  response   ReviewResponse?
+  reports    ReviewReport[]
+
+  @@index([branchId, status, createdAt])
+  @@index([partnerId])
+  @@index([foodItemId])
+  @@index([authorId])
+  @@map("reviews")
+}
+
+model ReviewTag {
+  reviewId String @map("review_id") @db.Uuid
+  tag      String @db.VarChar(40)
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, tag])
+  @@map("review_tags")
+}
+
+model ReviewPhoto {
+  reviewId String @map("review_id") @db.Uuid
+  fileId   String @map("file_id") @db.Uuid
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  file   File   @relation(fields: [fileId], references: [id])
+
+  @@id([reviewId, fileId])
+  @@map("review_photos")
+}
+
+model ReviewResponse {
+  reviewId      String   @id @map("review_id") @db.Uuid
+  authorId      String   @map("author_id") @db.Uuid
+  text          String   @db.VarChar(1000)
+  editableUntil DateTime @map("editable_until") @db.Timestamptz(3)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  review Review @relation(fields: [reviewId], references: [id])
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@map("review_responses")
+}
+
+model ReviewReport {
+  id         String             @id @default(uuid(7)) @db.Uuid
+  reviewId   String             @map("review_id") @db.Uuid
+  reporterId String             @map("reporter_id") @db.Uuid
+  reason     ReviewReportReason
+  note       String?            @db.VarChar(300)
+  status     ReportStatus       @default(OPEN)
+  createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  review   Review @relation(fields: [reviewId], references: [id])
+  reporter User   @relation(fields: [reporterId], references: [id])
+
+  @@unique([reviewId, reporterId])
+  @@index([status])
+  @@map("review_reports")
+}
+
+/// Versioned templates (FR-NOTIF-005). Never edited in place.
+model NotificationTemplate {
+  id              String               @id @default(uuid(7)) @db.Uuid
+  key             String               @db.VarChar(80)
+  channel         NotificationChannel
+  locale          String               @default("en-IN") @db.VarChar(10)
+  version         Int
+  category        NotificationCategory
+  subject         String?              @db.VarChar(200)
+  body            String
+  variablesSchema Json                 @map("variables_schema")
+  active          Boolean              @default(true)
+  createdAt       DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  deliveries NotificationDelivery[]
+
+  @@unique([key, channel, locale, version])
+  @@map("notification_templates")
+}
+
+/// In-app inbox entry. SQL: partial index on unread.
+model Notification {
+  id        String               @id @default(uuid(7)) @db.Uuid
+  userId    String               @map("user_id") @db.Uuid
+  app       ClientApp
+  category  NotificationCategory
+  title     String               @db.VarChar(120)
+  body      String               @db.VarChar(500)
+  deepLink  String?              @map("deep_link") @db.VarChar(300)
+  data      Json?
+  readAt    DateTime?            @map("read_at") @db.Timestamptz(3)
+  deletedAt DateTime?            @map("deleted_at") @db.Timestamptz(3)
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+/// One row per (event, user, channel) delivery attempt chain (FR-NOTIF-007).
+model NotificationDelivery {
+  id                String                @id @default(uuid(7)) @db.Uuid
+  eventId           String                @map("event_id") @db.Uuid
+  userId            String                @map("user_id") @db.Uuid
+  templateId        String                @map("template_id") @db.Uuid
+  channel           NotificationChannel
+  provider          String?               @db.VarChar(40)
+  providerMessageId String?               @map("provider_message_id") @db.VarChar(120)
+  status            DeliveryAttemptStatus @default(PENDING)
+  attempts          Int                   @default(0)
+  lastError         String?               @map("last_error") @db.VarChar(500)
+  sentAt            DateTime?             @map("sent_at") @db.Timestamptz(3)
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user     User                 @relation(fields: [userId], references: [id])
+  template NotificationTemplate @relation(fields: [templateId], references: [id])
+
+  @@unique([eventId, userId, channel])
+  @@index([status])
+  @@map("notification_deliveries")
+}
+
+model NotificationPreference {
+  userId   String               @map("user_id") @db.Uuid
+  category NotificationCategory
+  channel  NotificationChannel
+  enabled  Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, category, channel])
+  @@map("notification_preferences")
+}
+
+model SupportTicket {
+  id            String              @id @default(uuid(7)) @db.Uuid
+  number        String              @unique @db.VarChar(16)
+  requesterId   String              @map("requester_id") @db.Uuid
+  requesterType TicketRequesterType @map("requester_type")
+  category      String              @db.VarChar(40)
+  subject       String              @db.VarChar(200)
+  priority      TicketPriority      @default(NORMAL)
+  status        TicketStatus        @default(OPEN)
+  orderId       String?             @map("order_id") @db.Uuid
+  assigneeId    String?             @map("assignee_id") @db.Uuid
+  slaDueAt      DateTime?           @map("sla_due_at") @db.Timestamptz(3)
+  resolvedAt    DateTime?           @map("resolved_at") @db.Timestamptz(3)
+  csat          Int?                @db.SmallInt
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  requester  User                   @relation("TicketRequester", fields: [requesterId], references: [id])
+  assignee   User?                  @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  order      Order?                 @relation(fields: [orderId], references: [id])
+  messages   SupportTicketMessage[]
+  orderIssue OrderIssue?
+  complaints Complaint[]
+
+  @@index([status, priority, slaDueAt])
+  @@index([requesterId])
+  @@map("support_tickets")
+}
+
+model SupportTicketMessage {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  ticketId   String    @map("ticket_id") @db.Uuid
+  authorId   String    @map("author_id") @db.Uuid
+  authorType ActorType @map("author_type")
+  body       String    @db.VarChar(5000)
+  isInternal Boolean   @default(false) @map("is_internal")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  ticket      SupportTicket             @relation(fields: [ticketId], references: [id])
+  author      User                      @relation(fields: [authorId], references: [id])
+  attachments SupportTicketAttachment[]
+
+  @@index([ticketId, createdAt])
+  @@map("support_ticket_messages")
+}
+
+model SupportTicketAttachment {
+  messageId String @map("message_id") @db.Uuid
+  fileId    String @map("file_id") @db.Uuid
+
+  message SupportTicketMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  file    File                 @relation(fields: [fileId], references: [id])
+
+  @@id([messageId, fileId])
+  @@map("support_ticket_attachments")
+}
+
+/// Complaints against a party (CORE).
+model Complaint {
+  id            String           @id @default(uuid(7)) @db.Uuid
+  againstType   ComplaintAgainst @map("against_type")
+  againstId     String           @map("against_id") @db.Uuid
+  orderId       String?          @map("order_id") @db.Uuid
+  ticketId      String?          @map("ticket_id") @db.Uuid
+  category      String           @db.VarChar(40)
+  severity      Int              @default(2) @db.SmallInt
+  status        ComplaintStatus  @default(OPEN)
+  notes         String?          @db.VarChar(5000)
+  resolution    String?          @db.VarChar(1000)
+  penaltyAmount Int              @default(0) @map("penalty_amount")
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  order  Order?         @relation(fields: [orderId], references: [id])
+  ticket SupportTicket? @relation(fields: [ticketId], references: [id])
+
+  @@index([againstType, againstId])
+  @@map("complaints")
+}
+
+/// Disputes (CORE, WF-27).
+model Dispute {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  orderId   String        @map("order_id") @db.Uuid
+  raisedBy  String        @map("raised_by") @db.Uuid
+  status    DisputeStatus @default(OPEN)
+  statement String        @db.VarChar(5000)
+  outcome   String?       @db.VarChar(1000)
+  refundId  String?       @map("refund_id") @db.Uuid
+  decidedBy String?       @map("decided_by") @db.Uuid
+  decidedAt DateTime?     @map("decided_at") @db.Timestamptz(3)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  raiser  User    @relation("DisputeRaisedBy", fields: [raisedBy], references: [id])
+  decider User?   @relation("DisputeDecidedBy", fields: [decidedBy], references: [id])
+  refund  Refund? @relation(fields: [refundId], references: [id])
+
+  @@index([status])
+  @@map("disputes")
+}
+
+model Faq {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  app       ClientApp
+  topic     String    @db.VarChar(60)
+  question  String    @db.VarChar(300)
+  answer    String
+  position  Int       @default(0)
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([app, topic, position])
+  @@map("faqs")
+}
+
+model SupportMacro {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  title     String   @db.VarChar(120)
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("support_macros")
+}

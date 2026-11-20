@@ -1,0 +1,174 @@
+// Customers, addresses, delivery zones, search, favorites (SRS §15.3.2).
+
+enum AddressLabel {
+  HOME
+  WORK
+  OTHER
+}
+
+enum ZoneStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+model CustomerProfile {
+  userId               String    @id @map("user_id") @db.Uuid
+  vegOnlyDefault       Boolean   @default(false) @map("veg_only_default")
+  codBlocked           Boolean   @default(false) @map("cod_blocked")
+  codRefusalCount      Int       @default(0) @map("cod_refusal_count")
+  ordersDeliveredCount Int       @default(0) @map("orders_delivered_count")
+  firstOrderAt         DateTime? @map("first_order_at") @db.Timestamptz(3)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("customer_profiles")
+}
+
+model CustomerDietaryPreference {
+  userId String     @map("user_id") @db.Uuid
+  tag    DietaryTag
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, tag])
+  @@map("customer_dietary_preferences")
+}
+
+model CustomerAllergen {
+  userId   String   @map("user_id") @db.Uuid
+  allergen Allergen
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, allergen])
+  @@map("customer_allergens")
+}
+
+/// Saved delivery address. `location` is written via raw SQL (ADR-005).
+/// SQL: partial unique default/HOME/WORK per user, pincode CHECK, GiST(location).
+model CustomerAddress {
+  id           String                               @id @default(uuid(7)) @db.Uuid
+  userId       String                               @map("user_id") @db.Uuid
+  label        AddressLabel
+  customLabel  String?                              @map("custom_label") @db.VarChar(40)
+  line1        String                               @db.VarChar(200)
+  line2        String?                              @db.VarChar(200)
+  landmark     String?                              @db.VarChar(120)
+  area         String                               @db.VarChar(120)
+  city         String                               @db.VarChar(80)
+  state        String                               @db.VarChar(80)
+  pincode      String                               @db.Char(6)
+  location     Unsupported("geography(Point,4326)")
+  contactName  String                               @map("contact_name") @db.VarChar(80)
+  contactPhone String                               @map("contact_phone") @db.VarChar(16)
+  instructions String?                              @db.VarChar(200)
+  isDefault    Boolean                              @default(false) @map("is_default")
+  createdAt    DateTime                             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime                             @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt    DateTime?                            @map("deleted_at") @db.Timestamptz(3)
+
+  user             User              @relation(fields: [userId], references: [id])
+  checkoutSessions CheckoutSession[]
+  orderAddresses   OrderAddress[]
+
+  @@index([userId])
+  @@map("customer_addresses")
+}
+
+/// Delivery zone polygon. SQL: GiST(polygon), trigger rejecting overlapping ACTIVE zones.
+model Zone {
+  id                 String                                 @id @default(uuid(7)) @db.Uuid
+  name               String                                 @db.VarChar(80)
+  city               String                                 @db.VarChar(80)
+  polygon            Unsupported("geography(Polygon,4326)")
+  status             ZoneStatus                             @default(ACTIVE)
+  suspensionReason   String?                                @map("suspension_reason") @db.VarChar(300)
+  maxDeliveryRadiusM Int                                    @default(7000) @map("max_delivery_radius_m")
+  surgeAmount        Int                                    @default(0) @map("surge_amount")
+  surgeReason        String?                                @map("surge_reason") @db.VarChar(100)
+  surgeUntil         DateTime?                              @map("surge_until") @db.Timestamptz(3)
+  rainMode           Boolean                                @default(false) @map("rain_mode")
+  createdAt          DateTime                               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime                               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt          DateTime?                              @map("deleted_at") @db.Timestamptz(3)
+
+  branches     Branch[]
+  searchStats  SearchQueryStat[]
+  feeSchedules FeeSchedule[]
+  couponZones  CouponZone[]
+  banners      Banner[]
+  homePartners DeliveryPartner[]
+  payPlans     PartnerPayPlan[]
+
+  @@index([status])
+  @@map("zones")
+}
+
+/// Cache of geocoding provider results (FR-LOC-002).
+model GeocodeCache {
+  key       String   @id @db.VarChar(200)
+  provider  String   @db.VarChar(40)
+  result    Json
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([expiresAt])
+  @@map("geocode_cache")
+}
+
+model SearchHistory {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  query      String   @db.VarChar(100)
+  normalized String   @db.VarChar(100)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("search_history")
+}
+
+/// Hourly aggregate feeding trending searches (JOB-SRCH-001).
+model SearchQueryStat {
+  zoneId        String   @map("zone_id") @db.Uuid
+  normalized    String   @db.VarChar(100)
+  hour          DateTime @db.Timestamptz(3)
+  count         Int
+  distinctUsers Int      @map("distinct_users")
+
+  zone Zone @relation(fields: [zoneId], references: [id])
+
+  @@id([zoneId, normalized, hour])
+  @@index([zoneId, hour])
+  @@map("search_query_stats")
+}
+
+model FavoriteRestaurant {
+  userId       String   @map("user_id") @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@id([userId, restaurantId])
+  @@index([restaurantId])
+  @@map("favorite_restaurants")
+}
+
+model FavoriteItem {
+  userId     String   @map("user_id") @db.Uuid
+  foodItemId String   @map("food_item_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+
+  @@id([userId, foodItemId])
+  @@index([foodItemId])
+  @@map("favorite_items")
+}

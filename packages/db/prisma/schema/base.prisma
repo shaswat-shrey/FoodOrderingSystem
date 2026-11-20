@@ -1,0 +1,24 @@
+// FoodOrderSystem database schema (SRS §15, docs/database/ERD.md).
+//
+// The schema is split by domain into the files in this folder. Conventions:
+//   - Tables are snake_case plural (@@map), columns snake_case (@map).
+//   - Primary keys are UUIDv7 (@default(uuid(7))) stored as uuid (DB-CONV-002).
+//   - Money is integer minor units (paise): Int for bounded per-transaction
+//     amounts, BigInt for accumulating balances and totals (ADR-007).
+//   - Geography columns are Unsupported("geography(...)") and are read/written
+//     only through raw-SQL repository methods (ADR-005).
+//   - Rules Prisma cannot express (partial unique indexes, CHECK constraints,
+//     triggers, GiST/GIN indexes) live in migration SQL and are listed in
+//     docs/database/SCHEMA-NOTES.md. Generate new migrations with
+//     `prisma migrate dev --create-only` and review them before applying.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis, pg_trgm, unaccent, citext, pgcrypto]
+}

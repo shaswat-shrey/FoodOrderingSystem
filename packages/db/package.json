@@ -8,11 +8,15 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:status": "prisma migrate status",
-    "typecheck": "tsc --noEmit"
+    "db:generate": "prisma generate --schema prisma/schema",
+    "db:validate": "prisma validate --schema prisma/schema",
+    "db:format": "prisma format --schema prisma/schema",
+    "db:migrate": "prisma migrate dev --schema prisma/schema --create-only",
+    "db:deploy": "prisma migrate deploy --schema prisma/schema",
+    "db:status": "prisma migrate status --schema prisma/schema",
+    "db:seed": "tsx src/seed/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3"

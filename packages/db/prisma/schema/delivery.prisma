@@ -1,0 +1,425 @@
+// Delivery partners, deliveries, dispatch offers, tracking, earnings
+// (SRS §12, §15.3.8, ADR-008).
+
+enum PartnerAvailability {
+  OFFLINE
+  ONLINE_IDLE
+  OFFERED
+  ON_DELIVERY
+  PAUSED
+}
+
+enum PartnerDocumentType {
+  DL_FRONT
+  DL_BACK
+  RC
+  INSURANCE
+  PAN
+  ID_PROOF
+  BANK_PROOF
+  PHOTO
+}
+
+enum VehicleType {
+  BICYCLE
+  E_BIKE
+  MOTORCYCLE
+  SCOOTER
+}
+
+enum OnlineSessionEndReason {
+  MANUAL
+  AUTO_INACTIVE
+  AUTO_MISSED_OFFERS
+  OUTSIDE_ZONE
+  CASH_CAP
+  SUSPENDED
+  DOCUMENT_EXPIRED
+}
+
+enum DeliveryStatus {
+  PENDING
+  SEARCHING
+  ASSIGNED
+  AT_RESTAURANT
+  EN_ROUTE_TO_CUSTOMER
+  AT_CUSTOMER
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum DeliveryProofType {
+  OTP
+  PHOTO
+  ADMIN
+}
+
+enum AssignmentStatus {
+  OFFERED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  WITHDRAWN
+  RELEASED
+  REVOKED
+}
+
+enum RouteLeg {
+  TO_RESTAURANT
+  TO_CUSTOMER
+}
+
+model DeliveryPartner {
+  id                       String                                @id @default(uuid(7)) @db.Uuid
+  userId                   String                                @unique @map("user_id") @db.Uuid
+  onboardingStatus         OnboardingStatus                      @default(DRAFT) @map("onboarding_status")
+  submissionCount          Int                                   @default(0) @map("submission_count")
+  status                   AccountStatus                         @default(ACTIVE)
+  legalName                String?                               @map("legal_name") @db.VarChar(120)
+  dateOfBirth              DateTime?                             @map("date_of_birth") @db.Date
+  panEncrypted             Bytes?                                @map("pan_encrypted")
+  panLast4                 String?                               @map("pan_last4") @db.Char(4)
+  /// Only the last 4 digits are ever stored (SRS §20, FR-DP-001).
+  aadhaarLast4             String?                               @map("aadhaar_last4") @db.Char(4)
+  homeZoneId               String?                               @map("home_zone_id") @db.Uuid
+  photoFileId              String?                               @map("photo_file_id") @db.Uuid
+  emergencyContactName     String?                               @map("emergency_contact_name") @db.VarChar(80)
+  emergencyContactRelation String?                               @map("emergency_contact_relation") @db.VarChar(40)
+  emergencyContactPhone    String?                               @map("emergency_contact_phone") @db.VarChar(16)
+  guidelinesVersionAck     String?                               @map("guidelines_version_ack") @db.VarChar(20)
+  /// Persisted copy of the Redis-authoritative live state (FR-DP-013).
+  availabilityState        PartnerAvailability                   @default(OFFLINE) @map("availability_state")
+  lastLocation             Unsupported("geography(Point,4326)")? @map("last_location")
+  lastLocationAt           DateTime?                             @map("last_location_at") @db.Timestamptz(3)
+  codEnabled               Boolean                               @default(true) @map("cod_enabled")
+  rejectedReason           String?                               @map("rejected_reason") @db.VarChar(1000)
+  approvedAt               DateTime?                             @map("approved_at") @db.Timestamptz(3)
+  createdAt                DateTime                              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                DateTime                              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user              User                   @relation(fields: [userId], references: [id])
+  homeZone          Zone?                  @relation(fields: [homeZoneId], references: [id])
+  photoFile         File?                  @relation("PartnerPhoto", fields: [photoFileId], references: [id])
+  documents         PartnerDocument[]
+  vehicles          PartnerVehicle[]
+  bankAccounts      PartnerBankAccount[]
+  onlineSessions    PartnerOnlineSession[]
+  stats             PartnerStats?
+  deliveries        Delivery[]
+  assignments       DeliveryAssignment[]
+  locations         DeliveryLocation[]
+  earnings          PartnerEarning[]
+  incentiveProgress IncentiveProgress[]
+  payouts           Payout[]
+  reviews           Review[]
+
+  @@index([onboardingStatus])
+  @@index([status, availabilityState])
+  @@map("delivery_partners")
+}
+
+model PartnerDocument {
+  id           String              @id @default(uuid(7)) @db.Uuid
+  partnerId    String              @map("partner_id") @db.Uuid
+  type         PartnerDocumentType
+  fileId       String              @map("file_id") @db.Uuid
+  status       DocumentStatus      @default(PENDING)
+  numberLast4  String?             @map("number_last4") @db.VarChar(4)
+  expiresOn    DateTime?           @map("expires_on") @db.Date
+  reviewerNote String?             @map("reviewer_note") @db.VarChar(500)
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  partner DeliveryPartner @relation(fields: [partnerId], references: [id])
+  file    File            @relation(fields: [fileId], references: [id])
+
+  @@index([partnerId, type])
+  @@map("partner_documents")
+}
+
+/// SQL: partial unique one active vehicle per partner; partial unique verified registration.
+model PartnerVehicle {
+  id                 String         @id @default(uuid(7)) @db.Uuid
+  partnerId          String         @map("partner_id") @db.Uuid
+  type               VehicleType
+  registrationNumber String?        @map("registration_number") @db.VarChar(15)
+  status             DocumentStatus @default(PENDING)
+  isActive           Boolean        @default(false) @map("is_active")
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt          DateTime?      @map("deleted_at") @db.Timestamptz(3)
+
+  partner DeliveryPartner @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId])
+  @@map("partner_vehicles")
+}
+
+/// SQL: partial unique — one VERIFIED account per partner.
+model PartnerBankAccount {
+  id                     String            @id @default(uuid(7)) @db.Uuid
+  partnerId              String            @map("partner_id") @db.Uuid
+  holderName             String            @map("holder_name") @db.VarChar(120)
+  accountNumberEncrypted Bytes             @map("account_number_encrypted")
+  accountLast4           String            @map("account_last4") @db.Char(4)
+  ifsc                   String            @db.Char(11)
+  status                 BankAccountStatus @default(PENDING_VERIFICATION)
+  verifiedAt             DateTime?         @map("verified_at") @db.Timestamptz(3)
+  createdAt              DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  partner DeliveryPartner @relation(fields: [partnerId], references: [id])
+  payouts Payout[]
+
+  @@index([partnerId])
+  @@map("partner_bank_accounts")
+}
+
+model PartnerOnlineSession {
+  id        String                  @id @default(uuid(7)) @db.Uuid
+  partnerId String                  @map("partner_id") @db.Uuid
+  startedAt DateTime                @default(now()) @map("started_at") @db.Timestamptz(3)
+  endedAt   DateTime?               @map("ended_at") @db.Timestamptz(3)
+  endReason OnlineSessionEndReason? @map("end_reason")
+
+  partner DeliveryPartner @relation(fields: [partnerId], references: [id])
+
+  @@index([partnerId, startedAt])
+  @@map("partner_online_sessions")
+}
+
+/// Rolling metrics used by dispatch ranking (DELIVERY-ASSIGNMENT-ALGORITHM §5).
+model PartnerStats {
+  partnerId               String    @id @map("partner_id") @db.Uuid
+  acceptanceRateBps30d    Int       @default(10000) @map("acceptance_rate_bps_30d")
+  completionRateBps30d    Int       @default(10000) @map("completion_rate_bps_30d")
+  onTimeRateBps30d        Int       @default(10000) @map("on_time_rate_bps_30d")
+  ratingAvgBps            Int?      @map("rating_avg_bps")
+  ratingCount             Int       @default(0) @map("rating_count")
+  deliveriesToday         Int       @default(0) @map("deliveries_today")
+  lastDeliveryCompletedAt DateTime? @map("last_delivery_completed_at") @db.Timestamptz(3)
+  consecutiveMissedOffers Int       @default(0) @map("consecutive_missed_offers")
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  partner DeliveryPartner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@map("partner_stats")
+}
+
+/// One delivery per order. SQL: partial unique — one active delivery per partner (MVP).
+model Delivery {
+  id                  String             @id @default(uuid(7)) @db.Uuid
+  orderId             String             @unique @map("order_id") @db.Uuid
+  branchId            String             @map("branch_id") @db.Uuid
+  partnerId           String?            @map("partner_id") @db.Uuid
+  status              DeliveryStatus     @default(PENDING)
+  escalated           Boolean            @default(false)
+  dispatchStartsAt    DateTime?          @map("dispatch_starts_at") @db.Timestamptz(3)
+  searchRound         Int                @default(0) @map("search_round")
+  pickupCode          String?            @map("pickup_code") @db.VarChar(6)
+  noPartnerDeadline   DateTime?          @map("no_partner_deadline") @db.Timestamptz(3)
+  deadlineExtended    Boolean            @default(false) @map("deadline_extended")
+  assignedAt          DateTime?          @map("assigned_at") @db.Timestamptz(3)
+  arrivedRestaurantAt DateTime?          @map("arrived_restaurant_at") @db.Timestamptz(3)
+  pickedUpAt          DateTime?          @map("picked_up_at") @db.Timestamptz(3)
+  arrivedCustomerAt   DateTime?          @map("arrived_customer_at") @db.Timestamptz(3)
+  deliveredAt         DateTime?          @map("delivered_at") @db.Timestamptz(3)
+  distancePickupM     Int?               @map("distance_pickup_m")
+  distanceDropM       Int?               @map("distance_drop_m")
+  proofType           DeliveryProofType? @map("proof_type")
+  proofFileId         String?            @map("proof_file_id") @db.Uuid
+  failureReason       String?            @map("failure_reason") @db.VarChar(300)
+  version             Int                @default(0)
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  order         Order                   @relation(fields: [orderId], references: [id])
+  branch        Branch                  @relation(fields: [branchId], references: [id])
+  partner       DeliveryPartner?        @relation(fields: [partnerId], references: [id])
+  proofFile     File?                   @relation("DeliveryProof", fields: [proofFileId], references: [id])
+  assignments   DeliveryAssignment[]
+  statusHistory DeliveryStatusHistory[]
+  locations     DeliveryLocation[]
+  routes        DeliveryRoute[]
+  otpAttempts   DeliveryOtpAttempt[]
+  earning       PartnerEarning?
+
+  @@index([status, escalated])
+  @@index([partnerId, status])
+  @@map("deliveries")
+}
+
+/// Dispatch offer. SQL: partial unique — one ACCEPTED per delivery, one OFFERED per partner.
+model DeliveryAssignment {
+  id                String           @id @default(uuid(7)) @db.Uuid
+  deliveryId        String           @map("delivery_id") @db.Uuid
+  partnerId         String           @map("partner_id") @db.Uuid
+  round             Int
+  rank              Int
+  score             Int
+  scoreBreakdown    Json             @map("score_breakdown")
+  distanceToPickupM Int              @map("distance_to_pickup_m")
+  status            AssignmentStatus @default(OFFERED)
+  offeredAt         DateTime         @default(now()) @map("offered_at") @db.Timestamptz(3)
+  expiresAt         DateTime         @map("expires_at") @db.Timestamptz(3)
+  displayedAt       DateTime?        @map("displayed_at") @db.Timestamptz(3)
+  respondedAt       DateTime?        @map("responded_at") @db.Timestamptz(3)
+  rejectReason      String?          @map("reject_reason") @db.VarChar(200)
+  manual            Boolean          @default(false)
+  assignedBy        String?          @map("assigned_by") @db.Uuid
+
+  delivery       Delivery        @relation(fields: [deliveryId], references: [id])
+  partner        DeliveryPartner @relation(fields: [partnerId], references: [id])
+  assignedByUser User?           @relation("AssignmentAssignedBy", fields: [assignedBy], references: [id])
+
+  @@index([deliveryId, partnerId])
+  @@index([partnerId, status])
+  @@map("delivery_assignments")
+}
+
+model DeliveryStatusHistory {
+  id                String                                @id @default(uuid(7)) @db.Uuid
+  deliveryId        String                                @map("delivery_id") @db.Uuid
+  fromStatus        DeliveryStatus?                       @map("from_status")
+  toStatus          DeliveryStatus                        @map("to_status")
+  actorType         ActorType                             @map("actor_type")
+  actorId           String?                               @map("actor_id") @db.Uuid
+  location          Unsupported("geography(Point,4326)")?
+  distanceToTargetM Int?                                  @map("distance_to_target_m")
+  flagged           Boolean                               @default(false)
+  createdAt         DateTime                              @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id])
+  actor    User?    @relation(fields: [actorId], references: [id])
+
+  @@index([deliveryId, createdAt])
+  @@map("delivery_status_history")
+}
+
+/// Sampled location trail for active deliveries (retention 90 days, SRS §20).
+model DeliveryLocation {
+  id         String                               @id @default(uuid(7)) @db.Uuid
+  deliveryId String                               @map("delivery_id") @db.Uuid
+  partnerId  String                               @map("partner_id") @db.Uuid
+  location   Unsupported("geography(Point,4326)")
+  accuracyM  Int                                  @map("accuracy_m")
+  heading    Int?                                 @db.SmallInt
+  speedKmh   Int?                                 @map("speed_kmh") @db.SmallInt
+  recordedAt DateTime                             @map("recorded_at") @db.Timestamptz(3)
+  receivedAt DateTime                             @default(now()) @map("received_at") @db.Timestamptz(3)
+
+  delivery Delivery        @relation(fields: [deliveryId], references: [id])
+  partner  DeliveryPartner @relation(fields: [partnerId], references: [id])
+
+  @@index([deliveryId, receivedAt])
+  @@index([receivedAt])
+  @@map("delivery_locations")
+}
+
+model DeliveryRoute {
+  deliveryId String   @map("delivery_id") @db.Uuid
+  leg        RouteLeg
+  polyline   String
+  distanceM  Int      @map("distance_m")
+  durationS  Int      @map("duration_s")
+  provider   String   @db.VarChar(40)
+  computedAt DateTime @default(now()) @map("computed_at") @db.Timestamptz(3)
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@id([deliveryId, leg])
+  @@map("delivery_routes")
+}
+
+model DeliveryOtpAttempt {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  deliveryId String   @map("delivery_id") @db.Uuid
+  success    Boolean
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  delivery Delivery @relation(fields: [deliveryId], references: [id])
+
+  @@index([deliveryId])
+  @@map("delivery_otp_attempts")
+}
+
+/// Effective-dated partner pay formula (BR-EARN-001). Null zone = platform default.
+model PartnerPayPlan {
+  id                    String   @id @default(uuid(7)) @db.Uuid
+  zoneId                String?  @map("zone_id") @db.Uuid
+  baseAmount            Int      @map("base_amount")
+  perKmAmount           Int      @map("per_km_amount")
+  freeKmM               Int      @map("free_km_m")
+  waitAfterMinutes      Int      @map("wait_after_minutes")
+  perWaitMinuteAmount   Int      @map("per_wait_minute_amount")
+  waitCapAmount         Int      @map("wait_cap_amount")
+  rainBonusAmount       Int      @default(0) @map("rain_bonus_amount")
+  cancellationMinAmount Int      @map("cancellation_min_amount")
+  effectiveFrom         DateTime @map("effective_from") @db.Timestamptz(3)
+  createdBy             String?  @map("created_by") @db.Uuid
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  zone     Zone?            @relation(fields: [zoneId], references: [id])
+  earnings PartnerEarning[]
+
+  @@index([zoneId, effectiveFrom])
+  @@map("partner_pay_plans")
+}
+
+/// Per-delivery earnings breakdown (immutable once written).
+model PartnerEarning {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  partnerId      String   @map("partner_id") @db.Uuid
+  deliveryId     String   @unique @map("delivery_id") @db.Uuid
+  payPlanId      String   @map("pay_plan_id") @db.Uuid
+  baseAmount     Int      @map("base_amount")
+  distanceAmount Int      @map("distance_amount")
+  waitAmount     Int      @map("wait_amount")
+  surgeAmount    Int      @map("surge_amount")
+  tipAmount      Int      @map("tip_amount")
+  totalAmount    Int      @map("total_amount")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  partner  DeliveryPartner @relation(fields: [partnerId], references: [id])
+  delivery Delivery        @relation(fields: [deliveryId], references: [id])
+  payPlan  PartnerPayPlan  @relation(fields: [payPlanId], references: [id])
+
+  @@index([partnerId, createdAt])
+  @@map("partner_earnings")
+}
+
+/// Incentive programs (CORE). `rules` holds the validated target definition.
+model IncentiveProgram {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  name         String   @db.VarChar(120)
+  zoneId       String?  @map("zone_id") @db.Uuid
+  rules        Json
+  rewardAmount Int      @map("reward_amount")
+  startsAt     DateTime @map("starts_at") @db.Timestamptz(3)
+  endsAt       DateTime @map("ends_at") @db.Timestamptz(3)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  progress IncentiveProgress[]
+
+  @@map("incentive_programs")
+}
+
+model IncentiveProgress {
+  id                    String    @id @default(uuid(7)) @db.Uuid
+  programId             String    @map("program_id") @db.Uuid
+  partnerId             String    @map("partner_id") @db.Uuid
+  period                String    @db.VarChar(20)
+  progress              Int       @default(0)
+  achievedAt            DateTime? @map("achieved_at") @db.Timestamptz(3)
+  creditedTransactionId String?   @map("credited_transaction_id") @db.Uuid
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  program IncentiveProgram @relation(fields: [programId], references: [id])
+  partner DeliveryPartner  @relation(fields: [partnerId], references: [id])
+
+  @@unique([programId, partnerId, period])
+  @@map("incentive_progress")
+}
