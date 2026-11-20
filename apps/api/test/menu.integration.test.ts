@@ -64,7 +64,8 @@ suite('restaurant and branch pages (API-REST-001…005, FR-MENUC-001)', () => {
     expect(res.body.data).toMatchObject({
       name: 'Saffron Handi Biryani',
       cuisines: expect.arrayContaining([expect.objectContaining({ slug: 'biryani' })]),
-      rating: { average: null, isNew: true },
+      // Earlier files may have rated it; under 10 ratings it is still "New" (BR-REVIEW-007).
+      rating: expect.objectContaining({ isNew: true }),
       isFavorite: false,
     });
   });

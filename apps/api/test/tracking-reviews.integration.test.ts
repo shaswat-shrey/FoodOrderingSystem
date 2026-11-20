@@ -170,6 +170,13 @@ suite('reviews (API-REV-001…005, API-RREV-001…004, BR-REVIEW-001…006)', ()
     await ctx.container.outboxRelay.runOnce();
     const branchAfter = await ctx.prisma.branch.findUniqueOrThrow({ where: { id: saffron } });
     expect(branchAfter.ratingCount).toBe(branchBefore.ratingCount + 1);
+    // The restaurant-level average is recomputed too (hundredths of a star).
+    const rest = await ctx.prisma.restaurant.findUniqueOrThrow({
+      where: { id: branchAfter.restaurantId },
+    });
+    expect(rest.ratingCount).toBeGreaterThanOrEqual(1);
+    expect(rest.ratingAvgBps).toBeGreaterThanOrEqual(100);
+    expect(rest.ratingAvgBps).toBeLessThanOrEqual(500);
     const rider = await signInAs(ctx, RIDER, 'DELIVERY');
     const ratings = (await rider.browser.get('/partner/me/ratings')).body.data;
     expect(ratings).toMatchObject({
