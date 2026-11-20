@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+  - tests/*
+
+# pnpm 10 blocks dependency install scripts unless allow-listed.
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - esbuild
+  - prisma

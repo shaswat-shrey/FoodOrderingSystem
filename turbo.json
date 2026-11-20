@@ -1,0 +1,24 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["tsconfig.base.json", ".env"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "^db:generate"],
+      "outputs": ["dist/**"]
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^db:generate"]
+    },
+    "test": {
+      "dependsOn": ["^db:generate"],
+      "outputs": ["coverage/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
