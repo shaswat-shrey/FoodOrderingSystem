@@ -60,6 +60,7 @@ import {
   RestaurantProfileService,
   StaffService,
 } from './modules/merchant';
+import { PartnerOnboardingService } from './modules/partners';
 import { fieldCipherFrom } from './platform/crypto';
 import {
   NotificationService,
@@ -247,6 +248,14 @@ export function createContainer(input: ContainerInput) {
     env.APP_URLS.RESTAURANT,
   );
   const restaurantAnalytics = new RestaurantAnalyticsService(prisma, clock);
+  const partnerOnboarding = new PartnerOnboardingService(
+    prisma,
+    files,
+    permissionChanges,
+    audit,
+    fieldCipher,
+    clock,
+  );
   const restaurantOrders = new RestaurantOrdersService(
     prisma,
     orderTransitions,
@@ -318,6 +327,7 @@ export function createContainer(input: ContainerInput) {
     menuAdmin,
     staff,
     restaurantAnalytics,
+    partnerOnboarding,
     restaurantOrders,
     outboxRelay,
     appOrigins: appOrigins(env),

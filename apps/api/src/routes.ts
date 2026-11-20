@@ -14,6 +14,7 @@ import { searchHistoryRouter, searchRouter } from './modules/search';
 import { supportRouter } from './modules/support';
 import { notificationsRouter } from './modules/notifications';
 import { branchRouter, menuRouter, merchantRouter, staffRouter } from './modules/merchant';
+import { partnerRouter } from './modules/partners';
 import { fileUploadRouter, filesRouter, localMediaRouter } from './modules/files';
 import { usersRouter } from './modules/users';
 
@@ -53,6 +54,7 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use(branchRouter(container));
   api.use(menuRouter(container));
   api.use(staffRouter(container));
+  api.use(partnerRouter(container));
   api.use(merchantOrdersRouter(container));
   api.use('/checkout/sessions', checkoutRouter(container));
   api.use('/payments/methods', paymentMethodsRouter(container));
