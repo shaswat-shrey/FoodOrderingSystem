@@ -97,6 +97,36 @@ export const SETTING_DEFINITIONS = {
   'restaurant.pauseMaxMinutes': { schema: z.number().int().min(15).max(1440), default: 240 },
   /** FR-REST-014: a manual close ends at the next day's first slot (false = until reopened). */
   'restaurant.manualCloseUntilNextDay': { schema: z.boolean(), default: true },
+  /** BR-DEL-010: partner cash-in-hand cap (paise). */
+  'partner.cashCapAmount': { schema: z.number().int().min(0).max(10_000_000), default: 300_000 },
+  /** FR-DP-010 / BR-DEL-001: a usable location fix. */
+  'partner.locationMaxAgeSeconds': { schema: z.number().int().min(10).max(600), default: 60 },
+  'partner.locationMaxAccuracyM': { schema: z.number().int().min(10).max(1000), default: 100 },
+  /** BR-DEL-006 auto-offline thresholds. */
+  'partner.inactiveOfflineMinutes': { schema: z.number().int().min(1).max(60), default: 5 },
+  'partner.outsideZoneMinutes': { schema: z.number().int().min(1).max(120), default: 10 },
+  'partner.missedOffersOffline': { schema: z.number().int().min(1).max(20), default: 3 },
+  /** BR-DEL-002/003 dispatch. */
+  'dispatch.offerTimeoutSeconds': { schema: z.number().int().min(10).max(120), default: 30 },
+  'dispatch.roundRadiiM': {
+    schema: z.array(z.number().int().min(500).max(30_000)).min(1).max(5),
+    default: [3_000, 5_000, 8_000],
+  },
+  'dispatch.offersPerRound': { schema: z.number().int().min(1).max(20), default: 5 },
+  'dispatch.leadBufferMinutes': { schema: z.number().int().min(0).max(60), default: 5 },
+  'dispatch.travelToRestaurantMinutes': { schema: z.number().int().min(1).max(60), default: 8 },
+  'dispatch.noPartnerAfterReadyMinutes': { schema: z.number().int().min(5).max(120), default: 30 },
+  'dispatch.noPartnerAfterAcceptMinutes': {
+    schema: z.number().int().min(10).max(180),
+    default: 45,
+  },
+  /** BR-DEL-017 */
+  'dispatch.bicycleMaxPickupM': { schema: z.number().int().min(500).max(20_000), default: 3_000 },
+  'dispatch.bicycleMaxDropM': { schema: z.number().int().min(500).max(20_000), default: 4_000 },
+  /** BR-DEL-008 geofences and pickup code. */
+  'delivery.restaurantGeofenceM': { schema: z.number().int().min(20).max(2_000), default: 200 },
+  'delivery.customerGeofenceM': { schema: z.number().int().min(20).max(2_000), default: 150 },
+  'pickup.verifyCode': { schema: z.boolean(), default: false },
   /** BR-PAY-002 */
   'cod.maxOrderAmount': { schema: z.number().int().min(0).max(10_000_000), default: 150_000 },
   /** BR-CART-002 */

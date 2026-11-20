@@ -7,6 +7,7 @@ import {
   BranchOpsService,
   BranchRepository,
   CartExpiry,
+  EstimatedRouting,
   createStorageProvider,
   FilesService,
   createPaymentProvider,
@@ -24,6 +25,9 @@ import {
   OrderTimers,
   OrderTransitions,
   OutboxRelay,
+  PartnerAvailabilityService,
+  PresenceStore,
+  ServiceabilityService,
   PaymentsService,
   RefundService,
   registerOrderConsumers,
@@ -68,6 +72,10 @@ async function main(): Promise<void> {
   const transitions = new OrderTransitions(clock);
 
   const settings = new SettingsService(prisma, logger);
+  const routing = new EstimatedRouting(async () => ({
+    roadFactor: await settings.get('geo.roadFactor'),
+    kmph: await settings.get('geo.motorbikeKmph'),
+  }));
   const timers = new OrderTimers(jobs, settings, logger, clock);
   const effects = new OrderEffects(new OffersService(prisma, clock), wallet);
   const reactions = new OrderPaymentReactions(
@@ -114,6 +122,15 @@ async function main(): Promise<void> {
     refunds,
     orderJobs,
     outbox,
+    partners: new PartnerAvailabilityService(
+      prisma,
+      new PresenceStore(core),
+      new ServiceabilityService(prisma, new BranchRepository(prisma), routing, settings, clock),
+      ledger,
+      settings,
+      clock,
+      logger,
+    ),
     branchOps: new BranchOpsService(
       prisma,
       new BranchRepository(prisma),

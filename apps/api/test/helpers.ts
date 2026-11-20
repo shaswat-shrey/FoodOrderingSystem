@@ -441,3 +441,12 @@ export async function createOwnedRestaurant(ctx: TestContext, opts: { pureVeg?: 
   await ctx.container.permissionChanges.changed(owner.userId);
   return { ...owner, restaurantId, branchId };
 }
+
+/** Seeded delivery partners (packages/db seed): Koramangala-area riders. */
+export const PARTNERS = [
+  '+919000000401',
+  '+919000000402',
+  '+919000000403',
+  '+919000000404',
+  '+919000000405',
+] as const;

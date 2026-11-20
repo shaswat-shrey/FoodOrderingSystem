@@ -41,3 +41,6 @@ export {
 } from '../modules/files';
 export { BranchRepository } from '../modules/catalog/branch-repository';
 export { BranchOpsService } from '../modules/merchant/branch-ops.service';
+export { ServiceabilityService } from '../modules/catalog/serviceability.service';
+export { PartnerAvailabilityService, PresenceStore } from '../modules/partners';
+export { EstimatedRouting } from '../modules/geo';

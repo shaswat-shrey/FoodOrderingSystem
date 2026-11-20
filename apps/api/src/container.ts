@@ -60,7 +60,11 @@ import {
   RestaurantProfileService,
   StaffService,
 } from './modules/merchant';
-import { PartnerOnboardingService } from './modules/partners';
+import {
+  PartnerAvailabilityService,
+  PartnerOnboardingService,
+  PresenceStore,
+} from './modules/partners';
 import { fieldCipherFrom } from './platform/crypto';
 import {
   NotificationService,
@@ -256,6 +260,16 @@ export function createContainer(input: ContainerInput) {
     fieldCipher,
     clock,
   );
+  const presence = new PresenceStore(redis.core);
+  const partnerAvailability = new PartnerAvailabilityService(
+    prisma,
+    presence,
+    serviceability,
+    ledger,
+    settings,
+    clock,
+    logger,
+  );
   const restaurantOrders = new RestaurantOrdersService(
     prisma,
     orderTransitions,
@@ -328,6 +342,8 @@ export function createContainer(input: ContainerInput) {
     staff,
     restaurantAnalytics,
     partnerOnboarding,
+    presence,
+    partnerAvailability,
     restaurantOrders,
     outboxRelay,
     appOrigins: appOrigins(env),

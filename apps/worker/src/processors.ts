@@ -17,6 +17,7 @@ import {
   type CartExpiry,
   type BranchOpsService,
   type FilesService,
+  type PartnerAvailabilityService,
   type LedgerService,
   type NotificationDeliverer,
   type OrderTimerJobs,
@@ -54,6 +55,7 @@ export const EXPIRE_CHECKOUT_SESSIONS_JOB = 'expire-checkout-sessions';
 export const OUTBOX_HEALTH_JOB = 'outbox-health';
 export const CLEANUP_ORPHAN_FILES_JOB = 'cleanup-orphan-files';
 export const SWEEP_BRANCH_STATUS_JOB = 'sweep-branch-status';
+export const SWEEP_PARTNERS_JOB = 'sweep-partners';
 
 /** Repeatable jobs (BullMQ job schedulers), registered idempotently at boot. */
 export const SCHEDULES = [
@@ -77,6 +79,8 @@ export const SCHEDULES = [
   { queue: 'maintenance', id: CLEANUP_ORPHAN_FILES_JOB, everyMs: 60 * 60 * 1000 },
   // JOB-REST-001/002: expired pauses resume; "closed for today" reopens next day.
   { queue: 'maintenance', id: SWEEP_BRANCH_STATUS_JOB, everyMs: 5 * 60 * 1000 },
+  // JOB-DP-001 (BR-DEL-006): silent or out-of-zone partners go offline; breaks end.
+  { queue: 'maintenance', id: SWEEP_PARTNERS_JOB, everyMs: 60 * 1000 },
 ] as const satisfies { queue: QueueName; id: string; everyMs: number }[];
 
 export interface JobServices {
@@ -91,6 +95,7 @@ export interface JobServices {
   deliverer: Pick<NotificationDeliverer, 'deliver'>;
   files: Pick<FilesService, 'cleanupOrphans'>;
   branchOps: Pick<BranchOpsService, 'sweep'>;
+  partners: Pick<PartnerAvailabilityService, 'sweep'>;
   logger: Logger;
 }
 
@@ -107,6 +112,7 @@ export function buildRegistrations({
   deliverer,
   files,
   branchOps,
+  partners,
   logger,
 }: JobServices): ProcessorRegistration[] {
   const maintenance: Record<string, () => Promise<void>> = {
@@ -138,6 +144,9 @@ export function buildRegistrations({
     [EXPIRE_CHECKOUT_SESSIONS_JOB]: async () => {
       const count = await cartExpiry.expireSessions();
       if (count > 0) logger.info({ count }, 'expired checkout sessions');
+    },
+    [SWEEP_PARTNERS_JOB]: async () => {
+      await partners.sweep();
     },
     [SWEEP_BRANCH_STATUS_JOB]: async () => {
       await branchOps.sweep();

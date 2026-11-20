@@ -9,10 +9,15 @@ import { requireClientApp } from '../../platform/http/middleware/client-app';
 import { rateLimit } from '../../platform/http/middleware/rate-limit';
 import type { RateLimiter } from '../../platform/rate-limit';
 import { authenticate, requireApp, type AuthMiddlewareDeps } from '../auth';
+import type { PrismaClient } from '@fos/db';
+import { idempotent } from '../../platform/http/middleware/idempotency';
+import type { PartnerAvailabilityService } from './availability.service';
 import type { PartnerOnboardingService } from './onboarding.service';
 
 export interface PartnerRouterDeps extends AuthMiddlewareDeps {
   partnerOnboarding: PartnerOnboardingService;
+  partnerAvailability: PartnerAvailabilityService;
+  prisma: PrismaClient;
   limiter: RateLimiter;
 }
 
@@ -85,7 +90,18 @@ const docBody = z
   })
   .strict();
 
-/** Partner application, profile, vehicles and guidelines (API-DP-001…013). */
+const fix = z
+  .object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+    accuracyM: z.number().min(0).max(5_000),
+    recordedAt: z.coerce.date().optional(),
+    heading: z.number().int().min(0).max(359).optional(),
+    speedKmh: z.number().int().min(0).max(400).optional(),
+  })
+  .strict();
+
+/** Partner application, profile, vehicles, guidelines and availability (API-DP-001…020). */
 export function partnerRouter(deps: PartnerRouterDeps): Router {
   const router = Router();
   const applicant: RequestHandler[] = [
@@ -209,6 +225,69 @@ export function partnerRouter(deps: PartnerRouterDeps): Router {
     writes,
     handle({ body: z.object({ version: z.string().max(20) }).strict() }, async ({ body, res }) =>
       sendOk(res, await svc.acknowledgeGuidelines(me(res), body.version)),
+    ),
+  );
+
+  /* availability (approved partners, delivery app) */
+  const partner: RequestHandler[] = [
+    requireClientApp(),
+    authenticate(deps),
+    requireApp('DELIVERY'),
+  ];
+  const av = deps.partnerAvailability;
+  router.get(
+    '/partner/me/availability',
+    ...partner,
+    handle({}, async ({ res }) => sendOk(res, await av.availability(me(res)))),
+  );
+  router.post(
+    '/partner/me/online',
+    ...partner,
+    writes,
+    idempotent(deps.prisma),
+    handle({ body: fix }, async ({ body, res }) =>
+      sendOk(res, await av.goOnline(me(res), body), { message: 'You are online' }),
+    ),
+  );
+  router.post(
+    '/partner/me/offline',
+    ...partner,
+    writes,
+    idempotent(deps.prisma),
+    handle({}, async ({ res }) => sendOk(res, await av.goOffline(me(res)))),
+  );
+  router.post(
+    '/partner/me/pause',
+    ...partner,
+    writes,
+    handle(
+      { body: z.object({ minutes: z.union([z.literal(15), z.literal(30)]) }).strict() },
+      async ({ body, res }) => sendOk(res, await av.pause(me(res), body.minutes)),
+    ),
+  );
+  router.post(
+    '/partner/me/resume',
+    ...partner,
+    writes,
+    handle({}, async ({ res }) => sendOk(res, await av.resume(me(res)))),
+  );
+  router.get(
+    '/partner/me/dashboard',
+    ...partner,
+    handle({}, async ({ res }) => sendOk(res, await av.dashboard(me(res)))),
+  );
+  router.post(
+    '/partner/me/locations',
+    ...partner,
+    rateLimit(deps.limiter, {
+      name: 'rl:loc:user',
+      limit: 120,
+      windowSeconds: 60,
+      key: (_req, res) => res.locals.auth!.userId,
+    }),
+    handle(
+      { body: z.object({ points: z.array(fix).min(1).max(60) }).strict() },
+      async ({ body, res }) => sendOk(res, await av.ingest(me(res), body.points)),
     ),
   );
   return router;
