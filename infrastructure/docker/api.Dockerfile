@@ -15,7 +15,9 @@ RUN pnpm --filter @fos/api build
 RUN pnpm --filter @fos/api deploy --prod --legacy /out
 # Generate the Prisma client inside the deployed tree (engine matches this image).
 COPY packages/db/prisma /out/prisma
-RUN cd /out && npx --yes prisma@6.19.3 generate --schema prisma/schema.prisma
+# The schema is a folder of .prisma files; use the workspace's Prisma CLI (same version
+# as @prisma/client) so the client is generated into /out/node_modules.
+RUN cd /out && /repo/packages/db/node_modules/.bin/prisma generate --schema prisma/schema
 
 FROM node:22-alpine AS runtime
 RUN apk add --no-cache openssl && addgroup -S app && adduser -S app -G app
