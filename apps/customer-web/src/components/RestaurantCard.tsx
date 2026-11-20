@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import type { BranchCard } from '@fos/api-client';
 import { cn } from '@fos/ui';
-import { etaRange, ratingText, rupees } from '../lib/format';
+import { etaRange, ratingText, rupees, closedReason } from '../lib/format';
 
 const CLOSED = new Set(['CLOSED', 'PAUSED', 'UNAVAILABLE']);
 
@@ -48,7 +48,7 @@ export function RestaurantCard({ card }: { card: BranchCard }) {
           )}
           {closed && (
             <p className="mt-1 text-sm font-medium text-danger-600">
-              {card.status.reason ?? 'Closed now'}
+              {closedReason(card.status.reason)}
               {card.status.opensAt &&
                 ` · Opens ${new Date(card.status.opensAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}`}
             </p>

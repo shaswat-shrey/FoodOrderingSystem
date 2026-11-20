@@ -46,3 +46,17 @@ export const SERVICEABILITY_TEXT: Record<string, string> = {
   BRANCH_PAUSED: 'This restaurant isn’t taking orders right now.',
   ZONE_SUSPENDED: 'Deliveries in this area are paused for a while.',
 };
+
+/** Why a restaurant isn't taking orders, in plain words (API BranchStatusReason). */
+const CLOSED_REASON: Record<string, string> = {
+  OUTSIDE_HOURS: 'Closed now',
+  LAST_ORDER_CUTOFF: 'Not taking more orders today',
+  MANUALLY_CLOSED: 'Closed for today',
+  HOLIDAY: 'Closed for a holiday',
+  PAUSED: 'Not taking orders for a while',
+  FSSAI_EXPIRED: 'Temporarily unavailable',
+  ZONE_SUSPENDED: 'Deliveries paused in this area',
+  NOT_LISTED: 'Unavailable',
+};
+export const closedReason = (reason: string | null | undefined) =>
+  (reason && CLOSED_REASON[reason]) ?? 'Closed now';

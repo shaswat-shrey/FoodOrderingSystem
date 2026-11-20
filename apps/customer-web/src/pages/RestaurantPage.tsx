@@ -9,7 +9,7 @@ import { QuantityStepper, ServerError } from '../components/ui';
 import { useAddToCart } from '../lib/add-to-cart';
 import { cartKey, useCart } from '../lib/cart';
 import { customer } from '../lib/customer';
-import { etaRange, ratingText, rupees, SERVICEABILITY_TEXT } from '../lib/format';
+import { etaRange, ratingText, rupees, SERVICEABILITY_TEXT, closedReason } from '../lib/format';
 import { useDeliveryLocation } from '../lib/location';
 import { NotFoundPage } from './NotFoundPage';
 
@@ -106,7 +106,9 @@ export function RestaurantPage() {
           <p className="text-xs text-gray-500">Minimum order {rupees(b.minOrderAmount)}</p>
         )}
         {b.fssaiNumber && <p className="text-xs text-gray-500">FSSAI Lic. No. {b.fssaiNumber}</p>}
-        {!open && b.status.reason && <Alert tone="warning">{b.status.reason}</Alert>}
+        {!open && b.status.reason && b.status.reason !== 'OUTSIDE_HOURS' && (
+          <Alert tone="warning">{closedReason(b.status.reason)}</Alert>
+        )}
         {delivery && !delivery.serviceable && (
           <Alert tone="warning">
             {SERVICEABILITY_TEXT[delivery.reason ?? 'OUTSIDE_RADIUS'] ?? 'Doesn’t deliver here.'}
