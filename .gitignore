@@ -20,3 +20,6 @@ coverage/
 test-results/
 playwright-report/
 .claude/launch.json
+
+# Project-local services (infrastructure/scripts/local-postgres.sh)
+.local/

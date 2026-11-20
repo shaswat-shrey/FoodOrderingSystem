@@ -109,6 +109,8 @@ model FoodItem {
 
   @@index([categoryId, position])
   @@index([restaurantId])
+  @@index([name(ops: raw("gin_trgm_ops"))], map: "food_items_name_trgm", type: Gin)
+  @@index([searchVector], map: "food_items_search_vector_gin", type: Gin)
   @@map("food_items")
 }
 

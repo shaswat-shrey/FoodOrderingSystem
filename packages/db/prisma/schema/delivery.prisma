@@ -116,6 +116,7 @@ model DeliveryPartner {
 
   @@index([onboardingStatus])
   @@index([status, availabilityState])
+  @@index([lastLocation], map: "delivery_partners_last_location_gix", type: Gist)
   @@map("delivery_partners")
 }
 

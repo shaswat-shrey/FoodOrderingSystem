@@ -170,6 +170,8 @@ model Restaurant {
 
   @@index([onboardingStatus])
   @@index([status])
+  @@index([brandName(ops: raw("gin_trgm_ops"))], map: "restaurants_brand_name_trgm", type: Gin)
+  @@index([searchVector], map: "restaurants_search_vector_gin", type: Gin)
   @@map("restaurants")
 }
 
@@ -338,6 +340,7 @@ model Branch {
 
   @@index([restaurantId])
   @@index([zoneId, status])
+  @@index([location], map: "branches_location_gix", type: Gist)
   @@map("branches")
 }
 

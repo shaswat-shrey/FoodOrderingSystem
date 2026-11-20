@@ -273,7 +273,7 @@ model AnalyticsBranchHourly {
 
 model AnalyticsPlatformDaily {
   day              DateTime @db.Date
-  zoneId           String   @default("00000000-0000-0000-0000-000000000000") @map("zone_id") @db.Uuid
+  zoneId           String   @default(dbgenerated("'00000000-0000-0000-0000-000000000000'::uuid")) @map("zone_id") @db.Uuid
   ordersPlaced     Int      @default(0) @map("orders_placed")
   ordersDelivered  Int      @default(0) @map("orders_delivered")
   ordersCancelled  Int      @default(0) @map("orders_cancelled")

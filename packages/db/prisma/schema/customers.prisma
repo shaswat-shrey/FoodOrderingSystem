@@ -75,6 +75,7 @@ model CustomerAddress {
   orderAddresses   OrderAddress[]
 
   @@index([userId])
+  @@index([location], map: "customer_addresses_location_gix", type: Gist)
   @@map("customer_addresses")
 }
 
@@ -104,6 +105,7 @@ model Zone {
   payPlans     PartnerPayPlan[]
 
   @@index([status])
+  @@index([polygon], map: "zones_polygon_gix", type: Gist)
   @@map("zones")
 }
 
