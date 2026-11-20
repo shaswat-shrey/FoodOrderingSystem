@@ -30,6 +30,8 @@ export { createMerchantApi, type MerchantApi } from './merchant-api';
 export type * from './merchant-api';
 export { createPartnerApi, type PartnerApi } from './partner-api';
 export type * from './partner-api';
+export { createAdminApi, type AdminApi } from './admin-api';
+export type * from './admin-api';
 export {
   createRealtime,
   type LiveEnvelope,

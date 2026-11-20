@@ -8,7 +8,7 @@ export function NotFoundPage() {
       description="The page you’re looking for doesn’t exist or has moved."
       action={
         <Link to="/" className="font-medium text-brand-700 underline underline-offset-2">
-          Go to home
+          Go to the dashboard
         </Link>
       }
     />
