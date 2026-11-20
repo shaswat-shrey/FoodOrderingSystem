@@ -1,0 +1,5 @@
+{
+  "extends": "@fos/config/tsconfig/react.json",
+  "compilerOptions": { "types": ["vite/client", "@testing-library/jest-dom"] },
+  "include": ["src", "vitest.config.ts", "vitest.setup.ts"]
+}

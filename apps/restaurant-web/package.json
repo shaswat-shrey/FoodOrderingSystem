@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@fos/api-client": "workspace:*",
+    "@fos/auth-web": "workspace:*",
     "@fos/ui": "workspace:*",
     "@tanstack/react-query": "^5.108.2",
     "react": "^19.3.1",

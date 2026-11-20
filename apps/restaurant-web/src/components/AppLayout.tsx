@@ -1,4 +1,5 @@
 import { Link, Outlet } from 'react-router';
+import { AccountActions } from '@fos/auth-web';
 import { APP_INFO } from '../app-info';
 
 export function AppLayout() {
@@ -11,10 +12,11 @@ export function AppLayout() {
         Skip to content
       </a>
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex h-14 max-w-5xl items-center px-4">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4">
           <Link to="/" className="text-lg font-bold text-brand-700">
             {APP_INFO.title}
           </Link>
+          <AccountActions />
         </div>
       </header>
       <main id="main" className="mx-auto max-w-5xl px-4 py-8">
