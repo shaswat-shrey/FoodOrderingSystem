@@ -89,7 +89,7 @@ Some operations listed in the master prompt are intentionally **one endpoint** t
 
 ## 14.2 API inventory
 
-Counts: ~300 endpoints across 30 modules. Every row has a business purpose traced to an FR.
+Counts: 494 planned endpoints across 30 modules (about 165 of them admin). Each row has a business purpose traced to an FR.
 
 ### Authentication — `API-AUTH` (module `auth`)
 
