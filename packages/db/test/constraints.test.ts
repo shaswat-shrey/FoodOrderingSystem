@@ -418,7 +418,9 @@ suite('orders & payments (SRS §15.6, FR-PAY-008, FR-REFUND-003)', () => {
   });
 
   it('DB-CONV-007: optional references restrict deletes instead of nulling history', async () => {
-    const error = await inRollback(async (tx) => {
+    // Postgres raises SQLSTATE 23001 (restrict_violation); Prisma surfaces it as an
+    // unknown request error carrying the constraint name, not as P2003.
+    await expectRejected('orders_coupon_id_fkey', async (tx) => {
       const order = await createOrder(tx);
       const coupon = await tx.coupon.create({
         data: {
@@ -432,11 +434,7 @@ suite('orders & payments (SRS §15.6, FR-PAY-008, FR-REFUND-003)', () => {
       });
       await tx.order.update({ where: { id: order.id }, data: { couponId: coupon.id } });
       await tx.coupon.delete({ where: { id: coupon.id } });
-    }).then(
-      () => undefined,
-      (e: { code?: string }) => e,
-    );
-    expect(error?.code).toBe('P2003'); // foreign key violation
+    });
   });
 
   it('never refunds more than was captured', async () => {
