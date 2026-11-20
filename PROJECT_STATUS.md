@@ -42,7 +42,7 @@ _Last updated: 2026-11-21_
 
 ## Verification notes (Phase 10)
 
-- ✅ 530 tests pass repo-wide: the API's 405 include 11 new realtime tests (gateway rooms, pushed delivery, room control, partner client events, room policy against the database, projections for orders and a live delivery, throttled tracking, stale detection, offer expiry); api-client adds 2 socket client tests.
+- ✅ 525 tests pass repo-wide (API 405). New in Phase 10: 5 gateway tests (rooms, pushed delivery, room control, partner client events, validation), 4 realtime integration tests (room policy against the database, order projections, a live delivery with throttled tracking and stale detection, offer expiry) and 2 socket client tests.
 - ✅ Live check against the real API and Redis (port 4100, worker running): a bad token was refused, a partner's subscription to someone else's delivery was refused, and an event published on `rt:events` reached the partner's socket through its automatic room; no server errors.
 - ⚠️ Gateway metrics and latency measurement (FR-RT-027/028) come with the Phase 13 load work; the ops feed is not yet batched per second.
 
