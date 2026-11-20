@@ -3,3 +3,4 @@
 export { AccountAnonymizer } from '../modules/auth/account-anonymizer';
 export { AuditService } from '../modules/audit';
 export { CartExpiry } from '../modules/checkout/cart-expiry';
+export { LedgerService } from '../modules/ledger/ledger.service';

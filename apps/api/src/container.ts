@@ -11,6 +11,7 @@ import { SettingsService } from './modules/config';
 import { AddressService, FavoritesService, ProfileService } from './modules/customers';
 import { CartService, QuoteBuilder } from './modules/checkout';
 import { DiscoveryService } from './modules/discovery';
+import { LedgerService, WalletService } from './modules/ledger';
 import { OffersService } from './modules/offers';
 import { PricingConfigService } from './modules/pricing';
 import { SearchService } from './modules/search';
@@ -90,6 +91,8 @@ export function createContainer(input: ContainerInput) {
   const favorites = new FavoritesService(prisma, discovery, branches, menus, clock);
   const pricingConfig = new PricingConfigService(prisma);
   const quotes = new QuoteBuilder(serviceability, routing, pricingConfig, clock);
+  const ledger = new LedgerService(prisma);
+  const wallet = new WalletService(prisma, ledger, clock);
   const offers = new OffersService(prisma, clock);
   const cart = new CartService(prisma, branches, menus, quotes, offers, settings, clock);
   return {
@@ -119,6 +122,8 @@ export function createContainer(input: ContainerInput) {
     favorites,
     pricingConfig,
     quotes,
+    ledger,
+    wallet,
     offers,
     cart,
     appOrigins: appOrigins(env),

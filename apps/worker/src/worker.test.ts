@@ -5,6 +5,7 @@ import { createHealthServer } from './health-server';
 import {
   ANONYMIZE_DUE_USERS_JOB,
   EXPIRE_IDLE_CARTS_JOB,
+  VERIFY_LEDGER_JOB,
   buildRegistrations,
   createMessageSink,
   SCHEDULES,
@@ -64,6 +65,7 @@ describe('worker', () => {
       sink,
       anonymizer: fakeAnonymizer(0),
       cartExpiry: { run: async () => 0 } as unknown as CartExpiry,
+      ledger: { verify: async () => [] },
       logger: silent,
     }).find((r) => r.queue === 'notifications');
     const message: Message = {
@@ -90,6 +92,7 @@ describe('worker', () => {
       sink: { deliver: async () => {} },
       anonymizer,
       cartExpiry: { run: async () => 0 } as unknown as CartExpiry,
+      ledger: { verify: async () => [] },
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: ANONYMIZE_DUE_USERS_JOB } as never);
@@ -110,6 +113,7 @@ describe('worker', () => {
       sink: { deliver: async () => {} },
       anonymizer: fakeAnonymizer(0),
       cartExpiry: { run: async () => (runs += 1) } as unknown as CartExpiry,
+      ledger: { verify: async () => [] },
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: EXPIRE_IDLE_CARTS_JOB } as never);
@@ -118,6 +122,25 @@ describe('worker', () => {
       queue: 'maintenance',
       id: EXPIRE_IDLE_CARTS_JOB,
       everyMs: 3_600_000,
+    });
+  });
+
+  it('JOB-LEDGER-001: fails loudly when a balance does not match its entries', async () => {
+    const mismatch = { accountId: 'a', type: 'CUSTOMER_WALLET', stored: 1n, computed: 0n };
+    const maintenance = buildRegistrations({
+      sink: { deliver: async () => {} },
+      anonymizer: fakeAnonymizer(0),
+      cartExpiry: { run: async () => 0 } as unknown as CartExpiry,
+      ledger: { verify: async () => [mismatch] },
+      logger: silent,
+    }).find((r) => r.queue === 'maintenance');
+    await expect(maintenance!.processor({ name: VERIFY_LEDGER_JOB } as never)).rejects.toThrow(
+      /integrity/,
+    );
+    expect(SCHEDULES).toContainEqual({
+      queue: 'maintenance',
+      id: VERIFY_LEDGER_JOB,
+      everyMs: 86_400_000,
     });
   });
 });

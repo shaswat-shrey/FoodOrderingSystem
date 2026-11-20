@@ -9,7 +9,7 @@ import {
   type Message,
   type MessageSink,
 } from '@fos/api/notifications';
-import type { AccountAnonymizer, CartExpiry } from '@fos/api/jobs';
+import type { AccountAnonymizer, CartExpiry, LedgerService } from '@fos/api/jobs';
 import type { WorkerEnv } from './env';
 
 export interface ProcessorRegistration {
@@ -31,6 +31,7 @@ export function createMessageSink(env: WorkerEnv, logger: Logger): MessageSink {
 
 export const ANONYMIZE_DUE_USERS_JOB = 'anonymize-due-users';
 export const EXPIRE_IDLE_CARTS_JOB = 'expire-idle-carts';
+export const VERIFY_LEDGER_JOB = 'verify-ledger';
 
 /** Repeatable jobs (BullMQ job schedulers), registered idempotently at boot. */
 export const SCHEDULES = [
@@ -38,12 +39,15 @@ export const SCHEDULES = [
   { queue: 'maintenance', id: ANONYMIZE_DUE_USERS_JOB, everyMs: 60 * 60 * 1000 },
   // JOB-CART-001: hourly expiry of carts idle for 7 days (BR-CART-002).
   { queue: 'maintenance', id: EXPIRE_IDLE_CARTS_JOB, everyMs: 60 * 60 * 1000 },
+  // JOB-LEDGER-001 (FR-RECON-003): daily check that cached balances match their entries.
+  { queue: 'maintenance', id: VERIFY_LEDGER_JOB, everyMs: 24 * 60 * 60 * 1000 },
 ] as const satisfies { queue: QueueName; id: string; everyMs: number }[];
 
 export interface JobServices {
   sink: MessageSink;
   anonymizer: AccountAnonymizer;
   cartExpiry: CartExpiry;
+  ledger: Pick<LedgerService, 'verify'>;
   logger: Logger;
 }
 
@@ -52,12 +56,24 @@ export function buildRegistrations({
   sink,
   anonymizer,
   cartExpiry,
+  ledger,
   logger,
 }: JobServices): ProcessorRegistration[] {
   const maintenance: Record<string, () => Promise<void>> = {
     [ANONYMIZE_DUE_USERS_JOB]: async () => {
       const count = await anonymizer.run();
       if (count > 0) logger.info({ count }, 'anonymised accounts past their deletion grace period');
+    },
+    [VERIFY_LEDGER_JOB]: async () => {
+      const mismatches = await ledger.verify();
+      // A mismatch is a P1 incident (FR-RECON-003); failing the job surfaces it.
+      if (mismatches.length > 0) {
+        logger.error(
+          { count: mismatches.length, accounts: mismatches.slice(0, 20).map((m) => m.accountId) },
+          'ledger balance mismatch',
+        );
+        throw new Error(`ledger integrity check failed for ${mismatches.length} account(s)`);
+      }
     },
     [EXPIRE_IDLE_CARTS_JOB]: async () => {
       const count = await cartExpiry.run();
