@@ -4,12 +4,12 @@ _Last updated: 2026-11-20_
 
 ## Summary
 
-| Item              | Status                                                                                                                                                                                    |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 6 — Cart, pricing, checkout, payments: complete; Phase 7 awaiting go-ahead**                                                                                                      |
-| Next phase        | Phase 7 — Order management                                                                                                                                                                |
-| SRS version       | FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20; v0.6.0 adds owner-approved D-9)                                                                                                                  |
-| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout quotes, wallet and online payments |
+| Item              | Status                                                                                                                                                                                                                                        |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase     | **Phase 7 — Order management: complete; Phase 8 awaiting go-ahead (D-10…D-12 need decisions)**                                                                                                                                                |
+| Next phase        | Phase 8 — Restaurant application                                                                                                                                                                                                              |
+| SRS version       | FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20; v0.6.0 adds owner-approved D-9)                                                                                                                                                                      |
+| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications |
 
 ## Phases
 
@@ -21,7 +21,7 @@ _Last updated: 2026-11-20_
 | 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                 |
 | 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                |
 | 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                     |
-| 7 Order management            | Not started                                               |
+| 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 open)                   |
 | 8 Restaurant application      | Not started                                               |
 | 9 Delivery application        | Not started                                               |
 | 10 Real-time                  | Not started                                               |
@@ -29,6 +29,32 @@ _Last updated: 2026-11-20_
 | 12 Frontend integration       | Not started                                               |
 | 13 Testing & hardening        | Not started                                               |
 | 14 Finalization               | Not started                                               |
+
+## Phase 7 deliverables
+
+Backend only (screens in Phase 12). The restaurant, partner and admin transitions (accept, reject, ready, pickup, deliver) exist in the state machine and are exposed by Phases 8, 9 and 11; tests drive them through the transition service.
+
+| Area                  | Delivered                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Order creation        | API-CHK-004 in one transaction: cart-hash and price re-check, stock locked and decremented, item/option/price/address snapshots, coupon reserved, wallet held, COD or online payment record, history and events; idempotent and race-safe; online payment initiated after commit                                                                                                                                        |
+| State machine         | §10.3 transition table with allowed actors; version check under a row lock; timestamps; history (two rows for T13c); an outbox event per transition                                                                                                                                                                                                                                                                     |
+| Outbox relay          | Leader-elected relay in the worker: sequence order, per-aggregate ordering when a consumer fails, retries with an ops alert, stale-event alert                                                                                                                                                                                                                                                                          |
+| Payment reactions     | Capture places the order (coupon redeemed, wallet hold debited, acceptance timers); duplicate captures refunded; refund status kept on the order                                                                                                                                                                                                                                                                        |
+| Timers                | Payment window (asks the provider before failing; gives back coupon, wallet and stock), acceptance reminder and timeout (full refund; branch auto-paused after 3 misses), auto-preparing, delay alerts, self-healing sweeper, checkout-session expiry                                                                                                                                                                   |
+| Cancellations         | Preview with fee, refund split and quote id; customer cancels free before acceptance, free for 60 s after, then 50 % of food, 100 % + packaging while preparing, refused once ready; every other initiator with fault and full refund; split refunds (card to source, wallet to wallet), fee to the restaurant, food compensation for platform/partner-fault cancellations after cooking; abandon payment (API-PAY-005) |
+| Settlement & invoices | Settlement split checked to balance and posted once; invoices numbered gap-free per financial year, issued on delivery, PDF download                                                                                                                                                                                                                                                                                    |
+| Order reads           | History (status groups, date range, paging), active orders, snapshot details, status, timeline, delivery-details edits until pickup, reorder at current prices                                                                                                                                                                                                                                                          |
+| Support               | Tickets (daily cap, SLA due times, replies, close, reopen within 7 days, CSAT), FAQs, legal pages and grievance officer; order issue reports with item refunds (small ones auto-approved to wallet), "not delivered" as an urgent ticket                                                                                                                                                                                |
+| Notifications         | Versioned templates, dispatch with preferences, in-app inbox per app, delivery records with worker retries, push subscription registry, notifications for order, refund and ticket events to customers and branch staff                                                                                                                                                                                                 |
+
+## Verification notes (Phase 7)
+
+- ✅ 442 tests pass repo-wide; the API's 333 include 42 new Phase 7 integration tests and 26 new unit tests (transition table, cancellation policy and quote ids, settlement balance, templates, Razorpay order-payments listing).
+- ✅ Ledger integrity is asserted after placement, cancellation with fee, split refunds and settlement; a delivered order's liability ends at zero.
+- ✅ Worker smoke boot (health port 4101): Redis and database up, scheduled jobs and the relay ran, clean shutdown, no errors. No schema drift (`db:drift`).
+- Bugs found and fixed while building: BullMQ rejects job ids with a single `:`, so the order timers committed in step 3 would never have been scheduled outside tests (ids now use `-`, and the test queue enforces the same rule); coupon release ignored already-redeemed coupons, so COD cancellations kept the coupon used.
+- ⚠️ SMS, email and push still go to development sinks; the worker still refuses to start in production until real providers are configured.
+- ⚠️ CI still hasn't run (nothing pushed), so §22.1a–f rows are _Implemented_, not _Verified_.
 
 ## Phase 6 deliverables
 
@@ -130,28 +156,38 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-- None open.
+Open — need the owner's decision:
+
+| ID   | SRS says                                                                           | Implemented                                                                                                        | Why                                                                                                                                                                                    |
+| ---- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-10 | FR-ORDER-001: order numbers `FOS-YYMMDD-XXXXXX`                                    | `YYMMDD-XXXXXX` (Crockford base32, 13 characters)                                                                  | The prefixed form is 17 characters, breaking FR-ORDER-003's "≤ 13 chars, readable aloud" and the 16-character `orders.number` column. Proposal: amend FR-ORDER-001 to drop the prefix. |
+| D-11 | ADR-010 / SYSTEM-ARCHITECTURE §3: the outbox relay runs in the API (single leader) | Runs in the worker (same Redis leader lock)                                                                        | Keeps API instances request-only and puts the relay next to the queues its consumers feed; still one leader. Proposal: amend ADR-010 and §3 to say "worker".                           |
+| D-12 | BR-ORDER-011/012 fees "charged" on customer cancellation                           | Fee = policy fee capped at what was actually paid (tip excluded); a COD order is therefore cancelled without a fee | Nothing prepaid to keep for COD; the SRS doesn't say how to collect it. Proposal: state the cap in BR-ORDER-011/012 and leave COD abuse to the COD strike rules (BR-PAY-002).          |
+
+Resolved:
+
 - D-9 resolved 2026-11-20 by owner decision (“Approve D-9”, SRS v0.6.0): `cart_items.unit_amount_seen` is part of §15.
 - Earlier: D-1…D-3 (v0.3.0), D-4…D-6 (v0.4.0), D-7…D-8 (v0.5.0); v0.3.1, v0.4.1 and v0.5.1 were editorial.
 
-Not discrepancies (planned later): order creation, order timers and cancellation, payment expiry/cancel, COD payment records, automatic refunds per the cancellation matrix and split-payment refund allocation (Phase 7); reviews, popularity and trending from orders (Phase 7); images and avatar uploads, manual-close auto-reopen (Phase 8); dispatch load factor in checkout ETAs (Phase 9); reconciliation reports, refund approvals, promo-credit expiry, settings editing and per-zone payment methods (Phase 11); linked zones, item schedules, data export, OAuth, account recovery and TOTP (CORE).
+Not discrepancies (planned later): reviews (API-REV) and popularity/trending from orders — no roadmap phase names them, proposed for Phase 8; images, avatar and issue-photo uploads, manual-close auto-reopen, restaurant accept/reject/ready endpoints (Phase 8); delivery, tracking (API-TRK), COD collection, tip settlement to partners, partner compensation and T14 at the no-partner deadline (Phase 9); live socket events (Phase 10); support agent tools, refund approvals above limits, invoice content legal review (Phase 11); real SMS/email/push provider adapters (the roadmap lists SMS/email adapters under Phase 7; only the adapter seam and dev sinks exist — needs provider choice and credentials); quiet hours and apology coupons (CORE); dispatch load factor in checkout ETAs (Phase 9); reconciliation reports, refund approvals, promo-credit expiry, settings editing and per-zone payment methods (Phase 11); linked zones, item schedules, data export, OAuth, account recovery and TOTP (CORE).
 
 ## Modules
 
-| Module                                                                          | Status                    |
-| ------------------------------------------------------------------------------- | ------------------------- |
-| Platform (HTTP, logging, config, health, Redis, socket gateway shell)           | Implemented (Phase 2)     |
-| Database schema, migrations, seed for all MVP + CORE domains                    | Implemented (Phase 3)     |
-| auth, iam, audit, notifications (dev sinks), users (`/me`)                      | Implemented (Phase 4)     |
-| geo, catalog, customers, discovery, search, config                              | Implemented (Phase 5)     |
-| Socket authentication and revocation                                            | Implemented (Phase 4)     |
-| pricing, checkout (cart, sessions), offers, ledger (wallet), payments (refunds) | Implemented (Phase 6)     |
-| Other domain modules (orders … admin)                                           | Designed; not implemented |
+| Module                                                                                                                    | Status                    |
+| ------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| Platform (HTTP, logging, config, health, Redis, socket gateway shell)                                                     | Implemented (Phase 2)     |
+| Database schema, migrations, seed for all MVP + CORE domains                                                              | Implemented (Phase 3)     |
+| auth, iam, audit, notifications (dev sinks), users (`/me`)                                                                | Implemented (Phase 4)     |
+| geo, catalog, customers, discovery, search, config                                                                        | Implemented (Phase 5)     |
+| Socket authentication and revocation                                                                                      | Implemented (Phase 4)     |
+| pricing, checkout (cart, sessions), offers, ledger (wallet), payments (refunds)                                           | Implemented (Phase 6)     |
+| orders (creation, transitions, timers, cancellations, settlement, invoices, issues), support, notifications, outbox relay | Implemented (Phase 7)     |
+| Other domain modules (restaurant ops, delivery, dispatch, reviews, admin)                                                 | Designed; not implemented |
 
 ## APIs
 
-- Implemented (105 of 494): Phase 5's 77 plus API-CART-001…012, API-COUP-001…003, API-CHK-001…003, API-PAY-001…004, 006, 007, API-WAL-001/002, API-REF-001/002. A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout with the mock provider.
-- Planned: 389 remaining in `docs/requirements/API-SPECIFICATION.md` (Phase 6 left for Phase 7: API-CHK-004 confirm, API-PAY-005 cancel).
+- Implemented (139 of 494): Phase 6's 105 plus API-CHK-004, API-PAY-005, API-ORD-001…013, API-SUP-001…009, API-NTF-001…010. A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout with the mock provider.
+- Planned: 355 remaining in `docs/requirements/API-SPECIFICATION.md` (API-TRK-001/002 move to Phase 9 with delivery).
 
 ## UI pages
 
@@ -174,6 +210,18 @@ Not discrepancies (planned later): order creation, order timers and cancellation
 ## Known bugs
 
 - None known.
+
+## Technical decisions (Phase 7)
+
+- Every status change goes through one transition service; payment, timer, cancellation and (later) restaurant/partner flows call it rather than updating `orders.status`.
+- Order reactions to payments run from the outbox relay, not inside the payment code, so a capture is never lost if the order step fails — the event is retried. The cost is up to ~0.5 s before a paid order shows `PLACED`.
+- The relay runs in the worker (D-11) and consumers are idempotent by state or by delivery records; the relay can replay events safely.
+- Cancellation quote ids are derived from the terms instead of stored; the version in clear lets the API answer 409 (order moved on) vs 422 (only the fee changed).
+- A cancellation fee is taken from wallet money first so as much as possible returns to the customer's card or UPI; the fee is capped at what was paid (D-12).
+- Settlement uses the order's stored price components plus the quote's funding and tax-collector data, and refuses to post if the split doesn't add up to what the order holds.
+- Invoice numbers come from an advisory-locked max + 1, which is gap-free (a sequence is not) — required for tax invoices.
+- Invoices are rendered by a small built-in PDF writer (text only, Helvetica) rather than a new dependency; branding can come later.
+- Notification sends are keyed by event, recipient and channel, so replays and retries never notify twice; a missing template variable fails the send rather than sending blank text.
 
 ## Technical decisions (Phase 6)
 
@@ -213,6 +261,10 @@ Not discrepancies (planned later): order creation, order timers and cancellation
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 7
+
+- None. The worker smoke boot used health port 4101 and was stopped by its own process id.
+
 ## Machine changes made during Phase 6
 
 - None. The smoke boot again used port 4100 (port 4000 belongs to another local project) and was stopped.
@@ -237,15 +289,19 @@ Not discrepancies (planned later): order creation, order timers and cancellation
 
 ## Next steps
 
-1. Owner go-ahead for Phase 7 (order creation transaction, state machine and transitions, outbox relay, timers, cancellations, refunds end to end, order history and invoices, notifications).
+1. Owner decisions on D-10…D-12.
+2. Owner go-ahead for Phase 8 (restaurant application: onboarding, menu management with `menu_version` bumps, order queue with accept/reject/ready, kitchen display, uploads, reviews).
 
 ## TODO
 
 - [x] Decide D-1…D-8
 - [x] Phases 4–6
 - [x] Decide D-9 (approved 2026-11-20)
+- [x] Phase 7
+- [ ] Decide D-10…D-12
+- [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
-- [ ] Push to GitHub so CI runs (moves §22.1a–e rows to _Verified_)
+- [ ] Push to GitHub so CI runs (moves §22.1a–f rows to _Verified_)
 - [ ] Exercise the Razorpay adapter in Razorpay test mode (needs test keys)
 - [ ] Dedicated test for idle/absolute session expiry (FR-AUTH-023)
 - [ ] Phase 7–8 writers must bump `branches.menu_version` on menu, availability and stock changes (SCHEMA-NOTES §6a)

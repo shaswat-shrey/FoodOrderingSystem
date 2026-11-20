@@ -142,9 +142,24 @@ Seed accounts have **no passwords**. Sign in with a one-time code to the seeded 
 | Ledger idempotency | `ledger_transactions (type, reference_type, reference_id, idempotency_key)` is unique; posting twice returns the first transaction. Accounts are locked in id order before balances change. JOB-LEDGER-001 (`LedgerService.verify`) compares every balance with its entries daily. |
 | Wallet | Credits are lots (`wallet_credit_lots`, refund credits never expire, promo/goodwill 30 days). Order flow: HOLD (wallet → hold) at order creation, DEBIT (hold → order liability, consuming earliest-expiring lots) on payment, RELEASE (hold → wallet) on failure. |
 | Payments | Each initiation adds a `payment_attempts` row; the provider payment id is linked when verify or a webhook names it (the attempt guard allows setting it once). Webhooks are stored raw in `payment_webhook_events` (unique per provider event id) and processed by the worker; status changes follow FR-PAY-009 precedence under a `payments` row lock. |
-| Outbox | Payment and refund state changes write `outbox_events` in the same transaction (`payment.captured`, `payment.failed`, `payment.late_capture`, `payment.amount_mismatch`, `refund.succeeded`). The relay and the order transitions consuming them arrive in Phase 7. |
+| Outbox | Payment and refund state changes write `outbox_events` in the same transaction (`payment.captured`, `payment.failed`, `payment.late_capture`, `payment.amount_mismatch`, `refund.succeeded`). The relay and the order transitions consuming them were added in Phase 7 (§6c). |
 | Idempotency keys | `idempotency_keys (user_id, key)` hold the request hash and the stored response for 24 h; 5xx responses are not stored, so the client can retry with the same key. |
 | Cart prices | `cart_items.unit_amount_seen` is the unit price the customer last saw (set on add/edit and when a checkout session is created); a different current price flags the line `PRICE_CHANGED`. |
+
+## 6c. Order paths added in Phase 7
+
+No schema changes in Phase 7; these are conventions the code relies on.
+
+| Topic | How it works |
+| --- | --- |
+| Order status | Only `OrderTransitions.apply()` changes `orders.status`: it locks the row (`FOR UPDATE`), checks the expected version and the §10.3 rule for the actor, stamps the timestamp column, appends `order_status_history` and writes `order.<status>` to the outbox in the same transaction. |
+| Outbox relay | Runs in the worker under a Redis leader lock (`outbox:relay:leader`, 15 s TTL). Events go to consumers in `sequence` order; when a consumer fails, later events of the same aggregate wait and `attempts` grows (ops alert after 5). Consumers must be idempotent: notifications use `notification_deliveries (event_id, user_id, channel)`; order reactions re-check state. Event types: `order.created`, `order.<status>`, `order.payment_pending`, `order.accept_reminder`, `payment.*`, `refund.succeeded`, `ticket.created`, `ticket.customer_replied`, `branch.auto_paused`. |
+| Timers | BullMQ jobs on `orders` with ids `{job}-{orderId}` (BullMQ rejects a single `:` in custom ids). Handlers re-check the order first; JOB-ORD-007 re-creates missing timers every 5 min with the remaining delay. |
+| Order money | Paid online and wallet money credits `CUSTOMER_ORDER_LIABILITY` (ORDER owner). Refunds before settlement debit it; a cancellation fee moves from it to `RESTAURANT_PAYABLE` (`CANCELLATION_FEE`); `ORDER_SETTLEMENT` empties it into restaurant payable, commission, fees, promo expense and tax payable, leaving only the tip for the partner settlement (Phase 9). |
+| Cancellation quotes | `order_cancellations.quote_id` is derived (HMAC of order id, version, fee and refund, with the version in clear in the last group); nothing is stored before cancelling. |
+| Invoices | One series (`FOS`) per financial year (IST, April–March); numbers are allocated under `pg_advisory_xact_lock(hashtext('invoice:FOS:<fy>'))` as max + 1, so they are gap-free. Issued on `order.delivered` or on first download. |
+| Coupons on cancellation | `OffersService.release()` moves a redemption from RESERVED or REDEEMED to RELEASED and fixes `reserved_count` / `used_count` accordingly. |
+| Notification templates | Version 1 of the defaults (`modules/notifications/catalog.ts`) is inserted into `notification_templates` on first use; the newest active version per key and channel is used. |
 
 ## 7. Running PostgreSQL locally
 

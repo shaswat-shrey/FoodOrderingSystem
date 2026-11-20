@@ -116,6 +116,10 @@ In production `GEO_PROVIDER` defaults to `none` until a provider is chosen: addr
 
 `PAYMENT_PROVIDER=mock` (the default outside production) uses an in-memory provider that signs callbacks and webhooks exactly like Razorpay. Instead of a hosted checkout page, the customer app calls `POST /api/v1/payments/{paymentId}/mock-checkout` with `{"scenario":"success"}` (or `fail`, `authorize_only`, `amount_mismatch`); it returns the `providerPaymentId` and `signature` to send to `/verify`, and delivers the matching webhook. The worker processes webhooks and refunds, so keep it running. Production refuses the mock and needs `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRETS`, with automatic capture enabled on the Razorpay account.
 
+### Orders and notifications during development
+
+Keep the worker running while testing orders: it runs the outbox relay (an order paid online becomes `PLACED` only after the relay sees `payment.captured`), the order timers (15-minute payment window, 5-minute acceptance timeout, auto-preparing), refunds and notification delivery. Without real providers, SMS and email notifications go to `.local/dev-messages.log` and push notifications are written to the worker log. In-app notifications appear at `GET /api/v1/me/notifications` for the app in `X-Client-App`. Invoices (`GET /api/v1/orders/{id}/invoice`) exist only for delivered orders.
+
 To run the API and worker in containers instead of on the host:
 
 ```bash

@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend) and §22.1e (cart, pricing, checkout, payments).
+> Part of FOS-SRS-001 v0.6.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments) and §22.1f (orders, support, notifications).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -184,27 +184,62 @@ Status is **Implemented** with tests passing locally; rows move to *Verified* on
 | Requirement | Summary | Status / note |
 |---|---|---|
 | FR-PRICE-001…004, BR-PRICE-001…012 | Pure pricing engine: lines, item discounts, best promotion, coupon, packaging caps, slab delivery fee and free-delivery waiver, surge cap, small-order and platform fees, per-component taxes, tip, wallet; funding split; min/max order | Implemented |
-| FR-PRICE-005 | Price-change re-confirmation at order confirmation | Planned (Phase 7, with API-CHK-004) |
+| FR-PRICE-005 | Price-change re-confirmation at order confirmation | Implemented in Phase 7 (§22.1f) |
 | FR-CFG-002 | Effective-dated fee, tax and commission configuration | Implemented (reads; editing in Phase 11) |
 | FR-CART-001…013, BR-CART-001…006 | Cart with full line validation, merging, branch conflicts, limits, revalidation flags, preview, guest merge, instructions, 7-day expiry job | Implemented (`cart_items.unit_amount_seen`, D-9 approved) |
 | FR-COUP-001…003, 005; BR-COUPON-001…005, 007, 008 | Coupon listing with reasons, terms, validation, application, promotions vs coupons, new-user rule, expiry re-check | Implemented (device-fingerprint heuristics in BR-COUPON-007 are CORE) |
 | FR-COUP-004, BR-COUPON-006 | Reservation under a row lock, redeem, release | Implemented (called from order flows in Phase 7) |
 | FR-CHK-001, 003, 005…007, BR-ORDER-001, BR-PAY-002, BR-PAY-007, BR-DEL-009 (contactless prepaid) | Checkout sessions with quote, address snapshot, config versions, cart hash, TTL, re-quote, COD eligibility, wallet rules | Implemented |
 | FR-CHK-004 | ETA at checkout | Implemented without the dispatch load factor (Phase 9) |
-| FR-CHK-002, FR-ORDER-001, API-CHK-004, API-PAY-005 | Confirm checkout / create order / abandon payment | Planned (Phase 7) |
+| FR-CHK-002, FR-ORDER-001, API-CHK-004, API-PAY-005 | Confirm checkout / create order / abandon payment | Implemented in Phase 7 (§22.1f) |
 | FR-ORDER-002 (a) | Idempotency-Key storage and replay (24 h), concurrent duplicates | Implemented (applied to payment endpoints now; order confirmation in Phase 7) |
 | FR-PAY-001…005, 007…009, 014, 015; BR-PAY-003…006 | Provider adapter (mock + Razorpay), initiation with reuse and attempt limit, signature + provider verification, raw-body webhooks with dedupe and async processing, amount integrity, status precedence, secret rotation, masked instruments | Implemented |
-| FR-PAY-006, 016 | Payment expiry and cancellation | Planned (Phase 7 order timers and cancellation) |
+| FR-PAY-006, 016 | Payment expiry and cancellation | Implemented in Phase 7 (§22.1f) |
 | FR-PAY-010 | Capture of payments stuck in AUTHORIZED | Partial — the hourly poll resolves them from the provider; an explicit capture call is not made (Razorpay auto-capture is required on the account) |
-| FR-PAY-011 | COD payment records | Planned (Phase 7 order creation; Phase 9 collection) |
+| FR-PAY-011 | COD payment records | Implemented in Phase 7 (records); collection in Phase 9 |
 | FR-PAY-012, BR-WALLET-001, 003 | Wallet hold, debit (earliest-expiring credits first), release; never negative | Implemented |
 | BR-WALLET-002 | Credit expiry | Partial — lots carry expiry dates; the expiry job arrives with promotional credits (Phase 11) |
 | FR-PAY-013, FR-RECON-003 | Double-entry ledger, idempotent postings, nightly integrity check | Implemented |
 | FR-RECON-004 | Stuck payment resolution | Implemented (hourly) |
 | FR-RECON-001, 002 | Daily reconciliation against provider reports | Planned (Phase 11) |
 | FR-REFUND-001, 003, 005, 006, 009 | Refund records, bound by captured amount under lock, provider submission with backoff and ops hand-off, webhook and poll confirmation, ledger by cost bearer | Implemented (skeleton used by Phase 7) |
-| FR-REFUND-002, 004, 007, 008 | Automatic refunds per cancellation matrix, split-payment allocation, COD refunds, approval limits | Planned (Phase 7 / 11) |
+| FR-REFUND-002, 004, 007, 008 | Automatic refunds per cancellation matrix, split-payment allocation, COD refunds, approval limits | 002/004 implemented in Phase 7 (§22.1f); 007/008 Phase 11 |
 | FR-CPAY-004, 005 | Payment, refund and wallet history | Implemented (API) |
+
+## 22.1f Orders, cancellations, support and notifications implemented in Phase 7
+
+Code: `apps/api/src/modules/{orders,support,notifications}`, `apps/api/src/platform/{outbox-relay,pdf}.ts`, `apps/worker/src/{main,processors}.ts`. Tests: `apps/api/src/modules/orders/{transitions,cancellation-policy,settlement}.test.ts`, `apps/api/src/modules/notifications/catalog.test.ts`, `apps/api/test/{orders,order-events,cancellations,order-reads,support,notifications}.integration.test.ts`, `apps/worker/src/worker.test.ts`.
+
+Status is **Implemented** with tests passing locally; rows move to *Verified* once CI has run them (§27.2). Transitions driven by restaurant, partner and admin screens (T06/T07/T11/T13/T15/T16) exist in the state machine and are exposed by Phases 8, 9 and 11.
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| FR-CHK-002, FR-ORDER-001, FR-ORDER-002, API-CHK-004, FR-PRICE-005 | One transaction: revalidate cart hash and price, lock and decrement stock, snapshot items/options/prices/address, reserve coupon, hold wallet, create payment (COD or online), history and events; idempotent and race-safe | Implemented (order number format: D-10, open) |
+| FR-ORDER-003 | Order numbers short, unique, non-sequential | Implemented as `YYMMDD-XXXXXX` (13 characters) — D-10 |
+| SRS §10.3 T01…T16, FR-ORDER-010…012 | Transition table with allowed actors, version check under row lock, timestamps, history (two rows for T13c), outbox event per transition | Implemented |
+| ADR-010, NFR-REL-003 | Transactional outbox relay: sequence order, per-aggregate ordering on failure, retries, Redis leader lock, stale-event alert (JOB-OUTBOX-001) | Implemented in the worker — D-11 (open) |
+| BR-PAY-003, T03 | Capture places the order: coupon redeemed, wallet hold debited, acceptance timers armed; duplicate capture refunded (E10) | Implemented |
+| FR-PAY-006, BR-ORDER-003, T04, JOB-ORD-001 | Payment window: ask the provider (all payments on the provider order) before failing; release coupon, wallet and stock; payment EXPIRED | Implemented (`listOrderPayments` added to the provider interface) |
+| FR-PAY-016, API-PAY-005, T05 | Abandon an unpaid order after checking the provider; late capture auto-refunded | Implemented |
+| BR-ORDER-004, T08b, JOB-ORD-002, BR-REST-009, AC-ORDER-009 | Acceptance reminder (event for notifications) and timeout cancellation with full refund; branch auto-paused after 3 consecutive misses | Implemented (SMS reminder delivery uses dev sinks until providers exist) |
+| JOB-ORD-003…007, AC-ORDER-010 | Auto-preparing, prep/pickup/delivery delay alerts, self-healing timer sweeper with remaining delays | Implemented (004–006 scheduled by Phase 8/9 transitions; T14 at the no-partner deadline is Phase 9) |
+| JOB-CHK-001 | Expire checkout sessions | Implemented |
+| FR-ORDER-020…023, BR-ORDER-010…013, 016, API-ORD-006, 007 | Cancellation preview with quote id, fees by state and time, refused once ready, every initiator, fault attribution, `order_cancellations`, row-lock serialisation (409 vs stale quote) | Implemented (COD fees: D-12, open) |
+| BR-REFUND-001…003, FR-REFUND-002, 004 | Refund matrix for cancellations; split refunds per payment and wallet; fee from wallet first; tip always refunded; cancellation fee to the restaurant; food compensation for platform/partner-fault cancellations after cooking | Implemented |
+| BR-COUPON-006 | Coupon released before acceptance or when the customer isn't at fault (including redeemed coupons) | Implemented |
+| FR-ORDER-022 (stock) | Stock restored when cancelled before preparation | Implemented (delivery cancellation and partner compensation: Phase 9) |
+| FR-SETTLE-001 | Settlement split posted once per delivered order and checked to balance | Implemented (tip settles to the partner in Phase 9; COD collection posts first in Phase 9) |
+| FR-CORD-001…003, API-ORD-001…005 | History (status groups, dates, keyset paging), active orders, snapshot details, status, timeline; owner only | Implemented (partner card in Phase 9) |
+| FR-ORDER-031, API-ORD-010 | Delivery instructions and contact phone until pickup | Implemented |
+| FR-CORD-008, BR-ORDER-018, API-ORD-008 | Reorder at current prices, variants re-resolved, unavailable lines skipped | Implemented |
+| FR-CORD-009, BR-ORDER-019, API-ORD-009 | Invoice numbers sequential per series and financial year without gaps; issued on delivery; PDF | Implemented (legal review of invoice content pending, SRS §20.4) |
+| FR-CORD-010…012, BR-SUP-002, API-ORD-011…013 | Issue reports with items and refund requests, linked tickets, 48 h window, "not delivered" within 1 h as an urgent ticket | Implemented (photo uploads need the files module, Phase 8) |
+| BR-REFUND-006 | Auto-approved small item refunds to wallet | Implemented |
+| FR-CSUP-001…006, BR-SUP-001, 003, 004, API-SUP-001…009 | FAQs, tickets with SLA due times, replies, close, reopen within 7 days, CSAT, legal pages, grievance officer | Implemented (agent side in Phase 11) |
+| FR-NOTIF-001…003, 005, 007, 010, API-NTF-001…005 | Central dispatch, versioned templates, inbox, read state, delivery records with retries, order/refund/ticket events | Implemented (SMS/email/push providers: dev sinks; production providers pending) |
+| FR-NOTIF-004, 006, 009, API-NTF-006…010 | Hide, preferences for optional categories, push subscriptions (one per session, live sessions only) | Implemented |
+| FR-NOTIF-008 | Quiet hours for promotional sends | Planned (no promotional sends yet) |
+| API-TRK-001/002, FR-CORD-004…006 | Live tracking | Planned (Phase 9/10) |
 
 ## 22.2 Non-functional requirements
 
@@ -240,3 +275,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-20 | 0.5.0 | D-7 and D-8 approved: BR-GEO-001 (b) and FR-ADDR-006 text updated; §22.1d notes adjusted. |
 | 2026-11-20 | 0.5.1 | Phase 6: added §22.1e with cart, pricing, coupons, checkout, ledger, wallet and payments. |
 | 2026-11-20 | 0.6.0 | D-9 approved: §15 `cart_items.unit_amount_seen`. |
+| 2026-11-20 | 0.6.1 | Phase 7: added §22.1f with orders, cancellations, refunds, settlement, invoices, support and notifications; open D-10…D-12. |
