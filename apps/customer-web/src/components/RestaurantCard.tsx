@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import type { BranchCard } from '@fos/api-client';
-import { cn } from '@fos/ui';
+import { cn, DietaryMarker } from '@fos/ui';
 import { etaRange, ratingText, rupees, closedReason } from '../lib/format';
 
 const CLOSED = new Set(['CLOSED', 'PAUSED', 'UNAVAILABLE']);
@@ -41,7 +41,13 @@ export function RestaurantCard({ card }: { card: BranchCard }) {
                   : `${rupees(card.delivery.deliveryFeeAmount)} delivery`}
               </span>
             )}
-            {card.pureVeg && <span className="text-veg">Pure veg</span>}
+            {card.pureVeg && (
+              // The reserved veg green is below 4.5:1 for small text, so the marker carries it.
+              <span className="inline-flex items-center gap-1">
+                <DietaryMarker type="VEG" size="sm" />
+                Pure veg
+              </span>
+            )}
           </p>
           {card.bestOffer && (
             <p className="mt-1 text-sm font-medium text-brand-700">{card.bestOffer}</p>

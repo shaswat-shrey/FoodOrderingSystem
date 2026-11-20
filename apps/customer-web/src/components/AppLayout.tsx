@@ -63,7 +63,7 @@ export function AppLayout() {
               to="/location"
               className="flex min-h-11 min-w-0 items-center gap-1 truncate text-sm text-gray-700 hover:text-brand-700"
               aria-label={
-                location ? `Delivering to ${location.label}. Change location` : 'Set your location'
+                location ? `Delivering to ${location.label}. Change location` : 'Set location'
               }
             >
               <span aria-hidden="true">📍</span>

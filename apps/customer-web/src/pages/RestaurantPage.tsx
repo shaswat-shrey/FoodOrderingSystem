@@ -117,7 +117,8 @@ export function RestaurantPage() {
       </header>
 
       {offers.data && offers.data.length > 0 && (
-        <section aria-label="Offers" className="-mx-4 flex gap-2 overflow-x-auto px-4">
+        // Focusable so the scrolling row can be scrolled from the keyboard.
+        <section aria-label="Offers" tabIndex={0} className="-mx-4 flex gap-2 overflow-x-auto px-4">
           {offers.data.map((o) => (
             <div
               key={o.code}
@@ -125,7 +126,7 @@ export function RestaurantPage() {
             >
               <p className="font-semibold text-brand-800">{o.code}</p>
               <p className="text-gray-700">{o.description}</p>
-              {!o.eligible && o.reason && <p className="text-xs text-gray-500">{o.reason}</p>}
+              {!o.eligible && o.reason && <p className="text-xs text-gray-600">{o.reason}</p>}
             </div>
           ))}
         </section>
@@ -283,7 +284,7 @@ function Menu({
                     <p className="text-sm tabular-nums text-gray-800">
                       {rupees(item.priceAmount)}
                       {item.originalPriceAmount && item.originalPriceAmount > item.priceAmount && (
-                        <s className="ml-2 text-gray-400">{rupees(item.originalPriceAmount)}</s>
+                        <s className="ml-2 text-gray-600">{rupees(item.originalPriceAmount)}</s>
                       )}
                     </p>
                     {item.description && (
