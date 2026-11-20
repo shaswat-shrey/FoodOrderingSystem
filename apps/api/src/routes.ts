@@ -3,6 +3,7 @@ import type { Container } from './container';
 import { authRouter } from './modules/auth';
 import { catalogRouter, geoRouter } from './modules/catalog';
 import { addressesRouter } from './modules/customers';
+import { discoveryRouter } from './modules/discovery';
 import { usersRouter } from './modules/users';
 
 /** Every /api/v1 router, mounted the same way by the server and the integration tests. */
@@ -19,5 +20,6 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use('/me/addresses', addressesRouter(container));
   api.use(usersRouter(container));
   api.use('/geo', geoRouter(container));
+  api.use('/discovery', discoveryRouter(container));
   api.use(catalogRouter(container));
 }

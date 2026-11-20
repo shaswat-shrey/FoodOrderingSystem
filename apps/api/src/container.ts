@@ -9,6 +9,7 @@ import { AuditService } from './modules/audit';
 import { BranchRepository, MenuService, ServiceabilityService } from './modules/catalog';
 import { SettingsService } from './modules/config';
 import { AddressService, ProfileService } from './modules/customers';
+import { DiscoveryService } from './modules/discovery';
 import {
   EstimatedRouting,
   GeoService,
@@ -71,6 +72,16 @@ export function createContainer(input: ContainerInput) {
   const serviceability = new ServiceabilityService(prisma, branches, routing, settings, clock);
   const addresses = new AddressService(prisma, geo, serviceability, settings);
   const menus = new MenuService(prisma, redis.cache, logger);
+  const discovery = new DiscoveryService(
+    prisma,
+    branches,
+    serviceability,
+    menus,
+    settings,
+    redis.cache,
+    clock,
+    logger,
+  );
   return {
     env,
     prisma,
@@ -93,6 +104,7 @@ export function createContainer(input: ContainerInput) {
     serviceability,
     addresses,
     menus,
+    discovery,
     appOrigins: appOrigins(env),
   };
 }
