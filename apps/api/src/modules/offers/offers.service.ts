@@ -297,12 +297,27 @@ export class OffersService implements OfferResolver {
     return this.transition(db, orderId, 'REDEEMED');
   }
 
-  /** RESERVED → RELEASED on payment failure, expiry or early cancellation. Idempotent. */
+  /**
+   * BR-COUPON-006: the coupon becomes usable again. Works from RESERVED (unpaid
+   * order) and from REDEEMED (COD or paid order cancelled where policy restores it).
+   */
   async release(db: Db, orderId: string): Promise<boolean> {
-    return this.transition(db, orderId, 'RELEASED');
+    const moved = await db.$queryRaw<{ coupon_id: string; was: string }[]>`
+      UPDATE coupon_redemptions r SET status = 'RELEASED', updated_at = now()
+      FROM (SELECT order_id, status AS was FROM coupon_redemptions WHERE order_id = ${orderId}::uuid FOR UPDATE) prev
+      WHERE r.order_id = prev.order_id AND r.status IN ('RESERVED', 'REDEEMED')
+      RETURNING r.coupon_id, prev.was::text AS was`;
+    const row = moved[0];
+    if (!row) return false;
+    await db.$executeRaw`
+      UPDATE coupons SET
+        reserved_count = reserved_count - ${row.was === 'RESERVED' ? 1 : 0},
+        used_count = used_count - ${row.was === 'REDEEMED' ? 1 : 0}, updated_at = now()
+      WHERE id = ${row.coupon_id}::uuid`;
+    return true;
   }
 
-  private async transition(db: Db, orderId: string, to: 'REDEEMED' | 'RELEASED'): Promise<boolean> {
+  private async transition(db: Db, orderId: string, to: 'REDEEMED'): Promise<boolean> {
     const moved = await db.$queryRaw<{ coupon_id: string }[]>`
       UPDATE coupon_redemptions SET status = ${to}::"RedemptionStatus", updated_at = now()
       WHERE order_id = ${orderId}::uuid AND status = 'RESERVED'
@@ -310,8 +325,7 @@ export class OffersService implements OfferResolver {
     const row = moved[0];
     if (!row) return false;
     await db.$executeRaw`
-      UPDATE coupons SET reserved_count = reserved_count - 1,
-        used_count = used_count + ${to === 'REDEEMED' ? 1 : 0}, updated_at = now()
+      UPDATE coupons SET reserved_count = reserved_count - 1, used_count = used_count + 1, updated_at = now()
       WHERE id = ${row.coupon_id}::uuid`;
     return true;
   }

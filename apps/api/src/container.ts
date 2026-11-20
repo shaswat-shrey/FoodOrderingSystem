@@ -14,6 +14,7 @@ import { DiscoveryService } from './modules/discovery';
 import { LedgerService, WalletService } from './modules/ledger';
 import { OffersService } from './modules/offers';
 import {
+  OrderCancellationService,
   OrderCreationService,
   OrderEffects,
   OrderPaymentReactions,
@@ -169,6 +170,19 @@ export function createContainer(input: ContainerInput) {
     clock,
     logger,
   );
+  const orderCancellation = new OrderCancellationService(
+    prisma,
+    orderTransitions,
+    orderEffects,
+    payments,
+    refunds,
+    ledger,
+    settings,
+    env.AUTH_HMAC_SECRET,
+    clock,
+    logger,
+  );
+  orderTimerJobs.onAcceptTimeout = (orderId) => orderCancellation.acceptTimeout(orderId);
   // Consumers are registered here; the relay loop itself runs in the worker.
   const outboxRelay = new OutboxRelay(prisma, redis.core, clock, logger);
   registerOrderConsumers(outboxRelay, orderPaymentReactions);
@@ -214,6 +228,7 @@ export function createContainer(input: ContainerInput) {
     orderEffects,
     orderPaymentReactions,
     orderTimerJobs,
+    orderCancellation,
     outboxRelay,
     appOrigins: appOrigins(env),
   };

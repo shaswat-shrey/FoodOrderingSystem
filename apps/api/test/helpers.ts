@@ -291,3 +291,72 @@ export async function createFixtureOrder(
   });
   return { orderId: order.id, number, sessionId: session.id };
 }
+
+/**
+ * A signed-up customer places a real order through checkout (API-CHK-004).
+ * `walletCredit` is granted first and applied; `coupon` is applied to the cart.
+ */
+export async function placeOrder(
+  ctx: TestContext,
+  input: {
+    branchId: string;
+    items: { foodItemId: string; optionIds: string[]; quantity: number }[];
+    paymentMethod: 'COD' | 'ONLINE';
+    walletCredit?: number;
+    coupon?: string;
+    tipAmount?: number;
+  },
+) {
+  const { uuidv7 } = await import('@fos/shared');
+  const c = await signUpCustomer(ctx);
+  if (input.walletCredit) {
+    await ctx.prisma.$transaction((tx) =>
+      ctx.container.wallet.credit(tx, {
+        userId: c.userId,
+        amount: input.walletCredit!,
+        source: 'GOODWILL',
+        referenceType: 'test',
+        referenceId: uuidv7(),
+        description: 'Test credit',
+      }),
+    );
+  }
+  const home = (
+    await c.browser.post('/me/addresses', {
+      label: 'HOME',
+      line1: 'Flat 9',
+      area: 'Koramangala',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      pincode: '560095',
+      location: { lat: 12.9352, lng: 77.6245 },
+    })
+  ).body.data;
+  for (const item of input.items)
+    await c.browser.post('/cart/items', { branchId: input.branchId, ...item });
+  if (input.coupon) await c.browser.post('/cart/coupon', { code: input.coupon });
+  const s = (
+    await c.browser.post('/checkout/sessions', {
+      addressId: home.id,
+      paymentMethod: input.paymentMethod,
+      useWallet: Boolean(input.walletCredit),
+      tipAmount: input.tipAmount ?? 0,
+    })
+  ).body;
+  if (!s.data) throw new Error(`checkout failed: ${JSON.stringify(s)}`);
+  const res = await c.browser.post(
+    `/checkout/sessions/${s.data.id}/confirm`,
+    { expectedPayable: s.data.payableAmount },
+    { 'Idempotency-Key': uuidv7() },
+  );
+  if (res.status !== 201) throw new Error(`confirm failed: ${JSON.stringify(res.body)}`);
+  const { order, payment } = res.body.data;
+  return {
+    ...c,
+    orderId: order.id as string,
+    order,
+    payment,
+    payable: s.data.payableAmount as number,
+    session: s.data,
+  };
+}

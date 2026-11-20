@@ -8,6 +8,7 @@ import {
   createFixtureOrder,
   createTestContext,
   integrationEnabled,
+  placeOrder,
   signUpCustomer,
   type TestContext,
 } from './helpers';
@@ -58,54 +59,14 @@ beforeEach(async () => {
 });
 
 /** An online order with ₹50 of wallet credit held and WELCOME50 reserved (T01). */
-async function onlineOrder() {
-  const c = await signUpCustomer(ctx);
-  await ctx.prisma.$transaction((tx) =>
-    ctx.container.wallet.credit(tx, {
-      userId: c.userId,
-      amount: 5_000,
-      source: 'GOODWILL',
-      referenceType: 'test',
-      referenceId: uuidv7(),
-      description: 'x',
-    }),
-  );
-  const home = (
-    await c.browser.post('/me/addresses', {
-      label: 'HOME',
-      line1: 'Flat 9',
-      area: 'Koramangala',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      pincode: '560095',
-      location: { lat: 12.9352, lng: 77.6245 },
-    })
-  ).body.data;
-  await c.browser.post('/cart/items', {
+const onlineOrder = () =>
+  placeOrder(ctx, {
     branchId: saffron,
-    foodItemId: ids['Paneer Biryani'],
-    optionIds: [ids.Mild],
-    quantity: 2,
+    items: [{ foodItemId: ids['Paneer Biryani']!, optionIds: [ids.Mild!], quantity: 2 }],
+    paymentMethod: 'ONLINE',
+    walletCredit: 5_000,
+    coupon: 'WELCOME50',
   });
-  await c.browser.post('/cart/coupon', { code: 'WELCOME50' });
-  const s = (
-    await c.browser.post('/checkout/sessions', {
-      addressId: home.id,
-      paymentMethod: 'ONLINE',
-      useWallet: true,
-      tipAmount: 0,
-    })
-  ).body;
-  if (!s.data) throw new Error(JSON.stringify(s));
-  const res = await c.browser.post(
-    `/checkout/sessions/${s.data.id}/confirm`,
-    { expectedPayable: s.data.payableAmount },
-    key(),
-  );
-  expect(res.status).toBe(201);
-  const { order, payment } = res.body.data;
-  return { ...c, orderId: order.id as string, payment, payable: s.data.payableAmount as number };
-}
 
 // Through the service: the clock moves past the access token's lifetime in some tests.
 const wallet = (c: { userId: string }) => ctx.container.wallet.summary(c.userId);

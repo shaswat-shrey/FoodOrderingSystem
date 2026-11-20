@@ -53,6 +53,12 @@ export const SETTING_DEFINITIONS = {
     default: 60,
   },
   'cancellation.acceptedFeeBps': { schema: z.number().int().min(0).max(10_000), default: 5000 },
+  /** BR-REST-009: consecutive acceptance timeouts that auto-pause a branch, and for how long. */
+  'restaurant.missedOrderPauseThreshold': {
+    schema: z.number().int().min(1).max(20),
+    default: 3,
+  },
+  'restaurant.missedOrderPauseMinutes': { schema: z.number().int().min(1).max(1440), default: 30 },
   /** BR-PAY-002 */
   'cod.maxOrderAmount': { schema: z.number().int().min(0).max(10_000_000), default: 150_000 },
   /** BR-CART-002 */

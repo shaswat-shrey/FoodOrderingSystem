@@ -8,6 +8,7 @@ import {
   createPaymentProvider,
   LedgerService,
   OffersService,
+  OrderCancellationService,
   OrderEffects,
   OrderPaymentReactions,
   OrderTimerJobs,
@@ -56,17 +57,33 @@ async function main(): Promise<void> {
     logger,
   );
   const transitions = new OrderTransitions(clock);
-  const timers = new OrderTimers(jobs, new SettingsService(prisma, logger), logger, clock);
+
+  const settings = new SettingsService(prisma, logger);
+  const timers = new OrderTimers(jobs, settings, logger, clock);
+  const effects = new OrderEffects(new OffersService(prisma, clock), wallet);
   const reactions = new OrderPaymentReactions(
     prisma,
     transitions,
-    new OrderEffects(new OffersService(prisma, clock), wallet),
+    effects,
     payments,
     refunds,
     timers,
     logger,
   );
   const orderJobs = new OrderTimerJobs(prisma, transitions, reactions, timers, clock, logger);
+  const cancellations = new OrderCancellationService(
+    prisma,
+    transitions,
+    effects,
+    payments,
+    refunds,
+    ledger,
+    settings,
+    env.AUTH_HMAC_SECRET,
+    clock,
+    logger,
+  );
+  orderJobs.onAcceptTimeout = (orderId) => cancellations.acceptTimeout(orderId);
   // ADR-010 puts the relay in the API; it runs here so API instances stay request-only.
   const outbox = new OutboxRelay(prisma, core, clock, logger);
   registerOrderConsumers(outbox, reactions);

@@ -15,3 +15,5 @@ export { OrderEffects } from './order-effects';
 export { OrderTimerJobs } from './order-timer-jobs';
 export { registerOrderConsumers } from './outbox-consumers';
 export { OrderPaymentReactions } from './payment-reactions';
+export { allocate, customerTerms, quoteIdFor } from './cancellation-policy';
+export { CUSTOMER_REASONS, OrderCancellationService } from './cancellation.service';
