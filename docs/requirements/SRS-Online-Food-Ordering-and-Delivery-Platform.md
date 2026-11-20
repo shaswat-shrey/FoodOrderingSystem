@@ -15,7 +15,7 @@
 | Project name | FoodOrderSystem — Online Food Ordering and Delivery Platform (working name; product brand name TBD — see OD-01) |
 | Document title | Software Requirements Specification (SRS) |
 | Document identifier | FOS-SRS-001 |
-| Document version | 0.4.0 |
+| Document version | 0.4.1 |
 | Document status | **APPROVED — Baseline for implementation** |
 | Date of creation | 2026-11-20 |
 | Author | Engineering (prepared with Claude Code acting as architecture partner) |
@@ -34,6 +34,7 @@
 | 0.3.0 | 2026-11-20 | Engineering | Owner-approved Phase 3 changes: (D-1) §15.6 `payment_attempts` status may progress while provider ID, payment and amount stay immutable; (D-2) new DB-SCALE-001 defers monthly partitioning of `audit_logs`, `delivery_locations`, `notifications` until volume/retention thresholds, NFR-SCALE-004 aligned; (D-3) DB-CONV-005 money stored as `integer` for bounded per-transaction amounts and `bigint` for balances/totals (ADR-007 aligned). | Project owner |
 | 0.3.1 | 2026-11-20 | Engineering | Editorial (Phase 4): §19.2 catalogue now lists four codes already specified in §14 (`AUTH_EMAIL_ALREADY_VERIFIED`, `AUTH_MFA_INVALID`, `AUTH_SESSION_NOT_FOUND`, `ACCOUNT_NOT_REACTIVATABLE`); §14 header and §22 matrix note that auth endpoints are implemented (§22.1c). No requirement changed; proposed changes D-4…D-6 await approval in `PROJECT_STATUS.md`. | — |
 | 0.4.0 | 2026-11-20 | Engineering | Owner-approved Phase 4 changes ("Accept all three"): (D-4) BR-AUTH-001 implemented with the NCSC 100k list (no text change); (D-5) `AUTH_TERMS_REQUIRED` and `ACCOUNT_PENDING_DELETION` added to §19.2, FR-AUTH-002/003 and API-AUTH-003/004; (D-6) API-AUTH-023 and FR-AUTH-042 now specify a one-time reactivation token from sign-in instead of a deactivated-user session. | Project owner, 2026-11-20 |
+| 0.4.1 | 2026-11-20 | Engineering | Editorial (Phase 5): §19.2 lists `ADDRESS_INVALID` (already specified by FR-ADDR-006); §14 header and §22.1d record the Phase 5 endpoints. No requirement changed; proposed changes D-7 and D-8 await approval in `PROJECT_STATUS.md`. | — |
 
 Versioning rule: MAJOR = approved baseline change that alters scope; MINOR = requirements added/changed; PATCH = editorial fixes. Every change to a requirement ID's text is recorded here and in the Traceability Matrix change log (§27).
 

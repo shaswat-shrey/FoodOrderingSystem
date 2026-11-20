@@ -102,6 +102,16 @@ tail -f .local/dev-messages.log
 
 Seed accounts sign in with a code to their phone number (see [SCHEMA-NOTES §6](docs/database/SCHEMA-NOTES.md)); new numbers create a customer account. The admin app is password + emailed code only, with no self sign-up.
 
+### Locations during development
+
+Address search uses a mock geocoder with a dozen Bengaluru localities (`GEO_PROVIDER=mock`). The seeded delivery zones cover Koramangala–HSR (`lat=12.9352&lng=77.6245`) and Indiranagar (`lat=12.9719&lng=77.6412`); Jayanagar (`lat=12.925&lng=77.5838`) is deliberately outside every zone. For example:
+
+```bash
+curl -s -H 'X-Client-App: CUSTOMER' 'http://localhost:4000/api/v1/discovery/restaurants?lat=12.9352&lng=77.6245'
+```
+
+In production `GEO_PROVIDER` defaults to `none` until a provider is chosen: address search then reports that it is unavailable and customers drop a pin on the map.
+
 To run the API and worker in containers instead of on the host:
 
 ```bash

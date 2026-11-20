@@ -4,12 +4,12 @@ _Last updated: 2026-11-20_
 
 ## Summary
 
-| Item              | Status                                                                       |
-| ----------------- | ---------------------------------------------------------------------------- |
-| Current phase     | **Phase 4 — Auth & security: complete; Phase 5 awaiting go-ahead**           |
-| Next phase        | Phase 5 — Core customer backend                                              |
-| SRS version       | FOS-SRS-001 v0.4.0 (APPROVED 2026-11-20; v0.4.0 adds owner-approved D-4…D-6) |
-| Business features | Accounts, sign-in, sessions and permissions (all four apps)                  |
+| Item              | Status                                                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase     | **Phase 5 — Core customer backend: complete; Phase 6 awaiting go-ahead**                                                         |
+| Next phase        | Phase 6 — Cart, pricing, checkout, payments                                                                                      |
+| SRS version       | FOS-SRS-001 v0.4.1 (APPROVED 2026-11-20; v0.4.1 is an editorial update)                                                          |
+| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search and favourites |
 
 ## Phases
 
@@ -19,7 +19,7 @@ _Last updated: 2026-11-20_
 | 2 Repository & infrastructure | ✅ Complete 2026-11-20                                    |
 | 3 Database                    | ✅ Complete 2026-11-20 (SRS changes D-1…D-3 approved)     |
 | 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                 |
-| 5 Core customer backend       | Not started                                               |
+| 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 await decision)          |
 | 6 Cart, pricing, checkout     | Not started                                               |
 | 7 Order management            | Not started                                               |
 | 8 Restaurant application      | Not started                                               |
@@ -29,6 +29,31 @@ _Last updated: 2026-11-20_
 | 12 Frontend integration       | Not started                                               |
 | 13 Testing & hardening        | Not started                                               |
 | 14 Finalization               | Not started                                               |
+
+## Phase 5 deliverables
+
+Backend APIs for the customer app (screens follow in Phase 12). Typed client wrappers are in `@fos/api-client` (`createCustomerApi`).
+
+| Area                | Delivered                                                                                                                                                                                                                                                                              |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Locations           | Geocoding adapter: mock Bengaluru gazetteer for development; `none` in production, which takes the manual-pin path. 30-day geocode cache; routing estimate (straight line × 1.3 at 22 km/h); India check; pin-distance warning. API-GEO-001…005                                        |
+| Serviceability      | Zone lookup, same-zone rule, branch radius capped by the zone, reason codes. Branch status covers hours (split shifts, past-midnight slots), holidays, pause, manual close, FSSAI expiry, zone suspension, last-order cutoff and "closing soon"                                        |
+| Delivery preview    | Fee slabs (BR-PRICE-003), surge with cap, small-order threshold, platform fee, ETA range (FR-DISC-010), from the effective-dated fee schedule                                                                                                                                          |
+| Profile             | Profile and language; preferences (veg-only default, dietary tags, allergens); account status; consents. Email change (re-auth, new address unverified, old address told). Phone change (re-auth, code to new number, other devices signed out)                                        |
+| Addresses           | CRUD with one HOME/WORK, 20-address limit, single default, soft delete, required pin, PIN-code checks, per-branch serviceability                                                                                                                                                       |
+| Restaurants & menus | Brand page, branches with serviceability, branch header (status, weekly hours, FSSAI, delivery details), cached menu with smart sections, item cards and details (variants, customisations, allergen warnings), filters, ETag/304                                                      |
+| Discovery           | Listing with 12 filters, 7 sorts, opaque cursors, closed places trailing. Home (banners, curated and built-in collections, specials, best-sellers, cuisines; cached per ~600 m cell, personal parts added per request). Collections, cuisines, dishes by category, facets, order again |
+| Search              | Prefix full-text with weighted ranking, typo tolerance, suggestions, history (last 20 distinct), trending read, filters, paging                                                                                                                                                        |
+| Favourites          | Restaurants and dishes, idempotent, listed with serviceability and availability where the customer is                                                                                                                                                                                  |
+| Platform            | Typed settings service (defaults + `platform_settings`, 5 s cache); shared cursor pagination; optional authentication for public routes; one route table shared by the server and tests                                                                                                |
+
+## Verification notes (Phase 5)
+
+- ✅ 277 tests pass repo-wide; the API's 171 include 56 new Phase 5 integration tests against PostgreSQL + PostGIS + Redis and 35 new unit tests (branch status, fees and ETA, filters, sorting and cursors, geohash, search query safety).
+- ✅ Smoke run of the real server on the seeded data: home sections, search, menu ETag (304 on repeat), listing in about 5–20 ms locally. `db:drift` reports no difference.
+- Bugs found and fixed while building: a `|| true` made one discovery assertion vacuous; importing a helper from another test file ran that file's tests twice; the catalog router's middleware would have run for every later route (now scoped to its paths).
+- ⚠️ CI still hasn't run (nothing pushed), so §22.1a–d rows are _Implemented_, not _Verified_.
+- ⚠️ Performance targets (NFR-PERF-003…005) are not measured yet; load tests are Phase 13.
 
 ## Phase 4 deliverables
 
@@ -81,14 +106,16 @@ _Last updated: 2026-11-20_
 
 ## Known discrepancies (SRS vs implementation)
 
-- None open.
-- D-4…D-6 resolved 2026-11-20 by owner decision (“Accept all three”, SRS v0.4.0):
-  - **D-4:** the breached-password check now uses the NCSC 100k list (46,483 entries of 8+ characters, from SecLists), plus service-specific words.
-  - **D-5:** `AUTH_TERMS_REQUIRED` and `ACCOUNT_PENDING_DELETION` are in the §19.2 catalogue and the API-AUTH-003/004 specifications.
-  - **D-6:** API-AUTH-023 now specifies a one-time reactivation token from sign-in.
-- D-1…D-3 resolved 2026-11-20 (SRS v0.3.0). Editorial v0.3.1: four codes already used in §14 were added to the §19.2 table.
+Open — awaiting owner decision (SRS §27.3):
 
-Not discrepancies: ADV-only tables (chat, per-member permission overrides) are intentionally not created yet; OAuth (FR-AUTH-004), account recovery (FR-AUTH-014) and TOTP (CORE) are later releases.
+| ID  | Requirement                                                                       | Observed                                                                                                                                                                                                                              | Proposal                                                                                                                                                                                       |
+| --- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-7 | BR-GEO-001 (b): a branch serves its own zone "or a zone pair explicitly linked ⚙" | There is no table or setting for linked zone pairs, so a branch only serves locations in its own zone. The two seeded zones share an edge, so a customer just across it is never served by a branch on the other side, however close. | **Change requirement for MVP:** branches serve their own zone only; linked zone pairs move to CORE with a `zone_links` table and admin screen (Phase 11). Alternative: build `zone_links` now. |
+| D-8 | FR-ADDR-006: reject coordinates "outside India's bounding polygon"                | A bounding **box** around India (lat 6.5–37.2, lng 68.0–97.5) is used instead of the border polygon. It rejects clearly foreign pins (and 0,0) but accepts some points just over the border.                                          | **Change requirement:** "outside India's bounding box"; a precise border check adds a boundary dataset for little gain, since delivery zones already restrict where orders can go.             |
+
+Resolved: D-1…D-3 (SRS v0.3.0) and D-4…D-6 (SRS v0.4.0), both by owner decision on 2026-11-20. Editorial only: v0.3.1 and v0.4.1 added codes already specified elsewhere to the §19.2 table.
+
+Not discrepancies (planned later): offers in listings and the restaurant page (Phase 6); reviews and rating summary, bestsellers and popularity from real orders, trending dishes (Phase 7); avatar uploads and item/restaurant images (file storage, Phase 8); manual-close auto-reopen (Phase 8 branch operations); trending-search aggregation job, item schedules, data export, OAuth, account recovery and TOTP (CORE).
 
 ## Modules
 
@@ -97,13 +124,14 @@ Not discrepancies: ADV-only tables (chat, per-member permission overrides) are i
 | Platform (HTTP, logging, config, health, Redis, socket gateway shell) | Implemented (Phase 2)     |
 | Database schema, migrations, seed for all MVP + CORE domains          | Implemented (Phase 3)     |
 | auth, iam, audit, notifications (dev sinks), users (`/me`)            | Implemented (Phase 4)     |
+| geo, catalog, customers, discovery, search, config                    | Implemented (Phase 5)     |
 | Socket authentication and revocation                                  | Implemented (Phase 4)     |
-| Other domain modules (customers … admin)                              | Designed; not implemented |
+| Other domain modules (cart … admin)                                   | Designed; not implemented |
 
 ## APIs
 
-- Implemented (24): **API-SYS-001/002** (health), **API-AUTH-001…016, 021…023** (auth), **API-USER-001** `GET /me`, **API-USER-003** `GET /me/permissions`.
-- Planned: 470 remaining (see `docs/requirements/API-SPECIFICATION.md`).
+- Implemented (77 of 494): API-SYS-001/002; API-AUTH-001…016, 021…023; API-USER-001…003, 006…011, 013, 014; API-GEO-001…005; API-ADDR-001…006; API-REST-001…005; API-MENU-001…007; API-DISC-001…006, 008…011; API-SRCH-001…006; API-FAV-001…006.
+- Planned: 417 remaining in `docs/requirements/API-SPECIFICATION.md` (Phase 5 left for later: API-USER-004/005 avatar, API-USER-012 export, API-REST-006 offers, API-REST-007/008 and API-MENU-008 reviews, API-DISC-007 offers).
 
 ## UI pages
 
@@ -112,18 +140,29 @@ Not discrepancies: ADV-only tables (chat, per-member permission overrides) are i
 
 ## Database migrations
 
-| Migration                               | Purpose                                                                    |
-| --------------------------------------- | -------------------------------------------------------------------------- |
-| `20261120000000_extensions`             | postgis, pg_trgm, unaccent, citext, pgcrypto                               |
-| `20261120000100_core_schema`            | All tables, enums, indexes, foreign keys (generated)                       |
-| `20261120000200_constraints`            | Partial uniques, CHECKs, ledger/append-only/overlap/hours/search triggers  |
-| `20261120000300_immutability`           | Effective-dated configs, dispatch offers, webhook payloads, location trail |
-| `20261120000400_payment_attempts_guard` | Payment attempt facts immutable, status may progress (SRS v0.3.0, D-1)     |
-| `20261120151832_auth_enum_values`       | OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT` (Phase 4)      |
+| Migration                                   | Purpose                                                                    |
+| ------------------------------------------- | -------------------------------------------------------------------------- |
+| `20261120000000_extensions`                 | postgis, pg_trgm, unaccent, citext, pgcrypto                               |
+| `20261120000100_core_schema`                | All tables, enums, indexes, foreign keys (generated)                       |
+| `20261120000200_constraints`                | Partial uniques, CHECKs, ledger/append-only/overlap/hours/search triggers  |
+| `20261120000300_immutability`               | Effective-dated configs, dispatch offers, webhook payloads, location trail |
+| `20261120000400_payment_attempts_guard`     | Payment attempt facts immutable, status may progress (SRS v0.3.0, D-1)     |
+| `20261120151832_auth_enum_values`           | OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT` (Phase 4)      |
+| `20261120180000_phone_change_revoke_reason` | Session revoke reason `PHONE_CHANGED` (Phase 5, FR-CUST-004)               |
 
 ## Known bugs
 
 - None known.
+
+## Technical decisions (Phase 5)
+
+- Discovery filters and sorts in memory after a PostGIS pre-filter (one zone has tens of branches at pilot scale). Revisit with SQL-side ranking if a zone passes a few hundred branches or NFR-PERF-003 is missed in load tests.
+- One branch per brand in listings: open beats closed, then nearest.
+- Cursors are base64 JSON of the last sort key plus a fingerprint of the query; reuse with another sort or filter is a VALIDATION_ERROR. They are not signed: a forged but well-formed cursor only skips ahead in the same public list.
+- Menus are cached by `menu_version`; availability that changes with time is computed per request, and the ETag is a hash of the final response, so it changes exactly when the content does.
+- `GEO_PROVIDER=none` in production rather than refusing to boot: the SRS degraded path (manual pin) keeps ordering possible until a geocoder is chosen (OD-13).
+- Weekday convention 0 = Sunday and ratings in hundredths of a star are now documented in SCHEMA-NOTES (the schema left both open).
+- A manually closed branch reports no reopening time: FR-REST-014's auto-reopen needs the Phase 8 job, and guessing a time would mislead customers.
 
 ## Technical decisions (Phase 4)
 
@@ -143,6 +182,10 @@ Not discrepancies: ADV-only tables (chat, per-member permission overrides) are i
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 5
+
+- None. (Port 4000 was in use by another local project during the smoke test, so the API ran on port 4100 briefly and was stopped; the other process was not touched.)
+
 ## Machine changes made during Phase 4
 
 - A project-local Redis (core on 6390, cache on 6391, data in `.local/redis`) started with `infrastructure/scripts/local-redis.sh`, using the Homebrew `redis-server` already installed. The existing Redis on 6379 was not touched. Nothing new was installed.
@@ -159,13 +202,16 @@ Not discrepancies: ADV-only tables (chat, per-member permission overrides) are i
 
 ## Next steps
 
-1. Owner go-ahead for Phase 5 (core customer backend: profiles, addresses, serviceability, restaurant discovery and menus).
+1. Owner decisions on D-7 and D-8.
+2. Owner go-ahead for Phase 6 (cart, pricing engine, coupons, checkout, idempotency, payments with the mock provider, wallet and ledger core).
 
 ## TODO
 
-- [x] Decide D-1…D-3 (accepted 2026-11-20)
+- [x] Decide D-1…D-6
 - [x] Phase 4: auth & security
-- [x] Decide D-4…D-6 (accepted 2026-11-20)
+- [x] Phase 5: core customer backend
+- [ ] Decide D-7, D-8
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
-- [ ] Push to GitHub so CI runs (moves §22.1a–c rows to _Verified_)
+- [ ] Push to GitHub so CI runs (moves §22.1a–d rows to _Verified_)
 - [ ] Dedicated test for idle/absolute session expiry (FR-AUTH-023)
+- [ ] Phase 7–8 writers must bump `branches.menu_version` on menu, availability and stock changes (SCHEMA-NOTES §6a)
