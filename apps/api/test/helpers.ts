@@ -11,7 +11,8 @@ import { RecordingDispatcher } from '../src/modules/notifications';
 import { ManualClock } from '../src/platform/clock';
 import { createApp } from '../src/platform/http/app';
 import { createLogger } from '../src/platform/logger';
-import { mountRoutes } from '../src/routes';
+import { RecordingJobQueue } from '../src/platform/jobs';
+import { mountRawRoutes, mountRoutes } from '../src/routes';
 import { apiTestDatabaseUrl } from './global-setup';
 
 export const integrationEnabled = Boolean(apiTestDatabaseUrl() && process.env.TEST_REDIS_URL);
@@ -76,12 +77,14 @@ export async function createTestContext(
     clock,
     messages,
     ...(options.geocoder ? { geocoder: options.geocoder } : {}),
+    jobs: new RecordingJobQueue(),
   });
   const app = createApp({
     logger,
     corsOrigins: Object.values(container.appOrigins),
     readiness: { critical: {}, degradable: {} },
     routes: (api) => mountRoutes(api, container),
+    rawRoutes: (app) => mountRawRoutes(app, container),
   });
   return {
     app,
@@ -127,8 +130,13 @@ export function browser(ctx: TestContext, app: App = 'CUSTOMER') {
     },
     get: (path: string, query?: Record<string, string | number | boolean>) =>
       withHeaders(agent.get(`/api/v1${path}`).query(query ?? {})),
-    post: (path: string, body?: object) =>
-      withHeaders(agent.post(`/api/v1${path}`).send(body ?? {})),
+    post: (path: string, body?: object, headers: Record<string, string> = {}) =>
+      withHeaders(
+        agent
+          .post(`/api/v1${path}`)
+          .set(headers)
+          .send(body ?? {}),
+      ),
     patch: (path: string, body?: object) =>
       withHeaders(agent.patch(`/api/v1${path}`).send(body ?? {})),
     put: (path: string, body?: object) => withHeaders(agent.put(`/api/v1${path}`).send(body ?? {})),

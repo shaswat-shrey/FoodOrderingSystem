@@ -51,6 +51,9 @@ describe('loadEnv (NFR-SEC-011)', () => {
     const prod = loadEnv({
       ...valid,
       NODE_ENV: 'production',
+      RAZORPAY_KEY_ID: 'rzp_live_x',
+      RAZORPAY_KEY_SECRET: 'secret',
+      RAZORPAY_WEBHOOK_SECRETS: 'whsec',
       APP_URL_CUSTOMER: 'https://app.example.com',
       APP_URL_RESTAURANT: 'https://partner.example.com',
       APP_URL_DELIVERY: 'https://rider.example.com',

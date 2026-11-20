@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { ClientApp } from '@fos/shared';
+import { paymentEnvFields, paymentEnvProblems } from '../modules/payments/config';
 
 /**
  * Environment configuration (NFR-SEC-011). Parsed once at boot; the process
@@ -72,6 +73,7 @@ export const envSchema = z
      * customers drop a map pin (FR-LOC-003 degraded path). A real provider follows OD-13.
      */
     GEO_PROVIDER: z.enum(['mock', 'none']).optional(),
+    ...paymentEnvFields,
   })
   .transform((env) => ({
     ...env,
@@ -85,6 +87,8 @@ export const envSchema = z
     } satisfies Record<ClientApp, string>,
   }))
   .superRefine((env, ctx) => {
+    for (const [path, message] of paymentEnvProblems(env))
+      ctx.addIssue({ code: 'custom', path: [path], message });
     if (env.NODE_ENV !== 'production') return;
     if (env.GEO_PROVIDER === 'mock') {
       ctx.addIssue({

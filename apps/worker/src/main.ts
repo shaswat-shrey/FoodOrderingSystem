@@ -1,6 +1,16 @@
 import { Queue } from 'bullmq';
 import { createPrismaClient, pingDatabase } from '@fos/db';
-import { AccountAnonymizer, AuditService, CartExpiry, LedgerService } from '@fos/api/jobs';
+import {
+  AccountAnonymizer,
+  AuditService,
+  BullJobQueue,
+  CartExpiry,
+  createPaymentProvider,
+  LedgerService,
+  PaymentsService,
+  RefundService,
+  WalletService,
+} from '@fos/api/jobs';
 import { closeRedis, connectRedis, createLogger, pingRedis } from '@fos/api/platform';
 import { loadWorkerEnv } from './env';
 import { createHealthServer } from './health-server';
@@ -20,11 +30,36 @@ async function main(): Promise<void> {
     clock,
     env.AUTH_HMAC_SECRET,
   );
+  const ledger = new LedgerService(prisma);
+  const jobs = new BullJobQueue(core);
+  const provider = createPaymentProvider(env);
+  const audit = new AuditService(prisma);
+  const refunds = new RefundService(
+    prisma,
+    provider,
+    ledger,
+    new WalletService(prisma, ledger, clock),
+    jobs,
+    clock,
+    logger,
+  );
+  const payments = new PaymentsService(
+    prisma,
+    provider,
+    ledger,
+    refunds,
+    audit,
+    jobs,
+    clock,
+    logger,
+  );
   const registrations = buildRegistrations({
     sink: createMessageSink(env, logger),
     anonymizer,
     cartExpiry: new CartExpiry(prisma, clock),
-    ledger: new LedgerService(prisma),
+    ledger,
+    payments,
+    refunds,
     logger,
   });
   const workers = startWorkers(registrations, core, logger);
@@ -60,7 +95,11 @@ async function main(): Promise<void> {
     force.unref();
     // Worker.close() waits for active jobs to finish (NFR-REL-007).
     await Promise.allSettled(workers.map((w) => w.close()));
-    await Promise.allSettled([...schedulerQueues.map((q) => q.close()), prisma.$disconnect()]);
+    await Promise.allSettled([
+      ...schedulerQueues.map((q) => q.close()),
+      jobs.close(),
+      prisma.$disconnect(),
+    ]);
     health.close();
     await closeRedis(core);
     logger.info('shutdown complete');

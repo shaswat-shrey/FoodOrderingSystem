@@ -7,10 +7,18 @@ import { addressesRouter, favoritesRouter } from './modules/customers';
 import { discoveryRouter } from './modules/discovery';
 import { walletRouter } from './modules/ledger';
 import { cartCouponRouter, couponsRouter } from './modules/offers';
+import { mountPaymentWebhooks, paymentsRouter } from './modules/payments';
+import type { Express } from 'express';
 import { searchHistoryRouter, searchRouter } from './modules/search';
 import { usersRouter } from './modules/users';
 
-/** Every /api/v1 router, mounted the same way by the server and the integration tests. */
+/**
+ * Every /api/v1 router, mounted the same way by the server and the integration tests.
+ * Routers mounted without a path prefix (users, payments, catalog) must scope their
+ * middleware to their own paths: an unscoped router.use() would run for every request
+ * that reaches a later router (the catalog's public pages were once caught by
+ * the payments router's authentication this way).
+ */
 export function mountRoutes(api: Router, container: Container): void {
   api.use(
     '/auth',
@@ -34,5 +42,11 @@ export function mountRoutes(api: Router, container: Container): void {
   api.use('/coupons', couponsRouter(container));
   api.use('/checkout/sessions', checkoutRouter(container));
   api.use('/payments/methods', paymentMethodsRouter(container));
+  api.use(paymentsRouter(container));
   api.use(catalogRouter(container));
+}
+
+/** Raw-body routes (provider webhooks), mounted before JSON parsing. */
+export function mountRawRoutes(app: Express, container: Container): void {
+  mountPaymentWebhooks(app, container);
 }

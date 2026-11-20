@@ -17,13 +17,21 @@ export interface AppDependencies {
   readiness: ReadinessChecks;
   /** Mounts module routers on the /api/v1 router. */
   routes?: (api: Router) => void;
+  /** Routes that need the raw body (provider webhooks), mounted before JSON parsing. */
+  rawRoutes?: (app: Express) => void;
 }
 
 /**
  * Builds the Express application. Pure factory (no listening, no global state)
  * so tests can run it in-process with fake dependencies.
  */
-export function createApp({ logger, corsOrigins, readiness, routes }: AppDependencies): Express {
+export function createApp({
+  logger,
+  corsOrigins,
+  readiness,
+  routes,
+  rawRoutes,
+}: AppDependencies): Express {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1); // behind Nginx / load balancer (SYSTEM-ARCHITECTURE §2)
@@ -51,6 +59,7 @@ export function createApp({ logger, corsOrigins, readiness, routes }: AppDepende
   app.use(healthRouter(readiness, logger));
 
   // Routes with non-JSON bodies (payment webhooks, uploads) mount here, before JSON parsing.
+  rawRoutes?.(app);
 
   app.use(requireJsonBody());
   app.use(express.json({ limit: '100kb', strict: true })); // NFR-SEC-004

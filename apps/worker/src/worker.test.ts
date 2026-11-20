@@ -39,6 +39,13 @@ async function serve(redisUp: boolean) {
   return `http://localhost:${(server.address() as AddressInfo).port}`;
 }
 
+const fakePayments = {
+  processWebhook: async () => {},
+  processPendingWebhooks: async () => 0,
+  resolveStuck: async () => 0,
+};
+const fakeRefunds = { submit: async () => {}, sweep: async () => ({ submitted: 0, polled: 0 }) };
+
 describe('worker', () => {
   it('validates its environment', () => {
     expect(loadWorkerEnv(baseEnv).WORKER_HEALTH_PORT).toBe(4001);
@@ -66,6 +73,8 @@ describe('worker', () => {
       anonymizer: fakeAnonymizer(0),
       cartExpiry: { run: async () => 0 } as unknown as CartExpiry,
       ledger: { verify: async () => [] },
+      payments: fakePayments,
+      refunds: fakeRefunds,
       logger: silent,
     }).find((r) => r.queue === 'notifications');
     const message: Message = {
@@ -79,7 +88,13 @@ describe('worker', () => {
   });
 
   it('refuses dev sinks in production', () => {
-    const env = loadWorkerEnv({ ...baseEnv, NODE_ENV: 'production' });
+    const env = loadWorkerEnv({
+      ...baseEnv,
+      NODE_ENV: 'production',
+      RAZORPAY_KEY_ID: 'k',
+      RAZORPAY_KEY_SECRET: 's',
+      RAZORPAY_WEBHOOK_SECRETS: 'w',
+    });
     expect(() =>
       createMessageSink(env, createLogger({ level: 'silent', service: 'worker' })),
     ).toThrow(/provider/);
@@ -93,6 +108,8 @@ describe('worker', () => {
       anonymizer,
       cartExpiry: { run: async () => 0 } as unknown as CartExpiry,
       ledger: { verify: async () => [] },
+      payments: fakePayments,
+      refunds: fakeRefunds,
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: ANONYMIZE_DUE_USERS_JOB } as never);
@@ -114,6 +131,8 @@ describe('worker', () => {
       anonymizer: fakeAnonymizer(0),
       cartExpiry: { run: async () => (runs += 1) } as unknown as CartExpiry,
       ledger: { verify: async () => [] },
+      payments: fakePayments,
+      refunds: fakeRefunds,
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await maintenance!.processor({ name: EXPIRE_IDLE_CARTS_JOB } as never);
@@ -132,6 +151,8 @@ describe('worker', () => {
       anonymizer: fakeAnonymizer(0),
       cartExpiry: { run: async () => 0 } as unknown as CartExpiry,
       ledger: { verify: async () => [mismatch] },
+      payments: fakePayments,
+      refunds: fakeRefunds,
       logger: silent,
     }).find((r) => r.queue === 'maintenance');
     await expect(maintenance!.processor({ name: VERIFY_LEDGER_JOB } as never)).rejects.toThrow(

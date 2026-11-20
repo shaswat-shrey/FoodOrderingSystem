@@ -4,3 +4,12 @@ export { AccountAnonymizer } from '../modules/auth/account-anonymizer';
 export { AuditService } from '../modules/audit';
 export { CartExpiry } from '../modules/checkout/cart-expiry';
 export { LedgerService } from '../modules/ledger/ledger.service';
+export {
+  createPaymentProvider,
+  paymentEnvFields,
+  paymentEnvProblems,
+} from '../modules/payments/config';
+export { WalletService } from '../modules/ledger/wallet.service';
+export { PaymentsService, PROCESS_WEBHOOK_JOB } from '../modules/payments/payments.service';
+export { RefundService, SUBMIT_REFUND_JOB } from '../modules/payments/refunds.service';
+export { BullJobQueue } from '../platform/jobs';

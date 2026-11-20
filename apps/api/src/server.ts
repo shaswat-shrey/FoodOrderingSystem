@@ -7,7 +7,7 @@ import { QueueMessageDispatcher } from './modules/notifications';
 import { systemClock } from './platform/clock';
 import { createApp } from './platform/http/app';
 import { createLogger } from './platform/logger';
-import { mountRoutes } from './routes';
+import { mountRawRoutes, mountRoutes } from './routes';
 import { createSocketServer } from './platform/realtime/socket-server';
 import { closeRedis, createRedisClients, pingRedis } from './platform/redis';
 
@@ -40,6 +40,7 @@ async function main(): Promise<void> {
       },
     },
     routes: (api) => mountRoutes(api, container),
+    rawRoutes: (app) => mountRawRoutes(app, container),
   });
 
   const httpServer = createServer(app);
@@ -67,7 +68,7 @@ async function main(): Promise<void> {
     }, SHUTDOWN_GRACE_MS);
     force.unref();
     await new Promise<void>((resolve) => io.close(() => resolve())); // also closes httpServer
-    await Promise.allSettled([messages.close(), prisma.$disconnect()]);
+    await Promise.allSettled([messages.close(), container.jobs.close(), prisma.$disconnect()]);
     await Promise.allSettled([closeRedis(redis.core), closeRedis(redis.cache)]);
     logger.info('shutdown complete');
     process.exit(0);

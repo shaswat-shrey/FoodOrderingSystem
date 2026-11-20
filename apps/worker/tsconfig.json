@@ -1,4 +1,5 @@
 {
   "extends": "@fos/config/tsconfig/node.json",
-  "include": ["src", "tsup.config.ts"]
+  // The worker bundles API job code, so it needs the API's Express type augmentation too.
+  "include": ["src", "tsup.config.ts", "../api/src/types/express.d.ts"]
 }

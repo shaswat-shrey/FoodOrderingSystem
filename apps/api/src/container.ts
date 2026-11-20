@@ -13,6 +13,13 @@ import { CartService, CheckoutService, QuoteBuilder } from './modules/checkout';
 import { DiscoveryService } from './modules/discovery';
 import { LedgerService, WalletService } from './modules/ledger';
 import { OffersService } from './modules/offers';
+import {
+  createPaymentProvider,
+  PaymentsService,
+  RefundService,
+  type PaymentProvider,
+} from './modules/payments';
+import { BullJobQueue, type JobQueue } from './platform/jobs';
 import { PricingConfigService } from './modules/pricing';
 import { SearchService } from './modules/search';
 import {
@@ -36,6 +43,8 @@ export interface ContainerInput {
   limiter?: RateLimiter;
   /** Overrides the geocoder (tests inject failing providers). */
   geocoder?: GeocodingProvider;
+  paymentProvider?: PaymentProvider;
+  jobs?: JobQueue;
 }
 
 /** Composition root: builds every service once per process (SYSTEM-ARCHITECTURE §3). */
@@ -104,6 +113,19 @@ export function createContainer(input: ContainerInput) {
     settings,
     clock,
   );
+  const jobs = input.jobs ?? new BullJobQueue(redis.core);
+  const paymentProvider = input.paymentProvider ?? createPaymentProvider(env);
+  const refunds = new RefundService(prisma, paymentProvider, ledger, wallet, jobs, clock, logger);
+  const payments = new PaymentsService(
+    prisma,
+    paymentProvider,
+    ledger,
+    refunds,
+    audit,
+    jobs,
+    clock,
+    logger,
+  );
   return {
     env,
     prisma,
@@ -136,6 +158,10 @@ export function createContainer(input: ContainerInput) {
     offers,
     cart,
     checkout,
+    jobs,
+    paymentProvider,
+    refunds,
+    payments,
     appOrigins: appOrigins(env),
   };
 }
