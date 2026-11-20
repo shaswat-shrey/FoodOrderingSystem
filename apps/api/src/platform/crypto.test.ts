@@ -9,10 +9,9 @@ describe('crypto helpers', () => {
   });
 
   it('separates HMAC domains', () => {
-    expect(hmac('k'.repeat(32), 'otp', 'x').equals(hmac('k'.repeat(32), 'identifier', 'x'))).toBe(
-      false,
-    );
-    expect(hmac('k'.repeat(32), 'otp', 'x').equals(hmac('k'.repeat(32), 'otp', 'x'))).toBe(true);
+    const key = 'k'.repeat(32);
+    expect(safeEqual(hmac(key, 'otp', 'x'), hmac(key, 'identifier', 'x'))).toBe(false);
+    expect(safeEqual(hmac(key, 'otp', 'x'), hmac(key, 'otp', 'x'))).toBe(true);
   });
 
   it('compares safely across lengths', () => {

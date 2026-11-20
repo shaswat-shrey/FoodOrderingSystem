@@ -5,21 +5,24 @@ export function randomToken(bytes = 32): string {
   return randomBytes(bytes).toString('base64url');
 }
 
+/** Digest bytes in the shape Prisma's `Bytes` columns accept. */
+export type Digest = Uint8Array<ArrayBuffer>;
+
 /** SHA-256 digest. Used for high-entropy tokens, where a fast hash is sufficient (ADR-003). */
-export function sha256(value: string | Buffer): Buffer {
-  return createHash('sha256').update(value).digest();
+export function sha256(value: string | Uint8Array): Digest {
+  return new Uint8Array(createHash('sha256').update(value).digest());
 }
 
 /**
  * Keyed hash with domain separation, so the same secret can't produce
  * interchangeable digests for different purposes (OTP codes vs identifiers).
  */
-export function hmac(secret: string, domain: string, value: string): Buffer {
-  return createHmac('sha256', secret).update(`${domain}\u0000${value}`).digest();
+export function hmac(secret: string, domain: string, value: string): Digest {
+  return new Uint8Array(createHmac('sha256', secret).update(`${domain}\u0000${value}`).digest());
 }
 
 /** Constant-time comparison that also tolerates different lengths. */
-export function safeEqual(a: Buffer, b: Buffer): boolean {
+export function safeEqual(a: Uint8Array, b: Uint8Array): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 

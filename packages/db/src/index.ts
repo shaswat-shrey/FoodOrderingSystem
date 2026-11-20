@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
-export { PrismaClient };
-export { Prisma } from '@prisma/client';
+// Re-export the generated client: PrismaClient, the Prisma namespace and every enum type.
+export * from '@prisma/client';
 
 export interface CreatePrismaClientOptions {
   url: string;

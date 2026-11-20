@@ -11,6 +11,8 @@ export interface RateLimitResult {
 export interface RateLimiter {
   /** Counts one hit for `key` in a fixed window of `windowSeconds`, allowing `limit` hits. */
   hit(key: string, limit: number, windowSeconds: number): Promise<RateLimitResult>;
+  /** Current count for `key` without counting a hit. */
+  peek(key: string): Promise<number>;
   /** Clears a key (e.g. after a successful login). */
   reset(key: string): Promise<void>;
 }
@@ -35,6 +37,11 @@ export class MemoryRateLimiter implements RateLimiter {
       remaining: Math.max(0, limit - entry.count),
       retryAfterSeconds: Math.ceil((entry.resetAt - now) / 1000),
     };
+  }
+
+  async peek(key: string): Promise<number> {
+    const entry = this.windows.get(key);
+    return entry && entry.resetAt > this.now() ? entry.count : 0;
   }
 
   async reset(key: string): Promise<void> {
@@ -85,6 +92,14 @@ export class RedisRateLimiter implements RateLimiter {
         this.warned = true;
       }
       return this.fallback.hit(key, limit, windowSeconds);
+    }
+  }
+
+  async peek(key: string): Promise<number> {
+    try {
+      return Number((await this.redis.get(this.prefix + key)) ?? 0);
+    } catch {
+      return this.fallback.peek(key);
     }
   }
 
