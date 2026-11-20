@@ -24,3 +24,5 @@ export {
   type SignedIn,
   type SignInResponse,
 } from './auth-api';
+export { createCustomerApi, type CustomerApi } from './customer-api';
+export type * from './customer-api';

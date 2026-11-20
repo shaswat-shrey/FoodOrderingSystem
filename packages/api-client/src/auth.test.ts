@@ -161,3 +161,39 @@ describe('auth client (FR-FE-002/003)', () => {
     expect(client.authStore.getState().status).toBe('loading');
   });
 });
+
+describe('customer API wrappers', () => {
+  it('sends list filters as query strings and returns the next cursor', async () => {
+    const { createCustomerApi } = await import('./customer-api');
+    const seen: InternalAxiosRequestConfig[] = [];
+    const client = createApiClient({
+      clientApp: 'CUSTOMER',
+      locks: null,
+      adapter: async (config) => {
+        seen.push(config);
+        const data = {
+          success: true,
+          message: 'OK',
+          data: [],
+          meta: { pagination: { nextCursor: 'next' } },
+        };
+        return { data, status: 200, statusText: '', headers: new AxiosHeaders(), config };
+      },
+    });
+    const api = createCustomerApi(client);
+    const page = await api.discovery.restaurants(
+      { lat: 12.9, lng: 77.6 },
+      { cuisines: ['pizza', 'biryani'], sort: 'distance' },
+    );
+    expect(page).toEqual({ data: [], nextCursor: 'next' });
+    expect(seen[0]?.url).toBe('/api/v1/discovery/restaurants');
+    expect(seen[0]?.params).toMatchObject({
+      lat: 12.9,
+      lng: 77.6,
+      cuisines: 'pizza,biryani',
+      sort: 'distance',
+    });
+    await api.favorites.addRestaurant('r1');
+    expect(seen[1]).toMatchObject({ method: 'put', url: '/api/v1/me/favorites/restaurants/r1' });
+  });
+});
