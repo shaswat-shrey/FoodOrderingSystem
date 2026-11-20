@@ -174,6 +174,20 @@ No schema changes in Phase 8.
 | Status log | `branch_status_events` is append-only; "closed for today" is a CLOSED row with `until`; the sweep picks the latest row by id (uuid v7 order). |
 | Invitations | `restaurant_invitations.token_hash` = SHA-256 of a random token sent by SMS/email; accepted, revoked or expired after 7 days. |
 
+## 6e. Delivery paths added in Phase 9
+
+No schema changes in Phase 9.
+
+| Topic | How it works |
+| --- | --- |
+| Presence | Redis, not the database: hash `partner:{id}:presence` (state, zone, last fix, break, offline-after-trip), GEO set `partners:zone:{zoneId}`, set `partners:online`, offer slot `offer-lock:partner:{id}`. `delivery_partners.last_location` is refreshed at most once a minute and is the fallback for tracking. |
+| Location trail | `delivery_locations` rows (uuid v7 ids) are written for active deliveries only, sampled, plus every stage event; append-only per the Phase 3 trigger. |
+| Dispatch | `delivery_assignments` holds every offer with its round, rank, score and `score_breakdown`; one OFFERED/ACCEPTED row per delivery at a time; acceptance locks the delivery and assignment rows. `deliveries.no_partner_deadline` drives the platform-fault cancellation. |
+| Stage history | Every delivery transition writes `delivery_status_history` (with `flagged` for confirmed-outside-geofence arrivals) and an outbox event `delivery.<status>`. Failed OTP tries are `delivery_otp_attempts` rows and `orders.delivery_otp_attempts`. |
+| Partner money | `partner_earnings` (one per delivery; base, distance, wait, surge, tip, total) mirrors ledger postings: `PARTNER_EARNING` (platform delivery cost → `PARTNER_PAYABLE`) and, keyed `tip`, the tip from the order's liability. COD collection debits `PARTNER_CASH_IN_HAND`. A payout = −`PARTNER_PAYABLE` balance − cash in hand. |
+| Bank change | A new `partner_bank_accounts` row in `PENDING_VERIFICATION` beside the verified one (an older pending row becomes `SUPERSEDED`); payouts are held while one is pending. |
+| Ratings | `rating_avg_bps` on `branches`, `restaurants` and `partner_stats` (hundredths of a star) and `rating_count` are recomputed from published, undeleted `reviews` by the `review.changed` consumer. One review per order per target is the Phase 3 partial unique index. |
+
 ## 7. Running PostgreSQL locally
 
 - **Docker:** `pnpm infra:up` (PostGIS 16 on port 5432, plus `fos_test` and `fos_shadow`).

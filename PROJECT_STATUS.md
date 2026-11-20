@@ -4,12 +4,12 @@ _Last updated: 2026-11-21_
 
 ## Summary
 
-| Item              | Status                                                                                                                                                                                                                                                                                                                                                                                            |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 8 — Restaurant application: complete; Phase 9 awaiting go-ahead**                                                                                                                                                                                                                                                                                                                         |
-| Next phase        | Phase 9 — Delivery application                                                                                                                                                                                                                                                                                                                                                                    |
-| SRS version       | FOS-SRS-001 v0.8.0 (APPROVED 2026-11-21; v0.8.0 adds owner-approved D-13…D-15)                                                                                                                                                                                                                                                                                                                    |
-| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app) |
+| Item              | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase     | **Phase 9 — Delivery application: complete; D-16, D-17 and Phase 10 await the owner**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Next phase        | Phase 10 — Real-time                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| SRS version       | FOS-SRS-001 v0.8.0 (APPROVED 2026-11-21; v0.8.0 adds owner-approved D-13…D-15)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app); delivery partner onboarding, availability, dispatch, trip stages with geofences and proof, COD, earnings, cash, payouts view and bank changes (API and delivery web app); customer tracking; reviews and ratings |
 
 ## Phases
 
@@ -23,12 +23,36 @@ _Last updated: 2026-11-21_
 | 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                     |
 | 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 approved)               |
 | 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 approved)               |
-| 9 Delivery application        | Not started                                               |
+| 9 Delivery application        | ✅ Complete 2026-11-21 (D-16, D-17 open)                  |
 | 10 Real-time                  | Not started                                               |
 | 11 Admin                      | Not started                                               |
 | 12 Frontend integration       | Not started                                               |
 | 13 Testing & hardening        | Not started                                               |
 | 14 Finalization               | Not started                                               |
+
+## Phase 9 deliverables
+
+API plus the delivery partner web app. Live socket pushes (offers, location fan-out, tracking events) are Phase 10; until then the apps poll.
+
+| Area               | Delivered                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Partner onboarding | Application with details, PAN (encrypted, masked), Aadhaar last 4 only, emergency contact, vehicle, bank (encrypted), documents (motorized vehicles need DL, RC, insurance; licence expiry checked), age ≥ 18, checklist, submit, review decisions granting the partner role; profile and vehicle changes after approval; guidelines acknowledgement; zone list for applicants                                                                                                                                                                                                      |
+| Availability       | Online/offline with a fresh, accurate location fix and blockers (documents, vehicle, guidelines, cash cap), deferred offline during a trip, 15/30-minute breaks, location batches with spoofing checks (stored trail sampled), auto-offline after inactivity, outside zone or missed offers, today's dashboard                                                                                                                                                                                                                                                                      |
+| Dispatch           | Sequential single offers ranked by pickup ETA, ready alignment, idle time, acceptance, rating and load; 30 s offers, rounds at 3/5/8 km, bicycle limits, COD cash cap, exclusions; escalation with ops alert and 60 s retries; no-partner deadline cancels as a platform fault with a full refund; exactly-once acceptance (Redis lock + row locks); timeouts, rejections and withdrawals; self-healing sweeps                                                                                                                                                                      |
+| Trip stages        | Arrived at restaurant and at customer with geofences (outside → explicit confirm, flagged), pickup only when ready (or the restaurant's handover with the partner's pickup code, straight from preparing), ETA set at pickup, OTP proof (5 tries then lock + ops alert) or photo proof for contactless prepaid orders, COD collection into cash in hand, settlement, partner earnings and the tip, customer-unreachable flow, unassign before pickup with re-dispatch, silent-partner alert at 3 min and release at 5 min, compensation when an order is cancelled after acceptance |
+| Earnings           | Day/week/month summary with breakdown and daily totals (IST, Monday–Sunday weeks), statement with tips shown apart, per-delivery breakdown, cash in hand against the cap, next payout estimate (earnings − cash, minimum ₹100, on hold during a bank change) and payout history, 30-day acceptance/completion/on-time rates, aggregate ratings, masked bank details and bank change after re-authentication                                                                                                                                                                         |
+| Tracking           | Customer snapshot (status, ETA, restaurant and drop points, partner first name, vehicle and rating, live location with age and a stale flag, delivery code) and a rate-limited location poll; the partner's location is shared only from assignment until delivery, with a database fallback when Redis has no fix                                                                                                                                                                                                                                                                  |
+| Reviews            | Restaurant and partner ratings after delivery within 7 days, one per target, tags, up to 3 photos, text cleaned (phone numbers, e-mails, profanity), edit within 48 h, delete any time, my reviews; restaurant team reads reviews by outlet with filters, posts one response (editable 24 h) and reports; three independent reports hide a review; branch, restaurant and partner averages recomputed from the outbox                                                                                                                                                               |
+| Delivery web app   | Application form with uploads and checklist; shift screen with online/offline, breaks, blockers, guidelines, offer card with server-clock countdown, location reporting while online; trip screen per stage with pickup code, navigation links, geofence confirmation, OTP or photo proof and cash confirmation, give-back flow; earnings, trips and bank screens                                                                                                                                                                                                                   |
+
+## Verification notes (Phase 9)
+
+- ✅ 516 tests pass repo-wide; the API's 398 include 36 new Phase 9 integration and unit tests (onboarding, availability, dispatch, the full trip with COD/OTP/tip/handover/unassign/heartbeat/compensation, earnings, tracking, reviews, pay rules, ranking, earnings periods, moderation); the delivery app has 6 UI tests; a new test keeps every error code's default message present.
+- ✅ Browser check against the real API (port 4100, dev database, worker running): the seeded partner signed in by OTP, went online with a location fix, went offline, and the earnings page showed live data; the API logged no errors. A full trip in the browser was not possible because the seeded restaurants were closed at that hour (01:30 IST); the trip is covered end to end by the API integration tests and the app's UI tests.
+- Bugs found and fixed while building: error messages added since Phase 8 were silently missing from the default-message map; partner rating averages were read on the wrong scale (fixed to hundredths of a star, as SCHEMA-NOTES says); the partner ratings page first listed per-review ratings, against BR-REVIEW-006; test isolation between dispatch, availability and delivery files.
+- ⚠️ No socket pushes yet (Phase 10): offers, trip screens and tracking poll; the route polyline is empty until a routing provider exists.
+- ⚠️ Payout batches are created in Phase 11, so payout history is empty for now; the estimate is live.
+- ⚠️ CI still hasn't run (nothing pushed), so Phase 9 traceability rows are _Implemented_, not _Verified_.
 
 ## Phase 8 deliverables
 
@@ -181,7 +205,10 @@ Backend APIs for the customer app (screens follow in Phase 12). Typed client wra
 
 ## Known discrepancies (SRS vs implementation)
 
-- None open.
+Open — for the owner to decide:
+
+- **D-16 — zone list for partner applicants.** API-DP-002 needs a preferred zone id, but the only zone listing is the admin API-ADM-120. Added `GET /partner/zones` (applicants, active zones: id, name, city). Proposal: add it to the API specification as API-DP-022.
+- **D-17 — what partners see of their ratings.** FR-REV-002 promises "aggregate and anonymized feedback"; BR-REVIEW-006 says "averages and tag counts only, never customer identity or per-order rating". Implemented: average, count, star distribution and tag counts; written comments only once the partner has ≥ 5 ratings, sorted alphabetically, with no rating or date. Proposal: write this into BR-REVIEW-006 (comment threshold 5 ⚙), or drop comments entirely.
 
 Resolved:
 
@@ -190,7 +217,7 @@ Resolved:
 - D-9 resolved 2026-11-20 by owner decision (“Approve D-9”, SRS v0.6.0): `cart_items.unit_amount_seen` is part of §15.
 - Earlier: D-1…D-3 (v0.3.0), D-4…D-6 (v0.4.0), D-7…D-8 (v0.5.0); v0.3.1, v0.4.1 and v0.5.1 were editorial.
 
-Not discrepancies (planned later): handover with pickup code (API-RORD-009), partner card and delay visibility (Phase 9); reviews (API-REV, API-RREV) and popularity/trending — proposed for Phase 9 with partner ratings after delivery; new branches (API-MER-015), KDS device pairing, activity log, ownership transfer, stock counts, schedules, combos, bulk edits (CORE); admin review console for applications and change requests (Phase 11); avatar upload (Phase 12); delivery, tracking (API-TRK), COD collection, tip settlement to partners, partner compensation and T14 at the no-partner deadline (Phase 9); live socket events (Phase 10); support agent tools, refund approvals above limits, invoice content legal review (Phase 11); real SMS/email/push provider adapters (the roadmap lists SMS/email adapters under Phase 7; only the adapter seam and dev sinks exist — needs provider choice and credentials); quiet hours and apology coupons (CORE); dispatch load factor in checkout ETAs (Phase 9); reconciliation reports, refund approvals, promo-credit expiry, settings editing and per-zone payment methods (Phase 11); linked zones, item schedules, data export, OAuth, account recovery and TOTP (CORE).
+Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt 30 min after delivery (FR-REV-007, CORE), SOS (API-DP-021, CORE), manual assignment and its acknowledgement (API-DPDEL-012, Phase 11), incentives (API-EARN-004, CORE), payout batches, cash deposits and earning adjustments (Phase 11), socket offers/tracking/ETA pushes (Phase 10), route polylines (needs a routing provider), popularity/trending; new branches (API-MER-015), KDS device pairing, activity log, ownership transfer, stock counts, schedules, combos, bulk edits (CORE); admin review console for applications and change requests (Phase 11); avatar upload (Phase 12); live socket events (Phase 10); support agent tools, refund approvals above limits, invoice content legal review (Phase 11); real SMS/email/push provider adapters (the roadmap lists SMS/email adapters under Phase 7; only the adapter seam and dev sinks exist — needs provider choice and credentials); quiet hours and apology coupons (CORE); dispatch load factor in checkout ETAs (Phase 9); reconciliation reports, refund approvals, promo-credit expiry, settings editing and per-zone payment methods (Phase 11); linked zones, item schedules, data export, OAuth, account recovery and TOTP (CORE).
 
 ## Modules
 
@@ -204,17 +231,18 @@ Not discrepancies (planned later): handover with pickup code (API-RORD-009), par
 | pricing, checkout (cart, sessions), offers, ledger (wallet), payments (refunds)                                           | Implemented (Phase 6)     |
 | orders (creation, transitions, timers, cancellations, settlement, invoices, issues), support, notifications, outbox relay | Implemented (Phase 7)     |
 | files, merchant (onboarding, profile, outlets, menu, staff, analytics), restaurant order handling                         | Implemented (Phase 8)     |
-| Other domain modules (delivery, dispatch, reviews, admin)                                                                 | Designed; not implemented |
+| partners (onboarding, availability, presence, earnings, finance), dispatch (offers, stages, tracking), reviews            | Implemented (Phase 9)     |
+| admin                                                                                                                     | Designed; not implemented |
 
 ## APIs
 
-- Implemented (218 of 494): Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
-- Planned: 276 remaining in `docs/requirements/API-SPECIFICATION.md` (API-RORD-009 handover and API-TRK move to Phase 9).
+- Implemented (273 of 494): Phase 8's 218 plus API-DP-001…020, API-DPDEL-001…011 and 013, API-RORD-009, API-EARN-001…003 and 005…012, API-TRK-001/002, API-REV-001…005, API-RREV-001…004 (Phase 9). Extra: `GET /partner/zones` (D-16). Phase 8 added: Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
+- Planned: 221 remaining in `docs/requirements/API-SPECIFICATION.md`.
 
 ## UI pages
 
-- Implemented: app shells for all four apps (404, route error); shared auth screens (sign-in, sign-up, verify phone/email, password recovery, security); restaurant app: application form, orders, kitchen display, menu, outlet, team, dashboard, invitation acceptance (8 of 24).
-- Planned: customer 21, restaurant 16, delivery 19, admin 31 feature pages (map pin picker, full dish editor with variants/options, holidays UI, analytics charts and settlements come in Phase 12).
+- Implemented: app shells for all four apps (404, route error); shared auth screens (sign-in, sign-up, verify phone/email, password recovery, security); restaurant app: application form, orders, kitchen display, menu, outlet, team, dashboard, invitation acceptance (8 of 24); delivery app: application, shift with offers, trip, earnings, trips, bank (6 of 19).
+- Planned: customer 21, restaurant 16, delivery 13, admin 31 feature pages (map pin picker, full dish editor with variants/options, holidays UI, analytics charts and settlements come in Phase 12).
 
 ## Database migrations
 
@@ -232,6 +260,18 @@ Not discrepancies (planned later): handover with pickup code (API-RORD-009), par
 ## Known bugs
 
 - None known.
+
+## Technical decisions (Phase 9)
+
+- Live partner state (presence, zone GEO set, offer slots) lives in Redis; the database keeps a copy of the last location at most once a minute, which tracking and admin fall back to.
+- Dispatch is single-flight per delivery (Redis lock) and acceptance is exactly-once through row locks plus the one-active-delivery index; the Redis locks only reduce contention.
+- Delivery transitions go through one table-driven helper that stamps times, writes history and an outbox event, so every stage is audited the same way.
+- The delivery OTP is checked in its own transaction before completion, so failed attempts are counted even though completion rolls back.
+- Partner pay, tips and compensation are ledger postings (platform delivery cost → partner payable; tip from the order's liability), so a delivered order still settles to zero and payouts can be computed from balances.
+- Earnings periods use IST calendar days and Monday–Sunday weeks; performance rates are computed from the source rows over 30 days rather than from cached counters.
+- Rating averages are recomputed from the outbox (`review.changed`, JOB-REV-001) rather than in the request, so a burst of reviews costs one recompute each and the request stays fast.
+- Restaurant teams see a reviewer's first name only; partners never see per-review ratings (D-17).
+- The partner app polls (offer 5 s, availability 15 s, trip 15 s) and sends location batches every 5 s on a trip and 30 s otherwise, until sockets arrive in Phase 10.
 
 ## Technical decisions (Phase 8)
 
@@ -296,6 +336,11 @@ Not discrepancies (planned later): handover with pickup code (API-RORD-009), par
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 9
+
+- No new packages. `.claude/launch.json` (git-ignored) gained a `delivery-web` entry; the API (port 4100), worker and delivery app were started for the browser check and stopped afterwards. Port 4000 was not touched.
+- Dev database: the seeded partner +919000000401 went online and offline (online session rows), one OTP sign-in each for that partner, the seeded customer and the seeded manager, plus one saved address and one cart item for the seeded customer (checkout stopped because the restaurant was closed); no orders were created.
+
 ## Machine changes made during Phase 8
 
 - npm packages added to `@fos/api`: `sharp` (prebuilt binary; its install script was not run and isn't needed), `busboy`, `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, and `@types/busboy` (dev).
@@ -330,7 +375,8 @@ Not discrepancies (planned later): handover with pickup code (API-RORD-009), par
 
 ## Next steps
 
-1. Owner go-ahead for Phase 9 (delivery application: partner onboarding and documents, availability, dispatch, delivery stages with geofences, pickup/handover codes, OTP/photo/COD completion, earnings, cash in hand; plus reviews and partner ratings).
+1. Owner decision on D-16 and D-17.
+2. Owner go-ahead for Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
 
 ## TODO
 
@@ -341,6 +387,9 @@ Not discrepancies (planned later): handover with pickup code (API-RORD-009), par
 - [x] Decide D-10…D-12 (approved 2026-11-20)
 - [x] Phase 8
 - [x] Decide D-13…D-15 (approved 2026-11-21)
+- [x] Phase 9
+- [ ] Decide D-16, D-17
+- [ ] Walk a full trip in the browser during restaurant hours
 - [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)

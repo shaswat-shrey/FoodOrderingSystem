@@ -124,6 +124,10 @@ Keep the worker running while testing orders: it runs the outbox relay (an order
 
 Run the API, the worker and `pnpm --filter @fos/restaurant-web dev` (port 5174, proxied to the API). Seeded staff of Saffron Handi Biryani sign in by mobile OTP (codes appear in `.local/dev-messages.log`): owner `9000000201`, manager `9000000301`, kitchen `9000000302`. A new user who signs up in the restaurant app gets the application form. Uploads use the local storage driver (`STORAGE_DRIVER=local`, files under `.local/storage`, served by the API); set `STORAGE_DRIVER=s3` with the SeaweedFS settings to use object storage. PAN and bank numbers are encrypted with `FIELD_ENCRYPTION_KEYS` (derived from `AUTH_HMAC_SECRET` when unset outside production).
 
+### Delivery app during development
+
+Run the API, the worker and `pnpm --filter @fos/delivery-web dev` (port 5175, proxied to the API; set `VITE_API_PROXY_TARGET` if the API is not on port 4000). Seeded partners sign in by mobile OTP: `9000000401`…`9000000406` (406 rides a bicycle). A new user who signs up in the delivery app gets the application form. Going online needs a location fix, so allow location access in the browser; offers arrive only while the restaurant is open and the worker is running (it creates deliveries from accepted orders and runs dispatch, offer timeouts and the sweeps). The app polls until live updates arrive in Phase 10. The customer delivery code is shown on the order's tracking page (`GET /api/v1/orders/{id}/tracking`).
+
 To run the API and worker in containers instead of on the host:
 
 ```bash
