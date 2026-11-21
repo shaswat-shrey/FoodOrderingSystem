@@ -114,10 +114,10 @@ export function discoveryRouter(deps: DiscoveryRouterDeps): Router {
 
   router.get(
     '/order-again',
+    // Signed-in customers only: decided before the query is validated.
+    (_req, res, next) => next(customerId(res) ? undefined : new AppError('AUTH_TOKEN_MISSING')),
     handle({ query: schema.latLngQuery }, async ({ query, res }) => {
-      const userId = customerId(res);
-      if (!userId) throw new AppError('AUTH_TOKEN_MISSING');
-      sendOk(res, await discovery.orderAgain(query, userId));
+      sendOk(res, await discovery.orderAgain(query, customerId(res)!));
     }),
   );
 

@@ -115,9 +115,10 @@ export function couponsRouter(deps: OffersRouterDeps): Router {
 
   router.post(
     '/validate',
+    // Signed-in customers only: decided before the body is validated.
+    (_req, res, next) => next(customerId(res) ? undefined : new AppError('AUTH_TOKEN_MISSING')),
     handle({ body: codeBody }, async ({ body, res }) => {
-      const userId = customerId(res);
-      if (!userId) throw new AppError('AUTH_TOKEN_MISSING');
+      const userId = customerId(res)!;
       try {
         const { coupon } = await tryCoupon(deps, userId, body.code, false);
         sendOk(res, { valid: true, ...coupon, reason: null });
