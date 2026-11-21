@@ -6,9 +6,9 @@ _Last updated: 2026-11-21_
 
 | Item              | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 13 — Testing & hardening: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Next phase        | Phase 14 — Finalization                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| SRS version       | FOS-SRS-001 v0.11.0 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19; v0.10.1 editorial; v0.11.0 adds D-20)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Current phase     | **Phase 14 — Finalization: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Next phase        | MVP release                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| SRS version       | FOS-SRS-001 v0.11.1 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19; v0.10.1 editorial; v0.11.0 adds D-20; v0.11.1 editorial)                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app); delivery partner onboarding, availability, dispatch, trip stages with geofences and proof, COD, earnings, cash, payouts view and bank changes (API and delivery web app); customer tracking; reviews and ratings |
 
 ## Phases
@@ -27,8 +27,25 @@ _Last updated: 2026-11-21_
 | 10 Real-time                  | ✅ Complete 2026-11-21 (D-18, D-19 decided)               |
 | 11 Admin                      | ✅ Complete 2026-11-21                                    |
 | 12 Frontend integration       | ✅ Complete 2026-11-21 (D-20 decided)                     |
-| 13 Testing & hardening        | Not started                                               |
+| 13 Testing & hardening        | ✅ Complete 2026-11-21                                    |
 | 14 Finalization               | Not started                                               |
+
+## Phase 13 deliverables
+
+| Area               | Delivered                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| End-to-end         | Playwright on an isolated stack (own database `fos_e2e`, Redis indexes 13/14, ports 4300/5373–5376): one order across customer, restaurant and partner browsers with live updates (AC-E2E-001…003); payment retry, restaurant rejection, partner rejection, cancellation fee, no partner, refresh-token theft (004…009); axe on key pages of all four apps; runs in CI                              |
+| Resilience         | Redis outage no longer hangs requests: caches skipped, in-memory rate limits, fast-failing producers, dispatch pauses with an alert, outbox relay waits, a worker watchdog raises and clears `REDIS_UNAVAILABLE` (AC-NFR-004)                                                                                                                                                                       |
+| Security           | Log scan for secrets and phone numbers (AC-NFR-003) with wider redaction; authorization matrix over all 396 mounted routes × six roles; API headers (strict CSP, frame denial, referrer and permissions policies), CORS credentials only on /auth; production dependency audit down to 2 low advisories                                                                                             |
+| Quality gates      | Coverage measured and enforced in CI (API 93 % statements, 81 % branches); CI fixed (Prisma client generation, Docker images) and green                                                                                                                                                                                                                                                             |
+| Performance        | k6 scripts for discovery, menu, checkout/order placement, location ingestion and socket fan-out with NFR-PERF thresholds, plus a Node smoke script                                                                                                                                                                                                                                                  |
+| Fixes from testing | Refresh race on page navigation (successor token handed back inside the grace window); partner told about restaurant handover (EVT-DP-016); socket connection limit counted per client behind a proxy; customer sees "Finding a delivery partner" immediately; confirmations no longer vanish; payment-failure copy; contrast and keyboard issues; two routes validated input before authentication |
+
+## Verification notes (Phase 13)
+
+- ✅ 625 unit/integration tests pass (API 456) and the E2E suite passes locally (25 tests, about 3 minutes) and in GitHub Actions.
+- ⚠️ Load tests are written but not run (no staging environment, k6 not installed here). Dev-only advisories remain in vitest 3's dependencies (fix needs vitest 4).
+- ⚠️ Coverage below the strategy's domain target in `realtime/room-policy.ts`, the api-client and validation packages.
 
 ## Phase 12 deliverables
 
@@ -402,6 +419,10 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 13
+
+- Created the database `fos_e2e` on the project Postgres (5433) for the E2E suite; Redis indexes 13 and 14 are used by it. Logs and run files go to `.local/e2e` (git-ignored). Dependency upgrades: sharp 0.35.5 and overrides for fast-xml-parser, uuid, effect and deepmerge-ts.
+
 ## Machine changes made during Phase 12
 
 - `.claude/launch.json` (git-ignored) gained `api-4100-c5183` and `customer-web-5183` for the customer check (5173 is another project's dev server and was left running). The API, worker and customer app were stopped afterwards.
@@ -454,7 +475,7 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## Next steps
 
-1. Phase 13 (testing and hardening) — in progress; then Phase 14 (finalization).
+1. Phase 14 (finalization) — in progress.
 2. (Earlier plan) Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
 
 ## TODO
@@ -468,14 +489,15 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - [x] Decide D-13…D-15 (approved 2026-11-21)
 - [x] Phase 9
 - [x] Decide D-16, D-17 (standing instruction, 2026-11-21)
-- [ ] Walk a full trip in the browser during restaurant hours
+- [x] Walk a full trip in the browser (E2E journey, 2026-11-21)
 - [x] Phase 10
 - [x] Phase 11
 - [x] Phase 12
+- [x] Phase 13
 - [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)
-- [ ] Push to GitHub so CI runs (moves §22.1a–g rows to _Verified_)
+- [x] Push to GitHub so CI runs — CI is green (2026-11-21)
 - [ ] Exercise the Razorpay adapter in Razorpay test mode (needs test keys)
 - [ ] Dedicated test for idle/absolute session expiry (FR-AUTH-023)
 - [x] Phase 7–8 writers bump `branches.menu_version` on menu, availability, status and stock changes (SCHEMA-NOTES §6a)

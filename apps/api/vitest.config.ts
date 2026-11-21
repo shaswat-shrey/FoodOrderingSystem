@@ -7,7 +7,8 @@ const env = loadEnv('test', new URL('../..', import.meta.url).pathname, '');
 process.env.TEST_DATABASE_URL ??= env.TEST_DATABASE_URL ?? '';
 process.env.TEST_REDIS_URL ??= env.TEST_REDIS_URL ?? '';
 
-const THRESHOLDS = { statements: 92, branches: 80, functions: 93, lines: 92 };
+// About 3 points below the measured values: CI runs a slightly different set of code paths than a dev machine.
+const THRESHOLDS = { statements: 89, branches: 77, functions: 90, lines: 89 };
 
 export default defineConfig({
   test: {

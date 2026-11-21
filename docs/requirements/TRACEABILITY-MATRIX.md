@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.11.0 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews), §22.1i (real-time), §22.1j (administration) and §22.1k (user interfaces).
+> Part of FOS-SRS-001 v0.11.1 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews), §22.1i (real-time), §22.1j (administration), §22.1k (user interfaces) and §22.1l (testing and hardening).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -332,6 +332,22 @@ Code: `apps/customer-web/src`, `apps/restaurant-web/src`, `apps/delivery-web/src
 | §17.1.4 delivery interface, FR-DP-004/005 | Live trip notices, partner profile with emergency contact, zone and vehicles | Implemented (vehicle edit API-DP-011 has no route yet) |
 | NFR-ACCESS-001 | Labels, aria-live status changes, ≥ 44 px targets, landmarks | Implemented in the new screens; a full audit is Phase 13 |
 
+## 22.1l Testing and hardening in Phase 13
+
+Code and tests: `tests/e2e` (Playwright, full stack on an isolated `fos_e2e` database), `tests/load` (k6 scripts), `apps/api/test/{log-scan,redis-outage,authorization-matrix,security-headers}.integration.test.ts`, coverage thresholds per workspace, resilience changes in `apps/api/src/platform/{redis,rate-limit}.ts`, `modules/auth/session.service.ts`, `apps/worker`.
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| AC-E2E-001…003 | One order across customer, restaurant and partner browsers, live at every stage | Verified locally and in CI (E2E job) |
+| AC-E2E-004…009 | Payment retry, restaurant rejection, partner rejection, cancellation fee, no partner, refresh-token theft | Verified locally and in CI |
+| AC-NFR-002 | axe: zero serious/critical violations on key pages of all four apps (desktop and mobile) | Verified |
+| AC-NFR-003, NFR-SEC-014 | Log scan over sign-up, OTP, login, refresh, replay, payments and orders; redaction extended | Verified |
+| AC-NFR-004, NFR-AVAIL-004 | Redis outage: sign-in, refresh and ordering keep working; dispatch pauses with an alert; outbox drains on recovery | Verified (socket pushes skipped during the outage; clients resync) |
+| NFR-SEC-001, 006, 008, 009 | API security headers (CSP, frame, referrer, permissions), HSTS, CORS credentials only on /auth, refresh cookie flags | Verified for the API; web-app hosting headers are in the deployment guide (Phase 14) |
+| Authorization matrix (TESTING-STRATEGY §2) | Every mounted route × six role fixtures; wrong role never gets 2xx | Verified |
+| AC-NFR-001, NFR-PERF-001…013 | k6 scripts with thresholds from the peak profile | Scripts ready; to be run on staging (k6 not installed locally) |
+| Quality gates (TESTING-STRATEGY §4) | Coverage thresholds in CI (API 93 % statements); dependency audit (production: 2 low remaining) | Implemented |
+
 ## 22.2 Non-functional requirements
 
 | Requirement IDs | Verification method | Test / evidence | Status |
@@ -375,3 +391,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-21 | 0.10.0 | Phase 10: added §22.1i (real-time); D-18 (FR-RT-021 liveness) and D-19 (§13.1 version rule) decided under the owner's standing instruction. |
 | 2026-11-21 | 0.10.1 | Phase 11: added §22.1j (administration); §19.2 lists codes from Phases 9–11 (editorial). |
 | 2026-11-21 | 0.11.0 | Phase 12: added §22.1k (user interfaces); D-20 API-RFIN-006 decided under the owner's standing instruction. |
+| 2026-11-21 | 0.11.1 | Phase 13: added §22.1l (testing and hardening); EVT-DP-016 added to §13.5 (editorial, new push of existing state). |

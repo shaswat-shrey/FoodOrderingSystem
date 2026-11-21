@@ -10,7 +10,7 @@
 | Business rules (`BR-*`) | 161 |
 | Acceptance criteria (`AC-*`) | 96 |
 | API endpoints (`API-*`) | 496 |
-| Real-time events (`EVT-*`) | 49 |
+| Real-time events (`EVT-*`) | 50 |
 
 Integrity: **0** duplicate definitions, **0** references to undefined IDs.
 
@@ -1337,6 +1337,7 @@ Integrity: **0** duplicate definitions, **0** references to undefined IDs.
 | EVT-DP-013 | `delivery.instructions_updated` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
 | EVT-DP-014 | `partner.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
 | EVT-DP-015 | `earnings.updated` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
+| EVT-DP-016 | `delivery.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
 | EVT-NTF-001 | `notification.created` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
 | EVT-ORD-001 | `order.created` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
 | EVT-ORD-002 | `order.status_changed` |  |  | [REALTIME-REQUIREMENTS.md](REALTIME-REQUIREMENTS.md) |
