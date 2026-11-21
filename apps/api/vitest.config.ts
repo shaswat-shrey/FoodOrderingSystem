@@ -7,6 +7,8 @@ const env = loadEnv('test', new URL('../..', import.meta.url).pathname, '');
 process.env.TEST_DATABASE_URL ??= env.TEST_DATABASE_URL ?? '';
 process.env.TEST_REDIS_URL ??= env.TEST_REDIS_URL ?? '';
 
+const THRESHOLDS = { statements: 92, branches: 80, functions: 93, lines: 92 };
+
 export default defineConfig({
   test: {
     environment: 'node',
@@ -14,5 +16,13 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 30_000,
     hookTimeout: 120_000,
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/**/index.ts', 'src/server.ts'],
+      reporter: ['text-summary', 'json-summary'],
+      // Just below the measured values (Phase 13); raise as coverage grows.
+      thresholds: THRESHOLDS,
+    },
   },
 });

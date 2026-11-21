@@ -51,7 +51,8 @@ jobs:
       - run: pnpm typecheck
       - name: Create shadow database
         run: PGPASSWORD=fos_ci_password psql -h localhost -U fos -d fos_test -c 'CREATE DATABASE fos_shadow'
-      - run: pnpm test
+      # Unit + integration tests; API and packages enforce coverage thresholds (TESTING-STRATEGY §4).
+      - run: pnpm test:coverage
       - name: Migration drift check (migrations == schema)
         run: pnpm --filter @fos/db db:drift
       - run: pnpm build
