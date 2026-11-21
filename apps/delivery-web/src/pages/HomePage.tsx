@@ -116,19 +116,22 @@ function Shift({ application }: { application: PartnerApplication }) {
           <p className="mb-2 text-sm text-gray-700">You will go offline after this delivery.</p>
         )}
         <div className="flex flex-wrap gap-2">
+          {/* Separate keys: reusing one <button> for both made its colours fade between
+              variants under white text (and "Go offline" showed while loading). */}
           {a?.state === 'OFFLINE' ? (
-            <Button loading={online.isPending} onClick={() => online.mutate()}>
+            <Button key="online" loading={online.isPending} onClick={() => online.mutate()}>
               Go online
             </Button>
-          ) : (
+          ) : a ? (
             <Button
+              key="offline"
               variant="secondary"
               loading={offline.isPending}
               onClick={() => offline.mutate()}
             >
               Go offline
             </Button>
-          )}
+          ) : null}
           {a?.state === 'ONLINE_IDLE' && (
             <>
               <Button variant="ghost" onClick={() => pause.mutate(15)}>
