@@ -67,11 +67,12 @@ async function start(expiryGraceMs = 60_000) {
   url = `http://localhost:${(httpServer.address() as AddressInfo).port}`;
 }
 
-function client(namespace: string, token?: string) {
+function client(namespace: string, token?: string, ip?: string) {
   const socket = connect(`${url}${namespace}`, {
     transports: ['websocket'],
     auth: token ? { token } : {},
     reconnection: false,
+    ...(ip ? { extraHeaders: { 'X-Forwarded-For': ip } } : {}),
   });
   clients.push(socket);
   return socket;
@@ -166,6 +167,22 @@ describe('socket gateway authentication (FR-RT-001..004)', () => {
     // Connections race, so check counts rather than order: 20 allowed attempts, 1 limited.
     expect(results.filter((e) => e.data?.code === 'RATE_LIMITED')).toHaveLength(1);
     expect(results.filter((e) => e.data?.code === 'AUTH_TOKEN_INVALID')).toHaveLength(20);
+  });
+
+  it('counts connections per client behind the reverse proxy, not per proxy address', async () => {
+    // Many users reach the gateway through one proxy hop (X-Forwarded-For, trust proxy = 1).
+    const users = await Promise.all(
+      Array.from({ length: 25 }, (_, i) =>
+        rejected(client('/customer', 'ADMIN:x:y:0', `203.0.113.${i + 1}`)),
+      ),
+    );
+    expect(users.filter((e) => e.data?.code === 'RATE_LIMITED')).toHaveLength(0);
+    const one = await Promise.all(
+      Array.from({ length: 21 }, () =>
+        rejected(client('/customer', 'ADMIN:x:y:0', '198.51.100.7, 203.0.113.200')),
+      ),
+    );
+    expect(one.filter((e) => e.data?.code === 'RATE_LIMITED')).toHaveLength(1);
   });
 });
 

@@ -116,6 +116,19 @@ type Ack = (r: { ok: boolean; code?: string; room?: string }) => void;
 const ackOf = (fn: unknown): Ack => (typeof fn === 'function' ? (fn as Ack) : () => undefined);
 
 /**
+ * The client's address as Express sees it with `trust proxy` = 1 (platform/http/app.ts):
+ * the last X-Forwarded-For hop, added by our reverse proxy. Without this every socket
+ * behind Nginx (or the dev/preview proxy) shares the proxy's address, and the per-IP
+ * connection limit (FR-RT-007) throttles all users together.
+ */
+export function handshakeIp(socket: Pick<Socket, 'handshake'>): string {
+  const forwarded = socket.handshake.headers['x-forwarded-for'];
+  const header = Array.isArray(forwarded) ? forwarded.join(',') : forwarded;
+  const last = header?.split(',').at(-1)?.trim();
+  return last || socket.handshake.address || 'unknown';
+}
+
+/**
  * Socket.IO gateway (SRS §13, SYSTEM-ARCHITECTURE §8). One namespace per app;
  * handshake authentication mirrors REST; revocations broadcast on the control
  * channel disconnect the affected sockets on every instance (FR-RT-004).
@@ -152,7 +165,7 @@ export function createSocketServer(httpServer: HttpServer, options: SocketServer
 
     nsp.use(async (socket, next) => {
       try {
-        const ip = socket.handshake.address || 'unknown';
+        const ip = handshakeIp(socket);
         const limit = await options.limiter.hit(`rt:connect:${ip}`, 20, 60);
         if (!limit.allowed)
           throw new SocketAuthError('RATE_LIMITED', 'Too many connection attempts.');
@@ -186,7 +199,7 @@ export function createSocketServer(httpServer: HttpServer, options: SocketServer
       const forbidden = () => {
         // FR-RT-010/026: repeated probing disconnects the socket and is logged.
         options.logger.warn(
-          { userId: data.userId, app, ip: socket.handshake.address },
+          { userId: data.userId, app, ip: handshakeIp(socket) },
           'forbidden subscription',
         );
         if (!allow(data, 'forbidden', 20, 60_000)) socket.disconnect(true);
