@@ -84,6 +84,13 @@ export default tseslint.config(
     },
   },
   {
+    // k6 load scripts (tests/load): k6's own runtime globals.
+    files: ['tests/load/**/*.js'],
+    languageOptions: {
+      globals: { __ENV: 'readonly', __VU: 'readonly', __ITER: 'readonly', open: 'readonly' },
+    },
+  },
+  {
     files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', 'tests/**'],
     rules: { 'no-console': 'off' },
   },
