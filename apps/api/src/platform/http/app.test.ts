@@ -105,6 +105,59 @@ describe('HTTP platform', () => {
       .set('Origin', 'https://evil.example');
     expect(denied.headers['access-control-allow-origin']).toBeUndefined();
   });
+
+  it('NFR-SEC-001/006/008 sends the API security headers', async () => {
+    const res = await request(makeApp()).get('/health/live');
+    const csp = res.headers['content-security-policy'];
+    expect(csp).toContain("default-src 'none'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).not.toContain('unsafe-inline');
+    expect(res.headers['strict-transport-security']).toBe('max-age=31536000; includeSubDomains');
+    expect(res.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(res.headers['x-frame-options']).toBe('DENY');
+    expect(res.headers['permissions-policy']).toContain('geolocation=()');
+    expect(res.headers['cross-origin-resource-policy']).toBe('same-origin');
+  });
+
+  it('NFR-SEC-009 allows credentials only on auth routes', async () => {
+    const origin = 'http://localhost:5173';
+    const auth = await request(makeApp())
+      .options('/api/v1/auth/refresh')
+      .set('Origin', origin)
+      .set('Access-Control-Request-Method', 'POST');
+    expect(auth.headers['access-control-allow-origin']).toBe(origin);
+    expect(auth.headers['access-control-allow-credentials']).toBe('true');
+    const other = await request(makeApp())
+      .options('/api/v1/orders')
+      .set('Origin', origin)
+      .set('Access-Control-Request-Method', 'POST');
+    expect(other.headers['access-control-allow-origin']).toBe(origin);
+    expect(other.headers['access-control-allow-credentials']).toBeUndefined();
+    expect(other.headers['access-control-allow-headers']).toContain('Authorization');
+  });
+});
+
+describe('refresh cookie flags (NFR-SEC-007, ADR-003)', () => {
+  it('is HttpOnly, Secure in production, SameSite=Strict and scoped to /api/v1/auth', async () => {
+    const { setRefreshCookie, clearRefreshCookie } = await import('../../modules/auth/cookies');
+    const app = express();
+    app.get('/set', (_req, res) => {
+      const now = new Date();
+      setRefreshCookie(res, 'CUSTOMER', 'tok', new Date(now.getTime() + 60_000), true, now);
+      res.end();
+    });
+    app.get('/clear', (_req, res) => {
+      clearRefreshCookie(res, 'CUSTOMER', true);
+      res.end();
+    });
+    const set = String((await request(app).get('/set')).headers['set-cookie']);
+    expect(set).toMatch(/^fos_rt_customer=tok;/);
+    for (const flag of ['HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/api/v1/auth', 'Max-Age=60'])
+      expect(set).toContain(flag);
+    const cleared = String((await request(app).get('/clear')).headers['set-cookie']);
+    expect(cleared).toContain('Path=/api/v1/auth');
+    expect(cleared).toMatch(/Expires=Thu, 01 Jan 1970/);
+  });
 });
 
 describe('error handler (ERR-002/004)', () => {

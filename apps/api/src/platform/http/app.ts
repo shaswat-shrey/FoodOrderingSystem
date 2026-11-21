@@ -11,6 +11,28 @@ import { requestId } from './middleware/request-id';
 import { requestLogger } from './middleware/request-logger';
 import { requireJsonBody } from './middleware/require-json';
 
+/**
+ * NFR-SEC-006/008 for a JSON API: nothing may be loaded, framed or submitted on the
+ * API's origin; HSTS for a year with subdomains (NFR-SEC-001); referrers per spec.
+ */
+export const SECURITY_HEADERS = {
+  contentSecurityPolicy: {
+    useDefaults: false,
+    directives: {
+      defaultSrc: ["'none'"],
+      baseUri: ["'none'"],
+      formAction: ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+  frameguard: { action: 'deny' as const },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' as const },
+  strictTransportSecurity: { maxAge: 31_536_000, includeSubDomains: true },
+};
+
+export const PERMISSIONS_POLICY =
+  'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()';
+
 export interface AppDependencies {
   logger: Logger;
   corsOrigins: string[];
@@ -38,22 +60,29 @@ export function createApp({
 
   app.use(requestId());
   app.use(requestLogger(logger));
-  app.use(helmet()); // NFR-SEC-008
+  app.use(helmet(SECURITY_HEADERS)); // NFR-SEC-006/008
+  app.use((_req, res, next) => {
+    // NFR-SEC-008: the API needs no browser features.
+    res.setHeader('Permissions-Policy', PERMISSIONS_POLICY);
+    next();
+  });
   app.use(
-    cors({
-      origin: corsOrigins, // NFR-SEC-009: explicit allowlist
-      // Credentials (the refresh cookie) only matter for /auth; other routes use bearer tokens.
-      credentials: true,
-      allowedHeaders: [
-        'Authorization',
-        'Content-Type',
-        'X-Client-App',
-        'X-Request-Id',
-        'Idempotency-Key',
-        'If-Match',
-      ],
-      exposedHeaders: ['x-request-id', 'idempotent-replayed', 'retry-after'],
-    }),
+    cors((req, callback) =>
+      callback(null, {
+        origin: corsOrigins, // NFR-SEC-009: explicit allowlist
+        // NFR-SEC-009: credentials (the refresh cookie) only for /auth; elsewhere bearer tokens.
+        credentials: req.url?.startsWith(`${API_PREFIX}/auth/`) ?? false,
+        allowedHeaders: [
+          'Authorization',
+          'Content-Type',
+          'X-Client-App',
+          'X-Request-Id',
+          'Idempotency-Key',
+          'If-Match',
+        ],
+        exposedHeaders: ['x-request-id', 'idempotent-replayed', 'retry-after'],
+      }),
+    ),
   );
 
   app.use(healthRouter(readiness, logger));

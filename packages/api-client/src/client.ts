@@ -92,7 +92,8 @@ export interface ApiClient {
 
 type RetriableConfig = InternalAxiosRequestConfig & { _authRetried?: boolean };
 
-const REFRESH_PATH = '/api/v1/auth/refresh';
+const AUTH_PATH_PREFIX = '/api/v1/auth/';
+const REFRESH_PATH = `${AUTH_PATH_PREFIX}refresh`;
 const RETRY_ON = new Set(['AUTH_TOKEN_EXPIRED', 'AUTH_TOKEN_INVALID']);
 
 export function createApiClient({
@@ -109,12 +110,13 @@ export function createApiClient({
     baseURL,
     timeout: 15_000,
     headers: { Accept: 'application/json' },
-    // Cookies are scoped to /api/v1/auth; sending credentials elsewhere is harmless.
-    withCredentials: true,
+    // NFR-SEC-009: the refresh cookie (path /api/v1/auth) is the only credential the
+    // browser sends; the interceptor below enables it for auth calls only.
     ...(adapter ? { adapter } : {}),
   });
 
   http.interceptors.request.use((config) => {
+    config.withCredentials = (config.url ?? '').startsWith(AUTH_PATH_PREFIX);
     config.headers.set(CLIENT_APP_HEADER, clientApp);
     if (!config.headers.has(REQUEST_ID_HEADER))
       config.headers.set(REQUEST_ID_HEADER, newRequestId());
@@ -160,7 +162,7 @@ export function createApiClient({
     if (!(error instanceof AxiosError) || !error.config) throw error;
     const config = error.config as RetriableConfig;
     const failure = toClientError(error);
-    const isAuthCall = (config.url ?? '').startsWith('/api/v1/auth/');
+    const isAuthCall = (config.url ?? '').startsWith(AUTH_PATH_PREFIX);
     if (
       error.response?.status === 401 &&
       RETRY_ON.has(failure.code) &&

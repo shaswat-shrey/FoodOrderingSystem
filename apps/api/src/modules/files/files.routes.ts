@@ -174,6 +174,8 @@ export function localMediaRouter(deps: Pick<FilesRouterDeps, 'files' | 'clock'>)
       // The web apps run on other origins; helmet's default same-origin would block <img>.
       res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
       if (type === 'application/pdf') res.setHeader('Content-Disposition', 'inline');
+      // The API's own CSP is default-src 'none'; a document opened in a tab needs its viewer.
+      res.setHeader('Content-Security-Policy', "default-src 'self'; frame-ancestors 'none'");
       res.setHeader(
         'Cache-Control',
         bucket === 'public' ? 'public, max-age=31536000, immutable' : 'private, no-store',

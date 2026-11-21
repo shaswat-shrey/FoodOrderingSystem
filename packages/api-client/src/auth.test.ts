@@ -120,6 +120,21 @@ describe('auth client (FR-FE-002/003)', () => {
     expect(client.authStore.getState().accessToken).toBe('tok-after-race');
   });
 
+  it('sends the refresh cookie only to auth routes (NFR-SEC-009)', async () => {
+    const seen: InternalAxiosRequestConfig[] = [];
+    const client = createApiClient({
+      clientApp: 'CUSTOMER',
+      locks: null,
+      adapter: routed(() => session('tok'), seen),
+    });
+    await client.refreshSession();
+    await client.get('/orders');
+    expect(seen.map((c) => [c.url, c.withCredentials])).toEqual([
+      ['/api/v1/auth/refresh', true],
+      ['/api/v1/orders', false],
+    ]);
+  });
+
   it('survives two races in a row (navigation while the previous page was refreshing)', async () => {
     let calls = 0;
     const client = createApiClient({
