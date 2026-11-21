@@ -1,0 +1,137 @@
+Issue ID,Parent,Issue Type,Summary,Description,Status,Labels
+1,,Epic,Discovery & requirements,Phase 1 - Product discovery and the SRS,Done,foodordersystem
+2,,Epic,Architecture & design,"Phase 1 - System architecture, ADRs and core algorithms",Done,foodordersystem
+3,,Epic,Monorepo & developer tooling,Phase 2 - Repository foundation,Done,foodordersystem
+4,,Epic,Infrastructure & CI,"Phase 2 - Local infrastructure, containers and CI",Done,foodordersystem
+5,,Epic,Database schema & seed data,Phase 3 - Database,Done,foodordersystem
+6,,Epic,Authentication & sessions,Phase 4 - Authentication,Done,foodordersystem
+7,,Epic,Authorization & audit,Phase 4 - Access control and audit,Done,foodordersystem
+8,,Epic,Location & serviceability,"Phase 5 - Geo, zones and delivery coverage",Done,foodordersystem
+9,,Epic,"Catalog, discovery & search",Phase 5 - Core customer backend,Done,foodordersystem
+10,,Epic,"Cart, pricing & coupons",Phase 6 - Cart and pricing engine,Done,foodordersystem
+11,,Epic,"Checkout, payments & wallet",Phase 6 - Checkout and money,Done,foodordersystem
+12,,Epic,Order lifecycle,Phase 7 - Order management,Done,foodordersystem
+13,,Epic,"Cancellations, refunds & settlement",Phase 7 - Money after the order,Done,foodordersystem
+14,,Epic,Support & notifications,Phase 7 - Customer support and messaging,Done,foodordersystem
+15,,Epic,Restaurant onboarding,Phase 8 - Restaurant application,Done,foodordersystem
+16,,Epic,Restaurant operations,Phase 8 - Running a restaurant,Done,foodordersystem
+17,,Epic,Delivery partner onboarding & availability,Phase 9 - Partner application and shifts,Done,foodordersystem
+18,,Epic,Dispatch engine,Phase 9 - Assigning deliveries,Done,foodordersystem
+19,,Epic,Delivery trip & partner earnings,Phase 9 - Trip stages and pay,Done,foodordersystem
+20,,Epic,Tracking & reviews,Phase 9 - Customer tracking and ratings,Done,foodordersystem
+21,,Epic,Real-time platform,Phase 10 - Live updates,Done,foodordersystem
+22,,Epic,Admin backend,Phase 11 - Administration APIs,Done,foodordersystem
+23,,Epic,Admin console,Phase 11 - Admin web app,Done,foodordersystem
+24,,Epic,Customer web app,Phase 12 - Customer interface,Done,foodordersystem
+25,,Epic,Restaurant & partner app completion,Phase 12 - Remaining merchant and partner screens,Done,foodordersystem
+26,,Epic,End-to-end & accessibility testing,Phase 13 - Testing,Done,foodordersystem
+27,,Epic,Hardening,"Phase 13 - Security, resilience and performance",Done,foodordersystem
+28,,Epic,Documentation & release,Phase 14 - Finalization,Done,foodordersystem
+101,1,Story,"Stakeholders, roles and scope","Customer, restaurant, delivery partner, admin and support roles; MVP/CORE/ADV scope; open decisions OD-01…OD-16",Done,foodordersystem
+102,1,Story,Software Requirements Specification (SRS),"FOS-SRS-001: functional requirements, business rules, order/payment/delivery requirements, NFRs, error handling, privacy and retention",Done,foodordersystem
+103,1,Story,API inventory and acceptance criteria,"API-SPECIFICATION (≈500 endpoints), acceptance criteria AC-*, requirements index and ID checker",Done,foodordersystem
+104,1,Story,Traceability matrix and SRS change process,Requirement → phase → code → tests matrix; versioned SRS with revision log and discrepancy (D-n) process,Done,foodordersystem
+105,2,Story,System architecture and ADRs,"Modular monolith, outbox relay, ledger, sessions, realtime; ADR-001…ADR-011",Done,foodordersystem
+106,2,Story,Database design and ERD,"Entity catalog, ERD, schema notes, money as integer paise, UUID v7 ids",Done,foodordersystem
+107,2,Story,State machines,"Order (T01–T16), delivery (D01–D10), payment and refund state machines",Done,foodordersystem
+108,2,Story,Dispatch algorithm design,"Sequential single offers, rounds 3/5/8 km, ranking weights, exactly-once acceptance, escalation",Done,foodordersystem
+109,2,Story,Roadmap and testing strategy,"14-phase roadmap with exit criteria; test pyramid, critical suites, quality gates",Done,foodordersystem
+110,3,Story,pnpm + Turborepo monorepo,"apps/{api,worker,customer-web,restaurant-web,delivery-web,admin-web}, packages/{shared,types,validation,ui,api-client,auth-web,db,config}",Done,foodordersystem
+111,3,Story,"TypeScript, ESLint, Prettier","Strict TS, module boundary lint rules (cross-module imports through index.ts), formatting gate",Done,foodordersystem
+112,3,Story,Shared packages,"Error codes and messages, permissions, zod validation, design-system UI kit, typed API client",Done,foodordersystem
+113,3,Story,App shells for the four web apps,"React + Vite + Tailwind shells with routing, 404/error pages and platform status",Done,foodordersystem
+114,4,Story,Docker Compose stack,"Postgres + PostGIS, Redis, SeaweedFS (S3), Mailpit; production Dockerfiles for API and worker",Done,foodordersystem
+115,4,Story,No-Docker local setup,Project-local PostgreSQL 18 + PostGIS on 5433 and Redis on 6390/6391 scripts,Done,foodordersystem
+116,4,Story,API platform foundation,"Express app, structured logging, config validation, health/readiness, Redis clients, graceful shutdown",Done,foodordersystem
+117,4,Story,GitHub Actions CI,"Lint, typecheck, tests with coverage, migration drift check, build, SRS ID check, Docker images, E2E",Done,foodordersystem
+118,5,Story,Prisma schema for all domains,"≈140 tables across identity, catalog, orders, payments, ledger, delivery, engagement, platform",Done,foodordersystem
+119,5,Story,"Constraints, triggers and immutability","Partial uniques, CHECKs, append-only history/ledger, effective-dated configs, overlap guards",Done,foodordersystem
+120,5,Story,Migrations and drift check,Ordered migrations; CI check that migrations equal the schema,Done,foodordersystem
+121,5,Story,Deterministic seed data,"Zones, restaurants with menus, partners, customers, staff and admin accounts, coupons, fee schedules",Done,foodordersystem
+122,6,Story,"Registration, OTP and password sign-in","Phone OTP, password login, email verification, password reset, breached-password check",Done,foodordersystem
+123,6,Story,Sessions and refresh-token rotation,"Short access tokens, HttpOnly refresh cookie, rotation with reuse detection, logout everywhere",Done,foodordersystem
+124,6,Story,Admin MFA and re-authentication,Emailed second factor for admins; re-auth for sensitive actions (BR-AUTH-017),Done,foodordersystem
+125,6,Story,Shared auth web package,"Sign-in, sign-up, verify, recovery and security pages reused by all four apps",Done,foodordersystem
+126,7,Story,Roles and permissions (IAM),"Platform roles and restaurant roles with permission grants, cached resolution, permission versions",Done,foodordersystem
+127,7,Story,App scopes and route guards,"Per-app audiences, onboarding scope, authorize middleware, 404 vs 403 semantics",Done,foodordersystem
+128,7,Story,Audit logging,Audit records for every sensitive action with HIGH-sensitivity stream and reasons,Done,foodordersystem
+129,7,Story,Rate limiting and idempotency,Redis rate limits per IP/identifier/user; Idempotency-Key replay for money-moving requests,Done,foodordersystem
+130,8,Story,Geocoding and address validation,"Geocoder adapter with cache, pin-vs-address distance warning, India bounds",Done,foodordersystem
+131,8,Story,Zones and serviceability,"PostGIS zone polygons, branch radius, road-distance estimates, serviceability reasons",Done,foodordersystem
+132,8,Story,Customer addresses,"Address book with default, validation and serviceability per branch",Done,foodordersystem
+133,9,Story,Restaurant and branch pages,"Status with reasons (hours, pause, holiday), FSSAI, ETA, delivery fee, Bayesian rating",Done,foodordersystem
+134,9,Story,Menu reads,"Categories, dishes, variants, option groups, availability, menu versions and caching",Done,foodordersystem
+135,9,Story,Discovery feed,"Restaurant list for a location with filters (veg, offers, open now, rating) and sorting",Done,foodordersystem
+136,9,Story,Search,Restaurant and dish search with trigram matching and history,Done,foodordersystem
+137,9,Story,Favourites and profile,"Favourite restaurants/dishes, customer profile and food preferences",Done,foodordersystem
+138,10,Story,Cart service,"Single-branch cart, line customisations, quantity limits, price-change detection",Done,foodordersystem
+139,10,Story,Pricing engine,"Fee schedules and slabs, packaging, surge, taxes per component, rounding rules (BR-PRICE)",Done,foodordersystem
+140,10,Story,Coupons and offers,"Coupon rules (percent cap, minimum order, limits, targeting), redemption reservations",Done,foodordersystem
+141,11,Story,Checkout sessions,"Quote, payment method eligibility (COD caps), tip, expected payable, session expiry",Done,foodordersystem
+142,11,Story,Payments and provider adapter,"Razorpay adapter + mock provider, signature verification, webhooks, retries, stuck-payment resolution",Done,foodordersystem
+143,11,Story,Double-entry ledger,"Balanced postings, account balances, nightly integrity check",Done,foodordersystem
+144,11,Story,Customer wallet,"Credits with expiry lots, holds, debits and transaction history",Done,foodordersystem
+145,12,Story,Order creation,"Order from a confirmed checkout with snapshots, order number, delivery OTP",Done,foodordersystem
+146,12,Story,Order state machine,"Table-driven transitions with actors, version checks, history and outbox events",Done,foodordersystem
+147,12,Story,Order timers,"Payment window, acceptance timeout, auto-preparing, delay reminders via BullMQ",Done,foodordersystem
+148,12,Story,Order reads,"Active orders, history, details and timeline for customers",Done,foodordersystem
+149,13,Story,Cancellation policy,"Fee preview by stage and fault, free window, quote staleness",Done,foodordersystem
+150,13,Story,Refunds,"Refunds to source or wallet, retries, refund status tracking",Done,foodordersystem
+151,13,Story,Settlement and invoices,"Restaurant/platform split on delivery, invoices for delivered orders",Done,foodordersystem
+152,13,Story,Order issues,"Report a problem with items/quantities, linked support ticket",Done,foodordersystem
+153,14,Story,Support tickets,"Tickets with categories, messages, deadlines and statuses",Done,foodordersystem
+154,14,Story,Notification system,"Templates, in-app inbox, preferences, SMS/email/push channels with dev sinks",Done,foodordersystem
+155,14,Story,Transactional outbox relay,"Outbox events published by the worker with leader lock, retries and stale alerts",Done,foodordersystem
+156,15,Story,File uploads,"Purpose rules, magic-byte typing, EXIF stripping, WebP derivatives, signed private links, orphan cleanup",Done,foodordersystem
+157,15,Story,Restaurant application,"Business details with PAN/GSTIN/FSSAI/IFSC validation, first outlet, hours, bank, documents, checklist, submit",Done,foodordersystem
+158,15,Story,Field-level encryption,"AES-256-GCM with rotatable keys for PAN, bank numbers and change requests",Done,foodordersystem
+159,15,Story,Profile and change requests,"Profile edits, legal/tax/bank change requests after re-auth",Done,foodordersystem
+160,16,Story,Outlet management,"Hours, holidays, open/close, pause, prep time and rush, delivery settings, go-live checklist",Done,foodordersystem
+161,16,Story,Menu management,"Categories, dishes, photos, variants, option groups, availability, If-Match versions",Done,foodordersystem
+162,16,Story,Order queue and kitchen display,"Accept with prep time, reject, preparing, ready, prep extension, KDS without prices",Done,foodordersystem
+163,16,Story,Staff and roles,"Invitations, roles and outlet scope, suspend/remove with immediate effect",Done,foodordersystem
+164,16,Story,Restaurant analytics,"Dashboard, sales, top dishes, categories and operations metrics",Done,foodordersystem
+165,17,Story,Partner application,"Details, Aadhaar last 4 only, vehicles, documents, age check, bank, review decisions",Done,foodordersystem
+166,17,Story,Online / offline and presence,"Online with a fresh location fix and blockers, breaks, Redis presence and zone GEO sets",Done,foodordersystem
+167,17,Story,Location ingestion,"Batched fixes with spoofing checks, sampled trail, auto-offline rules",Done,foodordersystem
+168,18,Story,Candidate search and ranking,"Rounds 3/5/8 km, eligibility filters, bicycle limits, COD cash cap, ranking score breakdown",Done,foodordersystem
+169,18,Story,Sequential offers,"30 s offers, reject/expire/withdraw, missed-offer counting",Done,foodordersystem
+170,18,Story,Exactly-once acceptance,Redis lock plus row locks and one-active-delivery index,Done,foodordersystem
+171,18,Story,Escalation and no-partner deadline,"Ops alerts, 60 s retries, platform-fault cancellation with full refund",Done,foodordersystem
+172,19,Story,Trip stages with geofences,"Arrived at restaurant/customer with geofence confirmation, pickup only when ready",Done,foodordersystem
+173,19,Story,Handover and proof of delivery,"Restaurant pickup-code handover, OTP (5 tries) or photo proof, COD collection",Done,foodordersystem
+174,19,Story,Partner earnings and payouts view,"Trip pay, tips, cancellation compensation, summaries, cash in hand, payout estimate, bank change",Done,foodordersystem
+175,19,Story,Unassign and heartbeat release,"Give-back before pickup, silent-partner release, re-dispatch",Done,foodordersystem
+176,20,Story,Order tracking,"Snapshot and poll: partner card, live location with privacy window, ETA, delivery code",Done,foodordersystem
+177,20,Story,Reviews and ratings,"Restaurant and partner ratings within 7 days, moderation, edit/delete windows",Done,foodordersystem
+178,20,Story,Restaurant review responses,"One response per review, reports, aggregate recomputation",Done,foodordersystem
+179,21,Story,Socket gateway and room policy,"Namespaces per app, server-side room authorization, rate limits, revocation",Done,foodordersystem
+180,21,Story,Event projections per audience,"Outbox events turned into customer, restaurant, partner and admin pushes",Done,foodordersystem
+181,21,Story,Live tracking fan-out,"Throttled location pushes, ETA recompute, stale-location alerts",Done,foodordersystem
+182,21,Story,Client realtime library,"Reconnect with backoff, resubscribe, de-duplication; apps refresh from pushes with polling fallback",Done,foodordersystem
+183,22,Story,Accounts administration,"Users, restaurant and partner approvals, suspensions, change requests, documents",Done,foodordersystem
+184,22,Story,Operations administration,"Dashboard, alerts, orders 360 and interventions, dispatch board, manual assignment",Done,foodordersystem
+185,22,Story,Finance administration,"Payments sync, refunds with support limits and approval, payout batches with maker ≠ checker",Done,foodordersystem
+186,22,Story,Configuration and governance,"Coupons, zones, settings history, pricing plans, support desk, moderation, roles, audit search, failed jobs",Done,foodordersystem
+187,23,Story,Dashboard and live ops feed,"Today's tiles, alerts, live activity over sockets",Done,foodordersystem
+188,23,Story,"Approvals, accounts and orders screens","Restaurants, partners, users, orders 360, dispatch board",Done,foodordersystem
+189,23,Story,Finance and configuration screens,"Payments, refunds, payouts, coupons, zones, settings, pricing, support desk, moderation, roles, audit, jobs",Done,foodordersystem
+190,24,Story,Ordering journey,"Location, discovery, search, restaurant menu with customisation, cart, coupons",Done,foodordersystem
+191,24,Story,"Checkout, payment and live tracking","Checkout, dev payment step, live tracking, cancellation",Done,foodordersystem
+192,24,Story,Account area,"Orders history, reorder, issues, ratings, addresses, profile, wallet, favourites, notifications, help",Done,foodordersystem
+193,25,Story,Restaurant dish editor and menu tools,"Full dish editor, option groups, category management",Done,foodordersystem
+194,25,Story,"Restaurant handover, analytics, reviews, payouts","Order drawer with pickup code, analytics charts, reviews, payouts, profile",Done,foodordersystem
+195,25,Story,Partner app screens,"Application, shift with offers, trip stages, earnings, trips, bank, profile, live notices",Done,foodordersystem
+196,26,Story,Full-stack E2E journey,"One order across customer, restaurant and partner browsers (AC-E2E-001…003)",Done,foodordersystem
+197,26,Story,Failure-scenario E2E,"Payment retry, restaurant rejects, partner rejects, cancellation fee, no partner, session theft (AC-E2E-004…009)",Done,foodordersystem
+198,26,Story,Accessibility checks,"axe-core on key pages of all four apps, desktop and mobile (AC-NFR-002)",Done,foodordersystem
+199,27,Story,Security hardening,"Authorization matrix over all routes, security headers, CORS, log scan for secrets, dependency audit",Done,foodordersystem
+200,27,Story,Resilience,"Redis outage handling: DB fallbacks, in-memory limits, dispatch pause, outbox drain (AC-NFR-004)",Done,foodordersystem
+201,27,Story,Coverage and quality gates,Coverage thresholds in CI; CI fixes so integration tests really run,Done,foodordersystem
+202,27,Story,Load test scripts,"k6 scripts for discovery, menu, checkout, location ingestion and socket fan-out",Done,foodordersystem
+203,27,Story,Bug fixes from testing,"Refresh race, partner handover push, socket limits behind proxies, UI confirmations, contrast",Done,foodordersystem
+204,28,Story,README and setup guides,"Quick start (Docker and no-Docker), environment variables guide",Done,foodordersystem
+205,28,Story,Deployment guide,"Images, migrations, Nginx with security headers, scaling, backups, go-live checklist",Done,foodordersystem
+206,28,Story,Generated API documentation,OpenAPI 3.1 generated from mounted routes and zod schemas,Done,foodordersystem
+207,28,Story,UML diagrams,"Use case, component, deployment, class, state, sequence and activity diagrams",Done,foodordersystem
+208,28,Story,"Demo guide, limitations and roadmap","Demo accounts and walkthrough, known limitations, CORE/ADV roadmap",Done,foodordersystem
