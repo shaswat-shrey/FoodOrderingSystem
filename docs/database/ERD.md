@@ -1,6 +1,6 @@
 # Initial Entity-Relationship Diagrams
 
-> Companion to SRS §15 ([DATABASE-REQUIREMENTS.md](../requirements/DATABASE-REQUIREMENTS.md)). Status: **Initial ERD, v0.2.0 (APPROVED 2026-11-20)**. Column lists are abbreviated to keys and the most important attributes; the entity inventory in §15.3 is authoritative for columns and constraints. One diagram per domain keeps each readable; cross-domain links are shown as references at the edges.
+> Companion to SRS §15 ([DATABASE-REQUIREMENTS.md](../requirements/DATABASE-REQUIREMENTS.md)). Status: **Initial ERD, v0.2.0 (APPROVED 2026-11-20)**, updated for every migration through `20261121150000_rating_scale` (§9). Column lists are abbreviated to keys and the most important attributes; the entity inventory in §15.3 is authoritative for columns and constraints. One diagram per domain keeps each readable; cross-domain links are shown as references at the edges.
 
 ## 1. Identity, access & sessions
 
@@ -170,6 +170,13 @@ erDiagram
     enum status
     int version
   }
+  cart_items {
+    uuid id PK
+    uuid cart_id FK
+    uuid food_item_id FK
+    int quantity
+    int unit_amount_seen
+  }
   checkout_sessions {
     uuid id PK
     uuid cart_id FK
@@ -217,6 +224,7 @@ erDiagram
     enum refund_status
     bigint total_amount
     bigint payable_amount
+    timestamptz accept_extended_until
     int version
   }
   payments {
@@ -271,6 +279,18 @@ erDiagram
     bool escalated
     int search_round
   }
+  partner_online_sessions {
+    uuid id PK
+    uuid partner_id FK
+    timestamptz started_at
+    timestamptz ended_at
+    enum end_reason
+  }
+  partner_stats {
+    uuid partner_id PK
+    int rating_avg_bps
+    int rating_count
+  }
   delivery_assignments {
     uuid id PK
     uuid delivery_id FK
@@ -311,7 +331,24 @@ erDiagram
     uuid account_id FK
     bigint amount
   }
+  payout_batches {
+    uuid id PK
+    enum type
+    enum status
+    uuid created_by FK
+    uuid approved_by FK
+  }
+  payouts {
+    uuid id PK
+    uuid batch_id FK
+    enum payee_type
+    bigint amount
+    bigint cash_deduction
+    enum status
+  }
 ```
+
+`payout_batches` has a CHECK that the approver is never the maker (`approved_by <> created_by`).
 
 Ledger references to orders, refunds and payouts are polymorphic (`reference_type`, `reference_id`) by design (§15.4).
 
@@ -338,3 +375,16 @@ erDiagram
 ```
 
 Platform tables without relationships worth drawing: `platform_settings`, `platform_setting_history`, `feature_flags`, `approval_requests`, `ops_alerts`, `report_exports`, `outbox_events`, `idempotency_keys`, `geocode_cache`, analytics aggregates.
+
+## 9. Changes after the initial ERD (migrations through `20261121150000_rating_scale`)
+
+The diagrams above include these columns. Every migration and what it adds is listed in [SCHEMA-NOTES.md §1a](SCHEMA-NOTES.md#1a-migrations).
+
+| Migration | Change shown above |
+| --- | --- |
+| `20261120151832_auth_enum_values` | Enum values only (OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT`) |
+| `20261120180000_phone_change_revoke_reason` | Enum value only (session revoke reason `PHONE_CHANGED`) |
+| `20261120190000_cart_item_price_seen` | `cart_items.unit_amount_seen` (§4) |
+| `20261121090000_admin_forced_offline` | `partner_online_sessions.end_reason` gains `ADMIN_FORCED` (§6) |
+| `20261121120000_admin_operations` | `orders.accept_extended_until` (§5), `payouts.cash_deduction` and the payout batch maker ≠ checker CHECK (§7) |
+| `20261121150000_rating_scale` | Rating CHECKs on `restaurants`, `branches` and `partner_stats` (`rating_avg_bps` 100–500, hundredths of a star) (§6) |

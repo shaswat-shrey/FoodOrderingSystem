@@ -6,29 +6,62 @@ _Last updated: 2026-11-21_
 
 | Item              | Status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase     | **Phase 14 — Finalization: in progress**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Next phase        | MVP release                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| SRS version       | FOS-SRS-001 v0.11.1 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19; v0.10.1 editorial; v0.11.0 adds D-20; v0.11.1 editorial)                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Current phase     | **MVP complete — release candidate** (Phase 14 finalization complete 2026-11-21)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Next phase        | Owner MVP sign-off, then provider integrations and the CORE release ([docs/FUTURE-ROADMAP.md](docs/FUTURE-ROADMAP.md))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| SRS version       | FOS-SRS-001 v0.11.2 (APPROVED 2026-11-21; v0.9.0 adds D-16, D-17; v0.10.0 adds D-18, D-19; v0.10.1 editorial; v0.11.0 adds D-20; v0.11.1 and v0.11.2 editorial)                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Business features | Accounts and sign-in (all apps); customer backend for locations, addresses, restaurants, menus, discovery, search, favourites, cart, coupons, checkout, wallet, payments, orders, cancellations, refunds, invoices, support and notifications; restaurant onboarding, profile, outlet operations, menu management, order queue, kitchen display, staff and dashboard (API and restaurant web app); delivery partner onboarding, availability, dispatch, trip stages with geofences and proof, COD, earnings, cash, payouts view and bank changes (API and delivery web app); customer tracking; reviews and ratings |
 
 ## Phases
 
-| Phase                         | Status                                                    |
-| ----------------------------- | --------------------------------------------------------- |
-| 1 Requirements & architecture | ✅ Approved 2026-11-20 (defaults adopted for OD-01…OD-16) |
-| 2 Repository & infrastructure | ✅ Complete 2026-11-20                                    |
-| 3 Database                    | ✅ Complete 2026-11-20 (SRS changes D-1…D-3 approved)     |
-| 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                 |
-| 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                |
-| 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                     |
-| 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 approved)               |
-| 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 approved)               |
-| 9 Delivery application        | ✅ Complete 2026-11-21 (D-16, D-17 decided)               |
-| 10 Real-time                  | ✅ Complete 2026-11-21 (D-18, D-19 decided)               |
-| 11 Admin                      | ✅ Complete 2026-11-21                                    |
-| 12 Frontend integration       | ✅ Complete 2026-11-21 (D-20 decided)                     |
-| 13 Testing & hardening        | ✅ Complete 2026-11-21                                    |
-| 14 Finalization               | Not started                                               |
+| Phase                         | Status                                                            |
+| ----------------------------- | ----------------------------------------------------------------- |
+| 1 Requirements & architecture | ✅ Approved 2026-11-20 (defaults adopted for OD-01…OD-16)         |
+| 2 Repository & infrastructure | ✅ Complete 2026-11-20                                            |
+| 3 Database                    | ✅ Complete 2026-11-20 (SRS changes D-1…D-3 approved)             |
+| 4 Auth & security             | ✅ Complete 2026-11-20 (D-4…D-6 approved)                         |
+| 5 Core customer backend       | ✅ Complete 2026-11-20 (D-7, D-8 approved)                        |
+| 6 Cart, pricing, checkout     | ✅ Complete 2026-11-20 (D-9 approved)                             |
+| 7 Order management            | ✅ Complete 2026-11-20 (D-10…D-12 approved)                       |
+| 8 Restaurant application      | ✅ Complete 2026-11-21 (D-13…D-15 approved)                       |
+| 9 Delivery application        | ✅ Complete 2026-11-21 (D-16, D-17 decided)                       |
+| 10 Real-time                  | ✅ Complete 2026-11-21 (D-18, D-19 decided)                       |
+| 11 Admin                      | ✅ Complete 2026-11-21                                            |
+| 12 Frontend integration       | ✅ Complete 2026-11-21 (D-20 decided)                             |
+| 13 Testing & hardening        | ✅ Complete 2026-11-21                                            |
+| 14 Finalization               | ✅ Complete 2026-11-21 — MVP release candidate, awaiting sign-off |
+
+## Phase 14 deliverables
+
+| Area                 | Delivered                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Front door           | `README.md` rewritten: what the platform is, a feature tour per app, architecture at a glance, quick start with Docker Compose and without Docker (project-local PostgreSQL 5433, Redis 6390/6391), seed data, running each app, dev codes in `.local/dev-messages.log`, every test command, project layout, documentation index                                                                                                                                         |
+| Configuration        | `docs/guides/ENVIRONMENT.md`: every variable of the API, worker, web dev servers, tests, E2E and k6, derived from the Zod schemas, with defaults, production rules, key rotation (JWT, field encryption, webhook secrets), storage, `APP_URL_*` origins and trust proxy; `.env.example` lists all of them (added `JWT_ISSUER`, `DEV_MESSAGE_FILE`, `STORAGE_REGION`, mock payment secrets, `VITE_API_PROXY_TARGET`, E2E and load variables; removed the unused `SMTP_*`) |
+| Deployment           | `docs/guides/DEPLOYMENT.md`: images, migrations and seed policy, process model (stateless API, WebSocket-only sockets so no sticky sessions, worker leader lock and schedulers), Nginx reference with per-app CSP and Permissions-Policy (geolocation only for customer and delivery), HSTS, `frame-ancestors 'none'`, `/api` and `/socket.io` proxying, health probes, webhooks, backups, observability, scaling, rollout/rollback, go-live checklist                   |
+| API docs (generated) | `pnpm docs:api` (`docs/tools/openapi.mjs`) builds `docs/api/openapi.json` (OpenAPI 3.1) from the mounted Express routes and their Zod schemas (`z.toJSONSchema`), with summaries and SRS IDs from the API inventory: 345 paths, 395 operations, 347 with request schemas, 392 matched to SRS IDs; `pnpm docs:api --check` runs in CI; `docs/api/README.md`                                                                                                               |
+| Database docs        | `SCHEMA-NOTES.md` §1a lists all eleven migrations through `20261121150000_rating_scale`; `ERD.md` shows the columns added after Phase 3 and a §9 change table                                                                                                                                                                                                                                                                                                            |
+| Demo                 | `docs/guides/DEMO.md`: every seeded account, how to sign in (phone code; admin password via reset link + emailed code) and a 15-minute walkthrough across the four apps                                                                                                                                                                                                                                                                                                  |
+| Scope                | `docs/KNOWN-LIMITATIONS.md` (providers, unbuilt scope with endpoint IDs, verification gaps, legal items) and `docs/FUTURE-ROADMAP.md` (launch blockers, CORE, ADV, FUT)                                                                                                                                                                                                                                                                                                  |
+| Traceability         | TRACEABILITY-MATRIX §22.1m; SRS v0.11.2 (editorial)                                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+## Verification notes (Phase 14)
+
+- ✅ Documentation only: no application behaviour changed. The OpenAPI generator swaps the route wrapper through a Node module hook in its own process, so the API itself is untouched.
+- ✅ `pnpm format`, `lint`, `format:check`, `typecheck`, `test`, `docs:check` and `docs:api --check` pass.
+- Corrected while writing: the old README called Mailpit the email sink and still described Phase 3/7/10 states; `.env.example` listed `SMTP_*` (unused) and missed seven variables; PROJECT_STATUS listed migrations only through Phase 6 and stale API/UI counts; TRACEABILITY §22.1l named test files that don't exist (`authorization-matrix`, `security-headers`); the API-SPECIFICATION header still listed Phase 6 endpoints and promised `zod-to-openapi`.
+- ⚠️ Not verified here: the Nginx configuration and Docker images on a real host, and the commands in the deployment guide against a managed database.
+
+## Documentation index
+
+| Topic                                | Where                                                                                                                                                                       |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Getting started                      | [README.md](README.md)                                                                                                                                                      |
+| Environment variables                | [docs/guides/ENVIRONMENT.md](docs/guides/ENVIRONMENT.md)                                                                                                                    |
+| Deployment                           | [docs/guides/DEPLOYMENT.md](docs/guides/DEPLOYMENT.md)                                                                                                                      |
+| Demo accounts and walkthrough        | [docs/guides/DEMO.md](docs/guides/DEMO.md)                                                                                                                                  |
+| API (generated OpenAPI)              | [docs/api/README.md](docs/api/README.md) · [docs/api/openapi.json](docs/api/openapi.json)                                                                                   |
+| Database                             | [docs/database/ERD.md](docs/database/ERD.md) · [docs/database/SCHEMA-NOTES.md](docs/database/SCHEMA-NOTES.md)                                                               |
+| Known limitations and future roadmap | [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) · [docs/FUTURE-ROADMAP.md](docs/FUTURE-ROADMAP.md)                                                                   |
+| Requirements                         | [SRS](docs/requirements/SRS-Online-Food-Ordering-and-Delivery-Platform.md) · [traceability](docs/requirements/TRACEABILITY-MATRIX.md) · [delivery roadmap](docs/ROADMAP.md) |
 
 ## Phase 13 deliverables
 
@@ -303,26 +336,29 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 
 ## APIs
 
-- Implemented (273 of 495 before Phase 11; Phase 11 adds about 120 admin endpoints): Phase 8's 218 plus API-DP-001…020, API-DPDEL-001…011 and 013, API-RORD-009, API-EARN-001…003 and 005…012, API-TRK-001/002, API-REV-001…005, API-RREV-001…004 (Phase 9). Extra: `GET /partner/zones` (API-DP-022). Phase 8 added: Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
-- Planned: 222 remaining in `docs/requirements/API-SPECIFICATION.md`.
+- Implemented: 392 of the 496 inventory rows plus three extras (`GET /merchant/cuisines`, `GET /merchant/branches/{id}/go-live`, development-only `POST /payments/{id}/mock-checkout`), 395 operations in all — see the generated [OpenAPI document](docs/api/openapi.json). History: (273 of 495 before Phase 11; Phase 11 adds about 120 admin endpoints): Phase 8's 218 plus API-DP-001…020, API-DPDEL-001…011 and 013, API-RORD-009, API-EARN-001…003 and 005…012, API-TRK-001/002, API-REV-001…005, API-RREV-001…004 (Phase 9). Extra: `GET /partner/zones` (API-DP-022). Phase 8 added: Phase 7's 139 plus API-FILE-001…003, API-MER-001…014 and 016…027, API-RMENU-001…026, API-RORD-001…008 and 010…012, API-RSTAFF-001…008, API-RANL-001…004 and 007. Extra: `GET /merchant/cuisines` (cuisine picker) and `GET /merchant/branches/{id}/go-live` (checklist). A development-only `POST /payments/{id}/mock-checkout` stands in for hosted checkout.
+- Planned: 104 inventory rows, mostly CORE (listed by area in [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md)).
 
 ## UI pages
 
 - Implemented: all four apps — customer (ordering journey and account area), restaurant (Phases 8 and 12), delivery (Phases 9, 10, 12) and admin (Phase 11).
-- Planned: customer 21, restaurant 16, delivery 13, admin 31 feature pages (map pin picker, full dish editor with variants/options, holidays UI, analytics charts and settlements come in Phase 12).
+- Planned: screens for the CORE features in [docs/FUTURE-ROADMAP.md](docs/FUTURE-ROADMAP.md) (promotions, settlement statements, SOS, maker-checker, content management, ops map and others).
 
 ## Database migrations
 
-| Migration                                   | Purpose                                                                    |
-| ------------------------------------------- | -------------------------------------------------------------------------- |
-| `20261120000000_extensions`                 | postgis, pg_trgm, unaccent, citext, pgcrypto                               |
-| `20261120000100_core_schema`                | All tables, enums, indexes, foreign keys (generated)                       |
-| `20261120000200_constraints`                | Partial uniques, CHECKs, ledger/append-only/overlap/hours/search triggers  |
-| `20261120000300_immutability`               | Effective-dated configs, dispatch offers, webhook payloads, location trail |
-| `20261120000400_payment_attempts_guard`     | Payment attempt facts immutable, status may progress (SRS v0.3.0, D-1)     |
-| `20261120151832_auth_enum_values`           | OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT` (Phase 4)      |
-| `20261120180000_phone_change_revoke_reason` | Session revoke reason `PHONE_CHANGED` (Phase 5, FR-CUST-004)               |
-| `20261120190000_cart_item_price_seen`       | `cart_items.unit_amount_seen` for PRICE_CHANGED flags (Phase 6, D-9)       |
+| Migration                                   | Purpose                                                                                  |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `20261120000000_extensions`                 | postgis, pg_trgm, unaccent, citext, pgcrypto                                             |
+| `20261120000100_core_schema`                | All tables, enums, indexes, foreign keys (generated)                                     |
+| `20261120000200_constraints`                | Partial uniques, CHECKs, ledger/append-only/overlap/hours/search triggers                |
+| `20261120000300_immutability`               | Effective-dated configs, dispatch offers, webhook payloads, location trail               |
+| `20261120000400_payment_attempts_guard`     | Payment attempt facts immutable, status may progress (SRS v0.3.0, D-1)                   |
+| `20261120151832_auth_enum_values`           | OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT` (Phase 4)                    |
+| `20261120180000_phone_change_revoke_reason` | Session revoke reason `PHONE_CHANGED` (Phase 5, FR-CUST-004)                             |
+| `20261120190000_cart_item_price_seen`       | `cart_items.unit_amount_seen` for PRICE_CHANGED flags (Phase 6, D-9)                     |
+| `20261121090000_admin_forced_offline`       | Online-session end reason `ADMIN_FORCED` (Phase 11)                                      |
+| `20261121120000_admin_operations`           | `orders.accept_extended_until`, `payouts.cash_deduction`, maker ≠ checker (Phase 11)     |
+| `20261121150000_rating_scale`               | Rating CHECKs in hundredths of a star on restaurants, branches, partner stats (Phase 11) |
 
 ## Known bugs
 
@@ -419,6 +455,10 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - The permission catalog lives in `@fos/shared` so the seed and the Phase 4 IAM module share one source.
 - RESTRICT/CHECK/trigger violations surface as `PrismaClientUnknownRequestError`; the API error mapper must handle them (SCHEMA-NOTES §5).
 
+## Machine changes made during Phase 14
+
+- None. `pnpm docs:api` builds the app in memory (no database or Redis connection) and removes its temporary directory.
+
 ## Machine changes made during Phase 13
 
 - Created the database `fos_e2e` on the project Postgres (5433) for the E2E suite; Redis indexes 13 and 14 are used by it. Logs and run files go to `.local/e2e` (git-ignored). Dependency upgrades: sharp 0.35.5 and overrides for fast-xml-parser, uuid, effect and deepmerge-ts.
@@ -472,11 +512,14 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 ## Blockers
 
 - Legal/tax review items (SRS §20.4) — needed before launch.
+- Real SMS and email providers and the Razorpay checkout in the customer app — the worker refuses `NODE_ENV=production` without message providers ([docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md)).
 
 ## Next steps
 
-1. Phase 14 (finalization) — in progress.
-2. (Earlier plan) Phase 10 (real-time: socket rooms for orders, branches and deliveries; offer push; location fan-out with throttling; ETA updates; stale-location alerts).
+1. Owner MVP sign-off on the release candidate.
+2. Provider integrations: SMS, email and Web Push; Razorpay end to end (test mode, Checkout in the customer app, then live keys); S3 bucket; geocoding.
+3. Staging environment: deploy per `docs/guides/DEPLOYMENT.md`, run the k6 peak profile (AC-NFR-001) and a restore drill (AC-NFR-005).
+4. Then the CORE release ([docs/FUTURE-ROADMAP.md](docs/FUTURE-ROADMAP.md)).
 
 ## TODO
 
@@ -494,6 +537,8 @@ Not discrepancies (planned later): item thumbs (FR-REV-003, CORE), review prompt
 - [x] Phase 11
 - [x] Phase 12
 - [x] Phase 13
+- [x] Phase 14 (finalization; MVP release candidate)
+- [ ] Owner MVP sign-off
 - [ ] Exercise the S3 storage driver against SeaweedFS or a real bucket
 - [ ] Real SMS, email and Web Push providers (worker refuses production without them)
 - [ ] Run Docker Compose and the Dockerfiles on a Docker host (or via CI)

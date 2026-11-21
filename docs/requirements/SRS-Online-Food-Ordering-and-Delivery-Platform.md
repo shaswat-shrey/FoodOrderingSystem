@@ -15,7 +15,7 @@
 | Project name | FoodOrderSystem — Online Food Ordering and Delivery Platform (working name; product brand name TBD — see OD-01) |
 | Document title | Software Requirements Specification (SRS) |
 | Document identifier | FOS-SRS-001 |
-| Document version | 0.11.1 |
+| Document version | 0.11.2 |
 | Document status | **APPROVED — Baseline for implementation** |
 | Date of creation | 2026-11-20 |
 | Author | Engineering (prepared with Claude Code acting as architecture partner) |
@@ -45,6 +45,7 @@
 | 0.10.1 | 2026-11-21 | Engineering | Editorial (Phases 9–11): §19.2 lists codes used by the delivery, review and admin endpoints (conflicts: `RESOURCE_CONFLICT`, `ACCOUNT_STATE_CONFLICT`, `REFUND_STATE_CONFLICT`, `PAYOUT_STATE_CONFLICT`, `PARTNER_UNAVAILABLE`, `OFFER_NOT_AVAILABLE`, `PICKUP_NOT_READY`, `REVIEW_ALREADY_SUBMITTED`; business rules: `GEOFENCE_CONFIRMATION_REQUIRED`, `PICKUP_CODE_INVALID`, `REVIEW_NOT_ALLOWED`, `REVIEW_EDIT_WINDOW_CLOSED`); §22.1j records Phase 11. No requirement change. | — |
 | 0.11.0 | 2026-11-21 | Engineering | Phase 12 change decided under the owner's standing instruction: D-20 API-RFIN-006 restaurant payout history (with settlement breakdown) for owners; settlement statements API-RFIN-001…003 stay planned. Order-issue photos are uploaded as support attachments (FR-ORDER-04x issue flow) because issues create support tickets. | Project owner (standing instruction), 2026-11-21 |
 | 0.11.1 | 2026-11-21 | Engineering | Editorial (Phase 13): §13.5 EVT-DP-016 (the partner's delivery room is told about stage changes, e.g. restaurant handover); §22.1l records testing and hardening. No requirement change. | — |
+| 0.11.2 | 2026-11-21 | Engineering | Editorial (Phase 14, finalization): §14 header points to the generated OpenAPI document (`docs/api/openapi.json`, `pnpm docs:api`) instead of a planned `zod-to-openapi` setup and no longer lists implemented endpoints by phase; §22.1m records the finalization documents (README, environment, deployment and demo guides, database docs, known limitations, future roadmap). No requirement change. | — |
 
 Versioning rule: MAJOR = approved baseline change that alters scope; MINOR = requirements added/changed; PATCH = editorial fixes. Every change to a requirement ID's text is recorded here and in the Traceability Matrix change log (§27).
 

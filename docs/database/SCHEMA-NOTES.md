@@ -7,10 +7,30 @@
 | Path | Contents |
 | --- | --- |
 | `packages/db/prisma/schema/*.prisma` | Multi-file Prisma schema, one file per domain: `identity`, `customers`, `restaurants`, `menu`, `commerce`, `orders`, `payments`, `delivery`, `engagement`, `platform` (+ `base` for generator/datasource). 147 models, 105 enums. |
-| `packages/db/prisma/schema/migrations/` | `…000_extensions` (PostGIS, pg_trgm, unaccent, citext, pgcrypto) · `…100_core_schema` (generated from the Prisma schema) · `…200_constraints`, `…300_immutability`, `…400_payment_attempts_guard` (hand-written rules) · `20261120151832_auth_enum_values` (Phase 4: OTP purpose `MFA_LOGIN`, token purpose `REACTIVATE_ACCOUNT`) · `20261120180000_phone_change_revoke_reason` (Phase 5: session revoke reason `PHONE_CHANGED`) · `20261120190000_cart_item_price_seen` (Phase 6: `cart_items.unit_amount_seen`, D-9 approved) |
+| `packages/db/prisma/schema/migrations/` | Eleven migrations, applied in order with `pnpm --filter @fos/db db:deploy`; see §1a |
 | `packages/db/src/index.ts` | `createPrismaClient`, `pingDatabase` |
 | `packages/db/src/seed/` | Development seed (`data.ts` = dataset, `seed.ts` = loader) |
 | `packages/db/test/constraints.test.ts` | Integration tests proving every SQL rule (34 tests) |
+
+## 1a. Migrations
+
+All migrations through `20261121150000_rating_scale` (the MVP schema). Production applies them with `prisma migrate deploy` only (`pnpm --filter @fos/db db:deploy`); none of them loads data.
+
+| Migration | Phase | What it adds |
+| --- | --- | --- |
+| `20261120000000_extensions` | 3 | Extensions `postgis`, `pg_trgm`, `unaccent`, `citext`, `pgcrypto` |
+| `20261120000100_core_schema` | 3 | Every table, enum, index and foreign key, generated from the Prisma schema (147 models, 105 enums) |
+| `20261120000200_constraints` | 3 | Hand-written rules Prisma can't express: partial unique and expression indexes, `_chk` CHECK constraints, GiST/GIN/trigram indexes, generated `search_vector` columns, and the triggers of §4.3 (ledger balance, append-only, zone overlap, operating-hours limit, search) |
+| `20261120000300_immutability` | 3 | Effective-dated configuration (fee schedules, tax rules, commission and pay plans) can't be edited once effective; dispatch offers, raw webhook payloads and the location trail are append-only |
+| `20261120000400_payment_attempts_guard` | 3 | Payment attempt facts are immutable while their status may progress and the provider payment id may be set once (SRS v0.3.0, D-1) |
+| `20261120151832_auth_enum_values` | 4 | OTP purpose `MFA_LOGIN`; verification token purpose `REACTIVATE_ACCOUNT` |
+| `20261120180000_phone_change_revoke_reason` | 5 | Session revoke reason `PHONE_CHANGED` (FR-CUST-004) |
+| `20261120190000_cart_item_price_seen` | 6 | `cart_items.unit_amount_seen` with a non-negative CHECK, for `PRICE_CHANGED` flags (BR-CART-005, D-9) |
+| `20261121090000_admin_forced_offline` | 11 | Online-session end reason `ADMIN_FORCED` (FR-ADMIN-031) |
+| `20261121120000_admin_operations` | 11 | `orders.accept_extended_until` (one acceptance extension by ops, FR-ADMIN-041); `payouts.cash_deduction` ≥ 0 (cash in hand netted off a partner payout, BR-EARN-006); payout batch approver ≠ maker CHECK (BR-ADMIN-001) |
+| `20261121150000_rating_scale` | 11 | Rating CHECKs aligned with the stored scale: `rating_avg_bps` between 100 and 500 (hundredths of a star) on `restaurants`, `branches` and `partner_stats` (the Phase 3 check assumed basis points) |
+
+Phases 7–10 and 12–14 added no migrations.
 
 ## 2. Workflow for schema changes
 

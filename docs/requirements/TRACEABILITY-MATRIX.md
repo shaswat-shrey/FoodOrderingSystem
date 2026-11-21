@@ -1,6 +1,6 @@
 # SRS Section 22 — Requirement Traceability Matrix
 
-> Part of FOS-SRS-001 v0.11.1 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews), §22.1i (real-time), §22.1j (administration), §22.1k (user interfaces) and §22.1l (testing and hardening).
+> Part of FOS-SRS-001 v0.11.2 (APPROVED 2026-11-20). Rows in §22.1 and §22.2 are `Planned`; requirements delivered so far are listed in §22.1a (platform), §22.1b (database), §22.1c (authentication), §22.1d (customer backend), §22.1e (cart, pricing, checkout, payments), §22.1f (orders, support, notifications), §22.1g (restaurant application), §22.1h (delivery application, tracking, reviews), §22.1i (real-time), §22.1j (administration), §22.1k (user interfaces), §22.1l (testing and hardening) and §22.1m (finalization documents).
 >
 > **Granularity.** In Phase 1 the matrix traces *requirement groups* (contiguous ID ranges that share module, APIs, entities and pages) so that every one of the 408 FR IDs is covered without 400 near-identical rows. When implementation of a group starts, its row is split into one row per requirement, and the `Code` and `Tests` columns are filled with file paths and test names (rule §27.2: no `Implemented` without code reference, no `Verified` without test reference).
 >
@@ -334,7 +334,7 @@ Code: `apps/customer-web/src`, `apps/restaurant-web/src`, `apps/delivery-web/src
 
 ## 22.1l Testing and hardening in Phase 13
 
-Code and tests: `tests/e2e` (Playwright, full stack on an isolated `fos_e2e` database), `tests/load` (k6 scripts), `apps/api/test/{log-scan,redis-outage,authorization-matrix,security-headers}.integration.test.ts`, coverage thresholds per workspace, resilience changes in `apps/api/src/platform/{redis,rate-limit}.ts`, `modules/auth/session.service.ts`, `apps/worker`.
+Code and tests: `tests/e2e` (Playwright, full stack on an isolated `fos_e2e` database), `tests/load` (k6 scripts), `apps/api/test/{log-scan,redis-outage,authz-matrix}.integration.test.ts`, `apps/api/src/platform/http/app.test.ts` (security headers), coverage thresholds per workspace, resilience changes in `apps/api/src/platform/{redis,rate-limit}.ts`, `modules/auth/session.service.ts`, `apps/worker`.
 
 | Requirement | Summary | Status / note |
 |---|---|---|
@@ -347,6 +347,18 @@ Code and tests: `tests/e2e` (Playwright, full stack on an isolated `fos_e2e` dat
 | Authorization matrix (TESTING-STRATEGY §2) | Every mounted route × six role fixtures; wrong role never gets 2xx | Verified |
 | AC-NFR-001, NFR-PERF-001…013 | k6 scripts with thresholds from the peak profile | Scripts ready; to be run on staging (k6 not installed locally) |
 | Quality gates (TESTING-STRATEGY §4) | Coverage thresholds in CI (API 93 % statements); dependency audit (production: 2 low remaining) | Implemented |
+
+## 22.1m Finalization in Phase 14
+
+Documentation only; no requirement or behaviour changed. Files: `README.md`, `docs/guides/{ENVIRONMENT,DEPLOYMENT,DEMO}.md`, `docs/api/{README.md,openapi.json}`, `docs/tools/openapi*.mjs`, `docs/database/{ERD,SCHEMA-NOTES}.md`, `docs/KNOWN-LIMITATIONS.md`, `docs/FUTURE-ROADMAP.md`, `.env.example`.
+
+| Requirement | Summary | Status / note |
+|---|---|---|
+| NFR-MAINT-006 | API documentation generated from the code so it cannot drift | Implemented: `pnpm docs:api` builds OpenAPI 3.1 from the mounted routes and their Zod schemas (395 operations, 392 mapped to API-* IDs); `pnpm docs:api --check` in CI. Response bodies are described by the common envelope only |
+| API-SYS-004 | Serve the OpenAPI document and a viewer from the API | Planned: the document is published as `docs/api/openapi.json`; no endpoint yet |
+| NFR-SEC-001, 006, 008 | Hosting headers for the four web apps (HSTS, CSP, frame-ancestors, Permissions-Policy with geolocation only for the customer and delivery apps) | Specified in `docs/guides/DEPLOYMENT.md` §4 (reference Nginx configuration); not verified on a real host |
+| NFR-SEC-011 | Configuration validated at boot; every variable documented | `docs/guides/ENVIRONMENT.md` derived from the Zod schemas; `.env.example` complete |
+| AC-NFR-001, AC-NFR-005 | Peak load test; restore drill | Still open: listed in the go-live checklist and `docs/KNOWN-LIMITATIONS.md` §3 |
 
 ## 22.2 Non-functional requirements
 
@@ -392,3 +404,4 @@ Every `BR-*` rule is verified by at least one unit or integration test named wit
 | 2026-11-21 | 0.10.1 | Phase 11: added §22.1j (administration); §19.2 lists codes from Phases 9–11 (editorial). |
 | 2026-11-21 | 0.11.0 | Phase 12: added §22.1k (user interfaces); D-20 API-RFIN-006 decided under the owner's standing instruction. |
 | 2026-11-21 | 0.11.1 | Phase 13: added §22.1l (testing and hardening); EVT-DP-016 added to §13.5 (editorial, new push of existing state). |
+| 2026-11-21 | 0.11.2 | Phase 14: added §22.1m (finalization documents, generated OpenAPI); §22.1l file names corrected (editorial). |
