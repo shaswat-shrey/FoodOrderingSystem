@@ -273,7 +273,11 @@ export class SessionService {
   }
 
   /** The successor of a just-rotated token, when it is still the session's unused token. */
-  private async unsealSuccessor(db: Db, oldToken: string, oldTokenId: string): Promise<string | null> {
+  private async unsealSuccessor(
+    db: Db,
+    oldToken: string,
+    oldTokenId: string,
+  ): Promise<string | null> {
     const sealed = await bounded(this.redis.get(this.successorKey(oldToken))).catch(() => null);
     if (!sealed) return null;
     const successor = openWith(oldToken, SUCCESSOR_SEAL, sealed);
