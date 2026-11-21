@@ -81,6 +81,24 @@ export async function codeSentTo(to: string, since: number, pattern = /\b(\d{6})
   throw new Error(`no code sent to ${to}`);
 }
 
+/**
+ * BR-AUTH-003: a number (or email) gets a new code at most every 30 s. A retried
+ * test signs the same seeded account in again, so wait out the cooldown first.
+ */
+export async function waitOutResendCooldown(to: string, cooldownMs = 31_000): Promise<void> {
+  const raw = await readFile(E2E.messageLog, 'utf8').catch(() => '');
+  const last = raw
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as SinkMessage)
+    .filter((m) => m.to === to)
+    .map((m) => Date.parse(m.at))
+    .reduce((a, b) => Math.max(a, b), 0);
+  const wait = last + cooldownMs - Date.now();
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+}
+
 /* ------------------------------ sign-in ------------------------------ */
 
 let phoneCounter = 0;
@@ -172,6 +190,7 @@ export async function signInStaff(page: Page, identifier: string): Promise<void>
 
 /** BR-AUTH-018: admin password, then the emailed second factor. */
 export async function signInAdmin(page: Page, email: string): Promise<void> {
+  await waitOutResendCooldown(email);
   const since = Date.now() - 1000;
   await signInWithPassword(page, email);
   await expect(page.getByLabel('Sign-in code')).toBeVisible();
@@ -183,6 +202,7 @@ export async function signInAdmin(page: Page, email: string): Promise<void> {
 /** Partners sign in with a code to their phone (the delivery app is OTP-only). */
 export async function signInWithOtp(page: Page, digits: string): Promise<void> {
   await page.goto('/sign-in');
+  await waitOutResendCooldown(`+91${digits}`);
   const since = Date.now() - 1000;
   await page.getByLabel('Mobile number').fill(digits);
   await page.getByRole('button', { name: 'Send code' }).click();
@@ -350,14 +370,19 @@ export async function orderDetails(
   refunds: { amount: number; status: string; destination: string }[];
   cancellation: { feeAmount: number; refundAmount: number; reasonCode: string } | null;
 }> {
-  const [response] = await Promise.all([
-    page.waitForResponse(
-      (r) =>
-        r.request().method() === 'GET' && new URL(r.url()).pathname === `/api/v1/orders/${orderId}`,
-    ),
-    gotoSignedIn(page, `/orders/${orderId}`),
-  ]);
-  return ((await response.json()) as { data: Awaited<ReturnType<typeof orderDetails>> }).data;
+  // Leave the current page first, so the response awaited is the new page's own
+  // (one from the page being left can't be read once it is navigated away from).
+  await page.goto('about:blank');
+  const response = page.waitForResponse(
+    (r) =>
+      r.request().method() === 'GET' && new URL(r.url()).pathname === `/api/v1/orders/${orderId}`,
+  );
+  await page.goto(`/orders/${orderId}`);
+  const body = (await (await response).json()) as {
+    data: Awaited<ReturnType<typeof orderDetails>>;
+  };
+  await expect(page.getByRole('link', { name: /^Notifications/ })).toBeVisible();
+  return body.data;
 }
 
 /** A new signed-in customer with a paid order waiting for the restaurant. */

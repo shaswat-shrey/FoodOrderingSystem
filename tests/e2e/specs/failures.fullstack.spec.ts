@@ -92,7 +92,7 @@ test.describe('failure journeys', () => {
       customer.page.getByText('The restaurant couldn’t accept this order'),
     ).toBeVisible();
     const details = await orderDetails(customer.page, id);
-    await expect(customer.page.getByText(/₹[\d,.]+ will be refunded\./)).toBeVisible();
+    await expect(customer.page.getByText(/^₹[\d,.]+ will be refunded\.$/)).toBeVisible();
     expect(details.status).toBe('REJECTED');
     expect(details.refunds).toHaveLength(1);
     expect(details.refunds[0]!.amount).toBe(details.breakdown.payable);
@@ -181,7 +181,8 @@ test.describe('failure journeys', () => {
     await dialog.getByLabel('Reason').selectOption({ label: 'I changed my mind' });
     await dialog.getByRole('button', { name: 'Cancel order' }).click();
     await expect(heading(page)).toHaveText('Cancelled');
-    await expect(page.getByText(`${refund} will be refunded.`)).toBeVisible();
+    await expect(page.getByText(`Order cancelled. ${refund} will be refunded.`)).toBeVisible();
+    await expect(page.getByText(`${refund} will be refunded.`, { exact: true })).toBeVisible();
 
     const details = await orderDetails(page, customer.order.id);
     const paise = (r: string) => Math.round(Number(r.replace(/[₹,]/g, '')) * 100);
@@ -218,7 +219,7 @@ test.describe('failure journeys', () => {
     expireNoPartnerDeadline(id);
     await expect(heading(customer.page)).toHaveText('Cancelled', { timeout: 100_000 });
     const details = await orderDetails(customer.page, id);
-    await expect(customer.page.getByText(/₹[\d,.]+ will be refunded\./)).toBeVisible();
+    await expect(customer.page.getByText(/^₹[\d,.]+ will be refunded\.$/)).toBeVisible();
     expect(details.cancellation?.reasonCode).toBe('NO_PARTNER');
     expect(details.cancellation?.feeAmount).toBe(0);
     expect(details.refunds.map((r) => r.amount)).toEqual([details.breakdown.payable]);
