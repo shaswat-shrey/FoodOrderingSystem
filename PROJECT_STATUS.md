@@ -52,16 +52,16 @@ _Last updated: 2026-11-21_
 
 ## Documentation index
 
-| Topic                                | Where                                                                                                                                                                       |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Getting started                      | [README.md](README.md)                                                                                                                                                      |
-| Environment variables                | [docs/guides/ENVIRONMENT.md](docs/guides/ENVIRONMENT.md)                                                                                                                    |
-| Deployment                           | [docs/guides/DEPLOYMENT.md](docs/guides/DEPLOYMENT.md)                                                                                                                      |
-| Demo accounts and walkthrough        | [docs/guides/DEMO.md](docs/guides/DEMO.md)                                                                                                                                  |
-| API (generated OpenAPI)              | [docs/api/README.md](docs/api/README.md) · [docs/api/openapi.json](docs/api/openapi.json)                                                                                   |
-| Database                             | [docs/database/ERD.md](docs/database/ERD.md) · [docs/database/SCHEMA-NOTES.md](docs/database/SCHEMA-NOTES.md)                                                               |
-| Known limitations and future roadmap | [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) · [docs/FUTURE-ROADMAP.md](docs/FUTURE-ROADMAP.md)                                                                   |
-| Requirements                         | [SRS](docs/requirements/SRS-Online-Food-Ordering-and-Delivery-Platform.md) · [traceability](docs/requirements/TRACEABILITY-MATRIX.md) · [delivery roadmap](docs/ROADMAP.md) |
+| Topic                                | Where                                                                                                                                                                                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Getting started                      | [README.md](README.md)                                                                                                                                                                                                          |
+| Environment variables                | [docs/guides/ENVIRONMENT.md](docs/guides/ENVIRONMENT.md)                                                                                                                                                                        |
+| Deployment                           | [docs/guides/DEPLOYMENT.md](docs/guides/DEPLOYMENT.md)                                                                                                                                                                          |
+| Demo accounts and walkthrough        | [docs/guides/DEMO.md](docs/guides/DEMO.md)                                                                                                                                                                                      |
+| API (generated OpenAPI)              | [docs/api/README.md](docs/api/README.md) · [docs/api/openapi.json](docs/api/openapi.json)                                                                                                                                       |
+| Database                             | [docs/database/ERD.md](docs/database/ERD.md) · [docs/database/SCHEMA-NOTES.md](docs/database/SCHEMA-NOTES.md)                                                                                                                   |
+| Known limitations and future roadmap | [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md) · [docs/FUTURE-ROADMAP.md](docs/FUTURE-ROADMAP.md)                                                                                                                       |
+| Requirements                         | [SRS](docs/requirements/SRS-Online-Food-Ordering-and-Delivery-Platform.md) · [traceability](docs/requirements/TRACEABILITY-MATRIX.md) · [UML diagrams](docs/requirements/UML-DIAGRAMS.md) · [delivery roadmap](docs/ROADMAP.md) |
 
 ## Phase 13 deliverables
 

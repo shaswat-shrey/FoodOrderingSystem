@@ -195,6 +195,7 @@ Every requirement in this SRS is: uniquely identified; written with "shall"; ato
 | 21 | System Workflows | [SYSTEM-WORKFLOWS.md](SYSTEM-WORKFLOWS.md) |
 | 22 | Requirement Traceability Matrix | [TRACEABILITY-MATRIX.md](TRACEABILITY-MATRIX.md) |
 | 23 | Acceptance Criteria | [ACCEPTANCE-CRITERIA.md](ACCEPTANCE-CRITERIA.md) |
+| — | UML diagrams (use case, component, deployment, class, state, sequence, activity) | [UML-DIAGRAMS.md](UML-DIAGRAMS.md) |
 | 24 | Requirements Prioritization | this file |
 | 25 | SRS Quality Rules | this file |
 | 26 | SRS File Management | this file |
@@ -648,6 +649,7 @@ docs/
     SYSTEM-WORKFLOWS.md                                  ← §21
     TRACEABILITY-MATRIX.md                               ← §22
     ACCEPTANCE-CRITERIA.md                               ← §23
+    UML-DIAGRAMS.md                                      ← diagrams for the whole SRS
   architecture/   (Phase 1 architecture, ADRs, state machines, algorithms)
   database/       (ERD, entity catalog)
   api/            (generated OpenAPI lands here in Phase 4+)
