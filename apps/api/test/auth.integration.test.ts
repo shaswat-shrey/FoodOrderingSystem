@@ -354,13 +354,42 @@ suite('refresh rotation (FR-AUTH-022, AC-AUTH-005/006/007)', () => {
     ).toBe(1);
   });
 
-  it('treats a replay inside the grace window as a race and keeps the session (multi-tab)', async () => {
+  it('hands the same successor to a replay inside the grace window (navigation during refresh)', async () => {
     const { browser: b, initialRefreshToken } = await signUpCustomer(ctx);
-    expect((await b.post('/auth/refresh')).status).toBe(200);
-    const race = await replayRefresh(initialRefreshToken); // a second tab sent the old cookie
+    // The previous page's refresh rotated the cookie, but its response was aborted by a navigation.
+    const lost = await b.post('/auth/refresh');
+    expect(lost.status).toBe(200);
+    const successor = refreshCookie(lost);
+    ctx.clock.advance(3_000);
+    const next = await replayRefresh(initialRefreshToken); // the new page still sends the old cookie
+    expect(next.status).toBe(200);
+    expect(refreshCookie(next)).toBe(successor);
+    expect(next.body.data.accessToken).toBeTruthy();
+    const sessionId = next.body.data.session.id as string;
+    expect(await ctx.prisma.refreshToken.count({ where: { sessionId, status: 'ACTIVE' } })).toBe(1);
+    // Both pages converge on the successor, which keeps rotating normally.
+    const after = await replayRefresh(successor!);
+    expect(after.status).toBe(200);
+    expect(refreshCookie(after)).not.toBe(successor);
+  });
+
+  it('answers a grace-window replay with a race once the successor has itself been used (multi-tab)', async () => {
+    const { browser: b, initialRefreshToken } = await signUpCustomer(ctx);
+    const first = await b.post('/auth/refresh');
+    expect((await replayRefresh(refreshCookie(first)!)).status).toBe(200); // successor rotated too
+    const race = await replayRefresh(initialRefreshToken);
     expect(race.status).toBe(409);
     expect(race.body.error.code).toBe('AUTH_REFRESH_RACE');
+    expect(refreshCookie(race)).toBeUndefined(); // the cookie is kept
+  });
+
+  it('still detects reuse of a replayed-in-grace token after the window', async () => {
+    const { initialRefreshToken, browser: b } = await signUpCustomer(ctx);
     expect((await b.post('/auth/refresh')).status).toBe(200);
+    expect((await replayRefresh(initialRefreshToken)).status).toBe(200);
+    ctx.clock.advance(11_000);
+    const replay = await replayRefresh(initialRefreshToken);
+    expect(replay.body.error.code).toBe('AUTH_REFRESH_REUSED');
   });
 
   it('rejects refresh from an untrusted origin (CSRF, BR-AUTH-019)', async () => {

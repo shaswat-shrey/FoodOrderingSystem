@@ -135,10 +135,11 @@ export function createApiClient({
       return true;
     } catch (error) {
       const failure = toClientError(error);
-      if (failure.code === 'AUTH_REFRESH_RACE' && attempt === 0) {
-        // Another tab rotated the cookie a moment ago; the browser now holds the new one.
-        await new Promise((resolve) => setTimeout(resolve, raceRetryDelayMs));
-        return doRefresh(1);
+      if (failure.code === 'AUTH_REFRESH_RACE' && attempt < 2) {
+        // Another tab (or the page we navigated away from) rotated the cookie a moment ago;
+        // the browser holds the new one, or the server hands it back on the retry.
+        await new Promise((resolve) => setTimeout(resolve, raceRetryDelayMs * (attempt * 2 + 1)));
+        return doRefresh(attempt + 1);
       }
       if (failure.code === 'NETWORK_ERROR' || (failure.status ?? 0) >= 500) throw failure;
       setSignedOut(authStore);

@@ -120,6 +120,33 @@ describe('auth client (FR-FE-002/003)', () => {
     expect(client.authStore.getState().accessToken).toBe('tok-after-race');
   });
 
+  it('survives two races in a row (navigation while the previous page was refreshing)', async () => {
+    let calls = 0;
+    const client = createApiClient({
+      clientApp: 'CUSTOMER',
+      locks: null,
+      raceRetryDelayMs: 1,
+      adapter: routed(() => (++calls <= 2 ? fail(409, 'AUTH_REFRESH_RACE') : session('tok-3'))),
+    });
+    await expect(client.refreshSession()).resolves.toBe(true);
+    expect(calls).toBe(3);
+  });
+
+  it('gives up after three races without looping', async () => {
+    let calls = 0;
+    const client = createApiClient({
+      clientApp: 'CUSTOMER',
+      locks: null,
+      raceRetryDelayMs: 1,
+      adapter: routed(() => {
+        calls += 1;
+        return fail(409, 'AUTH_REFRESH_RACE');
+      }),
+    });
+    await expect(client.refreshSession()).resolves.toBe(false);
+    expect(calls).toBe(3);
+  });
+
   it('signs out when the refresh cookie is rejected, and surfaces the original 401', async () => {
     const client = createApiClient({
       clientApp: 'CUSTOMER',

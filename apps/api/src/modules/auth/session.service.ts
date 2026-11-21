@@ -3,7 +3,7 @@ import type { ClientApp } from '@fos/shared';
 import type { Redis } from 'ioredis';
 import { uuidv7 } from '@fos/shared';
 import type { Clock } from '../../platform/clock';
-import { randomToken, sha256 } from '../../platform/crypto';
+import { openWith, randomToken, sealWith, sha256 } from '../../platform/crypto';
 import { AppError } from '../../platform/http/errors';
 import type { Logger } from '../../platform/logger';
 import { AUTH_POLICY, SESSION_LIFETIME } from './policy';
@@ -45,6 +45,9 @@ export type RotationResult =
   | { kind: 'race' }
   | { kind: 'reused'; sessionId: string; userId: string };
 
+/** Domain for sealing a successor refresh token to the token it replaced. */
+const SUCCESSOR_SEAL = 'refresh-successor';
+
 /** Pub/sub channel every API instance listens on to drop sockets (FR-RT-004). */
 export const REALTIME_CONTROL_CHANNEL = 'rt:control';
 
@@ -58,6 +61,15 @@ interface TokenRow {
   session_status: 'ACTIVE' | 'REVOKED' | 'EXPIRED';
   idle_expires_at: Date;
   absolute_expires_at: Date;
+}
+
+/** Redis calls on the sign-in path must not wait out an outage (NFR-AVAIL-004). */
+export function bounded<T>(promise: Promise<T>, ms = 500): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('redis timeout')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 /** Human-readable device label from a user agent, without a parsing dependency. */
@@ -166,7 +178,21 @@ export class SessionService {
 
       if (row.token_status === 'ROTATED') {
         const sinceRotation = (now.getTime() - (row.rotated_at?.getTime() ?? 0)) / 1000;
-        if (sinceRotation <= AUTH_POLICY.refreshGraceSeconds) return { kind: 'race' } as const;
+        if (sinceRotation <= AUTH_POLICY.refreshGraceSeconds) {
+          // BR-AUTH-007: a page load that started while the previous page's refresh was in
+          // flight presents the old cookie (the aborted response never stored the new one).
+          // Hand back the same successor, so both responses converge on one cookie.
+          const successor = await this.unsealSuccessor(tx, rawToken, row.token_id);
+          if (successor)
+            return {
+              kind: 'rotated',
+              sessionId: row.session_id,
+              userId: row.user_id,
+              refreshToken: successor,
+              absoluteExpiresAt: row.absolute_expires_at,
+            } as const;
+          return { kind: 'race' } as const;
+        }
         await this.revokeIn(tx, row.session_id, 'REFRESH_REUSE');
         return { kind: 'reused', sessionId: row.session_id, userId: row.user_id } as const;
       }
@@ -198,6 +224,9 @@ export class SessionService {
           issuedAt: now,
         },
       });
+      // Written before commit: a concurrent request for the old token waits on the row
+      // lock above and finds the successor once this transaction commits.
+      await this.sealSuccessor(rawToken, refreshToken);
       const idleSeconds = SESSION_LIFETIME[app].idleSeconds;
       await tx.userSession.update({
         where: { id: row.session_id },
@@ -219,6 +248,41 @@ export class SessionService {
     if (result.kind !== 'race')
       await this.afterRevocationOrChange(result.sessionId, result.kind === 'reused');
     return result;
+  }
+
+  private successorKey(rawToken: string): string {
+    return `rt:succ:${Buffer.from(sha256(`successor:${rawToken}`)).toString('hex')}`;
+  }
+
+  /**
+   * Keeps the successor for the grace window, sealed with a key derived from the
+   * token it replaces: only a holder of the old token can open it. Best effort —
+   * without Redis a concurrent presentation is answered as a plain race.
+   */
+  private async sealSuccessor(oldToken: string, successor: string): Promise<void> {
+    await bounded(
+      this.redis.set(
+        this.successorKey(oldToken),
+        sealWith(oldToken, SUCCESSOR_SEAL, successor),
+        'EX',
+        AUTH_POLICY.refreshGraceSeconds + 5,
+      ),
+    ).catch((error: unknown) =>
+      this.logger.debug({ err: error }, 'refresh successor not cached; races fall back to 409'),
+    );
+  }
+
+  /** The successor of a just-rotated token, when it is still the session's unused token. */
+  private async unsealSuccessor(db: Db, oldToken: string, oldTokenId: string): Promise<string | null> {
+    const sealed = await bounded(this.redis.get(this.successorKey(oldToken))).catch(() => null);
+    if (!sealed) return null;
+    const successor = openWith(oldToken, SUCCESSOR_SEAL, sealed);
+    if (!successor) return null;
+    const current = await db.refreshToken.findFirst({
+      where: { tokenHash: sha256(successor), parentId: oldTokenId, status: 'ACTIVE' },
+      select: { id: true },
+    });
+    return current ? successor : null;
   }
 
   /** Session state for request authentication, from a short-lived cache (FR-AUTH-021). */
