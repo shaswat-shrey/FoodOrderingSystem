@@ -155,7 +155,7 @@ export function PaymentPage() {
         {phase === 'confirming' && <Alert tone="info">Confirming your payment…</Alert>}
         {failed && (
           <Alert tone="error" title="Payment failed">
-            {failed} You can try again.
+            {sentence(failed)} You can try again.
           </Alert>
         )}
         <ServerError error={error} />
@@ -177,4 +177,10 @@ export function PaymentPage() {
       )}
     </div>
   );
+}
+
+/** Provider messages may or may not end with a full stop. */
+function sentence(text: string): string {
+  const trimmed = text.trim();
+  return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
 }

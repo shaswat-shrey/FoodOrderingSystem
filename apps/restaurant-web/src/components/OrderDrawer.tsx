@@ -31,6 +31,8 @@ export function OrderDrawer({ orderId, onClose }: { orderId: string; onClose: ()
     queryFn: () => merchant.orders.get(orderId),
   });
   const [partnerLive, setPartnerLive] = useState<PartnerLive | null>(null);
+  // Kept here: the handover form unmounts once the order is picked up, the confirmation must not.
+  const [handedOverTo, setHandedOverTo] = useState<string | null>(null);
   useLiveEvent(
     live,
     ['delivery.partner_assigned', 'delivery.partner_arrived', 'delivery.picked_up'],
@@ -142,7 +144,18 @@ export function OrderDrawer({ orderId, onClose }: { orderId: string; onClose: ()
               </p>
             </section>
 
-            {canHandover && <Handover orderId={o.id} partnerName={partnerName} />}
+            {handedOverTo !== null ? (
+              <Alert tone="success">Handed over to {handedOverTo}.</Alert>
+            ) : (
+              canHandover && (
+                <Handover
+                  orderId={o.id}
+                  onHandedOver={(partner) =>
+                    setHandedOverTo(partner ?? partnerName ?? 'the partner')
+                  }
+                />
+              )
+            )}
 
             <section aria-labelledby="timeline-heading">
               <h3 id="timeline-heading" className="font-semibold">
@@ -164,22 +177,23 @@ export function OrderDrawer({ orderId, onClose }: { orderId: string; onClose: ()
   );
 }
 
-function Handover({ orderId, partnerName }: { orderId: string; partnerName: string | null }) {
+function Handover({
+  orderId,
+  onHandedOver,
+}: {
+  orderId: string;
+  onHandedOver: (partner: string | null) => void;
+}) {
   const qc = useQueryClient();
   const [code, setCode] = useState('');
   const handover = useMutation({
     mutationFn: () => merchant.orders.handover(orderId, code),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      onHandedOver(data.partner ?? null);
       void qc.invalidateQueries({ queryKey: ['orders'] });
       void qc.invalidateQueries({ queryKey: ['kds'] });
     },
   });
-  if (handover.isSuccess)
-    return (
-      <Alert tone="success">
-        Handed over to {handover.data.partner ?? partnerName ?? 'the partner'}.
-      </Alert>
-    );
   return (
     <form
       className="space-y-2"

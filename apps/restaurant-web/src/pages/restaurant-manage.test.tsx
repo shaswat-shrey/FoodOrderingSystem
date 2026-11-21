@@ -345,13 +345,16 @@ describe('order details and handover (FR-RORD-007)', () => {
     };
     vi.spyOn(merchant.orders, 'counts').mockResolvedValue(counts);
     vi.spyOn(merchant.orders, 'queue').mockResolvedValue([card]);
-    vi.spyOn(merchant.orders, 'get').mockResolvedValue(details);
+    const get = vi.spyOn(merchant.orders, 'get').mockResolvedValue(details);
     const handover = vi
       .spyOn(merchant.orders, 'handover')
       .mockRejectedValueOnce(
         new ApiClientError('PICKUP_CODE_INVALID', 'That pickup code is not correct.', 422),
       )
-      .mockResolvedValueOnce({ orderId: 'o1', status: 'PICKED_UP', partner: 'Imran' });
+      .mockImplementationOnce(async () => {
+        get.mockResolvedValue({ ...details, status: 'PICKED_UP' });
+        return { orderId: 'o1', status: 'PICKED_UP', partner: 'Imran' };
+      });
     renderAt('/orders');
     const order = await screen.findByRole('article', { name: 'Order 261121-ABCDEF' });
     fireEvent.click(within(order).getByRole('button', { name: 'Details and handover' }));
@@ -369,6 +372,12 @@ describe('order details and handover (FR-RORD-007)', () => {
     fireEvent.change(code, { target: { value: '4821' } });
     fireEvent.click(within(drawer).getByRole('button', { name: 'Hand over order' }));
     expect(await within(drawer).findByText('Handed over to Imran.')).toBeInTheDocument();
+    // The order is now picked up (no handover form), and the confirmation stays.
+    await waitFor(() => expect(get).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(within(drawer).queryByLabelText(/pickup code/)).not.toBeInTheDocument(),
+    );
+    expect(within(drawer).getByText('Handed over to Imran.')).toBeInTheDocument();
   });
 });
 

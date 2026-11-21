@@ -724,6 +724,46 @@ describe('customer ordering journey', () => {
     ).toBeInTheDocument();
   });
 
+  it('reads the bank’s decline as a sentence before offering a retry', async () => {
+    vi.spyOn(customer.orders, 'details').mockResolvedValue(
+      details({ status: 'PAYMENT_PENDING', statusLabel: 'Waiting for payment' }),
+    );
+    vi.spyOn(customer.payments, 'initiate').mockResolvedValue({
+      paymentId: 'pay1',
+      provider: 'mock',
+      keyId: 'rzp_test_mock',
+      providerOrderId: 'order_1',
+      amount: 49_000,
+      currency: 'INR',
+      orderNumber: 'FOS-24001',
+      prefill: { name: 'Asha Rao', contact: null, email: null },
+    });
+    vi.spyOn(customer.payments, 'mockCheckout').mockResolvedValue({
+      providerPaymentId: 'pay_x',
+      signature: 'sig',
+    });
+    vi.spyOn(customer.payments, 'verify').mockResolvedValue({
+      id: 'pay1',
+      orderId: 'o1',
+      method: 'ONLINE',
+      provider: 'mock',
+      amount: 49_000,
+      currency: 'INR',
+      status: 'FAILED',
+      capturedAmount: 0,
+      refundedAmount: 0,
+      instrumentSummary: null,
+      failureReason: 'Payment was declined by the bank',
+      createdAt: '2026-11-21T06:30:00Z',
+      capturedAt: null,
+    });
+    renderAt('/orders/o1/pay');
+    fireEvent.click(await screen.findByRole('button', { name: 'Pay ₹490' }));
+    expect(
+      await screen.findByText('Payment was declined by the bank. You can try again.'),
+    ).toBeInTheDocument();
+  });
+
   it('tracks an order live: snapshot, then pushed status and location', async () => {
     vi.spyOn(customer.tracking, 'snapshot').mockResolvedValue(
       tracking({
@@ -879,6 +919,77 @@ describe('customer ordering journey', () => {
     ]);
     expect(cancel.mock.calls[0]![2]).toMatch(UUID);
     expect(await screen.findByText('Order cancelled. ₹490 will be refunded.')).toBeInTheDocument();
+  });
+
+  it('keeps the cancellation confirmation once the order shows as cancelled', async () => {
+    const snapshot = vi.spyOn(customer.tracking, 'snapshot').mockResolvedValue(tracking());
+    vi.spyOn(customer.orders, 'details').mockResolvedValue(details());
+    vi.spyOn(customer.orders, 'cancellationPreview').mockResolvedValue({
+      orderId: 'o1',
+      status: 'PLACED',
+      allowed: true,
+      quoteId: 'q1',
+      fee: 0,
+      refund: {
+        amount: 49_000,
+        toSource: 49_000,
+        toWallet: 0,
+        walletReleased: 0,
+        expectation: 'Original method: 5–7 business days.',
+      },
+      freeUntil: null,
+      reasons: ['CHANGED_MIND'],
+    });
+    vi.spyOn(customer.orders, 'cancel').mockImplementation(async () => {
+      snapshot.mockResolvedValue(tracking({ status: 'CANCELLED' }));
+      return {
+        order: { id: 'o1', status: 'CANCELLED' },
+        cancellation: {
+          fee: 0,
+          refund: {
+            amount: 49_000,
+            toSource: 49_000,
+            toWallet: 0,
+            walletReleased: 0,
+            status: 'PENDING',
+          },
+        },
+      };
+    });
+    renderAt('/orders/o1');
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel order' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Cancel this order?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel order' }));
+    expect(await screen.findByText('This order was cancelled')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cancel order' })).not.toBeInTheDocument();
+    expect(screen.getByText('Order cancelled. ₹490 will be refunded.')).toBeInTheDocument();
+  });
+
+  it('shows “Finding a delivery partner” as soon as the restaurant accepts', async () => {
+    const pending = {
+      status: 'PENDING',
+      assignedAt: null,
+      arrivedRestaurantAt: null,
+      pickedUpAt: null,
+      arrivedCustomerAt: null,
+      deliveredAt: null,
+    };
+    const snapshot = vi
+      .spyOn(customer.tracking, 'snapshot')
+      .mockResolvedValue(tracking({ delivery: pending }));
+    vi.spyOn(customer.orders, 'details').mockResolvedValue(details());
+    renderAt('/orders/o1');
+    expect(
+      await screen.findByRole('heading', { name: 'Order placed — waiting for the restaurant' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Finding a delivery partner')).not.toBeInTheDocument();
+    snapshot.mockResolvedValue(tracking({ status: 'ACCEPTED', delivery: pending }));
+    act(() =>
+      socket.emit('order.status_changed', { orderId: 'o1', from: 'PLACED', to: 'ACCEPTED' }),
+    );
+    expect(await screen.findByText('Finding a delivery partner')).toBeInTheDocument();
+    act(() => socket.emit('delivery.status_changed', { orderId: 'o1', status: 'SEARCHING' }));
+    expect(screen.getByText('Finding a delivery partner')).toBeInTheDocument();
   });
 
   it('renders a 404 page for unknown routes', async () => {
