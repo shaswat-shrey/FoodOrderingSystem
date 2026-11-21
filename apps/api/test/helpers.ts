@@ -77,6 +77,8 @@ export async function createTestContext(
   const cache = new Redis(redisUrl.replace(/\/\d+$/, '/14'), {
     maxRetriesPerRequest: null,
   });
+  // Outage tests cut the connection; reconnect errors are expected there.
+  for (const client of [core, cache]) client.on('error', () => undefined);
   await Promise.all([core.flushdb(), cache.flushdb()]);
   // Start the manual clock at real time so database defaults and our timestamps agree.
   const clock = new ManualClock(new Date());

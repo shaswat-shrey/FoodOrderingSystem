@@ -10,6 +10,7 @@ import {
   setPassword,
   signInAs,
   signUpCustomer,
+  uniquePhone,
   type App,
   type TestContext,
 } from './helpers';
@@ -101,15 +102,32 @@ interface Caller {
 let ctx: TestContext;
 const callers: Caller[] = [];
 
-/** BR-AUTH-018: admins sign in with a password and the emailed second factor. */
-async function signInAdmin(email: string): Promise<string> {
-  const user = await ctx.prisma.user.findFirstOrThrow({ where: { email } });
+/**
+ * A fresh platform user with one role (seeded admins may have been changed by other
+ * test files), signed in to the admin app with the emailed second factor (BR-AUTH-018).
+ */
+async function signInAdmin(role: 'SUPPORT_AGENT' | 'ADMIN'): Promise<string> {
+  const suffix = uniquePhone().slice(-8);
+  const email = `matrix-${role.toLowerCase()}-${suffix}@example.com`;
+  const now = new Date();
+  const user = await ctx.prisma.user.create({
+    data: {
+      fullName: `Matrix ${role}`,
+      email,
+      phone: uniquePhone(),
+      status: 'ACTIVE',
+      emailVerifiedAt: now,
+      phoneVerifiedAt: now,
+      roles: { create: { role: { connect: { key: role } } } },
+    },
+  });
   await setPassword(ctx.prisma, user.id, 'matrix admin passphrase');
   const b = browser(ctx, 'ADMIN');
   const first = await b.post('/auth/login', {
     identifier: email,
     password: 'matrix admin passphrase',
   });
+  if (!first.body.data?.mfaToken) throw new Error(`admin sign-in: ${JSON.stringify(first.body)}`);
   const done = await b.post('/auth/mfa/challenge', {
     mfaToken: first.body.data.mfaToken,
     code: ctx.messages.lastOtp(email)!,
@@ -128,8 +146,8 @@ beforeAll(async () => {
     { name: 'customer', app: 'CUSTOMER', token: customer.browser.token! },
     { name: 'partner', app: 'DELIVERY', token: partner.browser.token! },
     { name: 'restaurant staff', app: 'RESTAURANT', token: staff.browser.token! },
-    { name: 'support agent', app: 'ADMIN', token: await signInAdmin('support@example.com') },
-    { name: 'admin', app: 'ADMIN', token: await signInAdmin('admin@example.com') },
+    { name: 'support agent', app: 'ADMIN', token: await signInAdmin('SUPPORT_AGENT') },
+    { name: 'admin', app: 'ADMIN', token: await signInAdmin('ADMIN') },
   );
 });
 afterAll(async () => {
