@@ -66,6 +66,8 @@ jobs:
       - run: pnpm build
       - name: SRS requirement ID check (no duplicates or dangling references)
         run: pnpm docs:check
+      - name: OpenAPI document matches the mounted routes (docs/api/openapi.json)
+        run: pnpm docs:api --check
 
   e2e:
     name: E2E (Playwright, full stack)

@@ -17,6 +17,7 @@
     "format:check": "prettier --check .",
     "docs:check": "node docs/tools/requirements-index.mjs --check",
     "docs:index": "node docs/tools/requirements-index.mjs",
+    "docs:api": "pnpm --filter @fos/api exec tsx ../../docs/tools/openapi.mjs",
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm docs:check",
