@@ -111,6 +111,7 @@
 | EVT-DP-013 | `delivery.instructions_updated` | orders | `delivery:{id}` | instructions, contactPhone | assigned; only post-assignment | FR-ORDER-031 | Show update |
 | EVT-DP-014 | `partner.status_changed` | delivery-partners | `partner:{id}` | state, reason (AUTO_OFFLINE_INACTIVE, CASH_CAP, ADMIN) | self | State change | Update toggle |
 | EVT-DP-015 | `earnings.updated` | earnings | `partner:{id}` | today total, last delivery breakdown | self | Delivery completion/adjustment | Refresh earnings |
+| EVT-DP-016 | `delivery.status_changed` | dispatch | `delivery:{id}` | deliveryId, orderId, status, at | assigned | Delivery stage change (AT_RESTAURANT, EN_ROUTE_TO_CUSTOMER after the restaurant's handover, AT_CUSTOMER, DELIVERED, FAILED) | Refresh the trip and move to the next stage |
 
 ### Admin events
 

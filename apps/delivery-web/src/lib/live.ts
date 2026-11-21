@@ -29,10 +29,11 @@ const EVENTS: Record<string, string[][]> = {
   'order.ready': [['partner', 'delivery']],
   'order.cancelled': [['partner']],
   'order.prep_delayed': [['partner', 'delivery']],
+  'delivery.status_changed': [['partner', 'delivery'], ['partner', 'availability']],
 };
 
 /**
- * Refetches what each pushed event changes (EVT-DP-001…015) and everything after
+ * Refetches what each pushed event changes (EVT-DP-001…016) and everything after
  * a reconnect; returns the fallback polling interval (fast while disconnected).
  */
 export function usePartnerLive() {

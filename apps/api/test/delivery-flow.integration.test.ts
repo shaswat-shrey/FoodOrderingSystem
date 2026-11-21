@@ -10,6 +10,7 @@ import {
   integrationEnabled,
   parkActiveDeliveries,
   placeOrder,
+  pushes,
   SAFFRON_STAFF,
   signInAs,
   type TestContext,
@@ -293,6 +294,17 @@ suite('the trip (API-DPDEL-004…011, FR-DEL-020…035, T13/T15)', () => {
     expect(
       (await ctx.prisma.delivery.findUniqueOrThrow({ where: { id: o.deliveryId } })).status,
     ).toBe('EN_ROUTE_TO_CUSTOMER');
+    // EVT-DP-016: the partner's trip screen is told about the handover at once.
+    pushes(ctx).clear();
+    await ctx.container.outboxRelay.runOnce();
+    const toPartner = pushes(ctx)
+      .of('delivery.status_changed')
+      .filter((x) => x.app === 'DELIVERY');
+    expect(toPartner).toHaveLength(1);
+    expect(toPartner[0]).toMatchObject({
+      rooms: [`delivery:${o.deliveryId}`],
+      data: { deliveryId: o.deliveryId, orderId: o.orderId, status: 'EN_ROUTE_TO_CUSTOMER' },
+    });
   });
 
   it('re-dispatches when the partner unassigns, and compensates them if the restaurant cancels', async () => {

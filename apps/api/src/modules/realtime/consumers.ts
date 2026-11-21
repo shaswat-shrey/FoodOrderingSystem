@@ -331,8 +331,17 @@ export function registerRealtimeConsumers(relay: OutboxRelay, deps: RealtimeCons
     }
     if (
       ['AT_RESTAURANT', 'EN_ROUTE_TO_CUSTOMER', 'AT_CUSTOMER', 'DELIVERED', 'FAILED'].includes(to)
-    )
+    ) {
       await push(e, 'CUSTOMER', orderRoom, 'delivery.status_changed', { orderId, status: to, at });
+      // EVT-DP-016: the partner learns of stage changes made elsewhere (the restaurant's
+      // handover, an admin marking the trip delivered or failed) without polling.
+      await push(e, 'DELIVERY', [`delivery:${deliveryId}`], 'delivery.status_changed', {
+        deliveryId,
+        orderId,
+        status: to,
+        at,
+      });
+    }
     if (to === 'AT_RESTAURANT' && partnerId) {
       const c = await partnerCard(partnerId);
       await push(e, 'RESTAURANT', branchRoom, 'delivery.partner_arrived', {
