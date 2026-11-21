@@ -9,3 +9,11 @@ onlyBuiltDependencies:
   - '@prisma/engines'
   - esbuild
   - prisma
+
+# Security fixes for transitive dependencies (pnpm audit --prod, Phase 13). Same major
+# as the parent expects, except deepmerge-ts (8.x keeps the API @prisma/config uses).
+overrides:
+  'fast-xml-parser@>=4 <4.5.7': 4.5.7
+  'uuid@<11.1.1': 11.1.1
+  'effect@<3.22.1': 3.22.5
+  'deepmerge-ts@<8': 8.0.2
