@@ -52,7 +52,15 @@ jobs:
       - name: Create shadow database
         run: PGPASSWORD=fos_ci_password psql -h localhost -U fos -d fos_test -c 'CREATE DATABASE fos_shadow'
       # Unit + integration tests; API and packages enforce coverage thresholds (TESTING-STRATEGY §4).
-      - run: pnpm test:coverage
+      - name: Tests with coverage
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm test:coverage 2>&1 | tee coverage.log || {
+            # Surface the cause as annotations (visible without downloading logs).
+            grep -E "does not meet|ERROR|FAIL |✗|×|Error:" coverage.log | head -30 | sed 's/^/::error::/'
+            exit 1
+          }
       - name: Migration drift check (migrations == schema)
         run: pnpm --filter @fos/db db:drift
       - run: pnpm build
