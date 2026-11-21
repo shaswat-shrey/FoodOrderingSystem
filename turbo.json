@@ -24,5 +24,6 @@
       "dependsOn": ["^db:generate"],
       "outputs": ["coverage/**"]
     }
-  }
+  },
+  "globalPassThroughEnv": ["TEST_DATABASE_URL", "TEST_REDIS_URL", "SHADOW_DATABASE_URL", "CI"]
 }
