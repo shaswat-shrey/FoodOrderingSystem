@@ -100,6 +100,8 @@ export function OrderPage() {
   const status = useLiveStatus(live);
   const connected = status === 'connected';
   const [liveEta, setLiveEta] = useState<{ minutes: number; km: number } | null>(null);
+  // Kept here: the cancel button unmounts once the order is cancelled, the confirmation must not.
+  const [cancelNotice, setCancelNotice] = useState<string | null>(null);
 
   const tracking = useQuery({
     queryKey: trackingKey,
@@ -161,6 +163,8 @@ export function OrderPage() {
             ...(eta !== undefined ? { eta } : {}),
           }));
           void qc.invalidateQueries({ queryKey: ['order', orderId, 'details'] });
+          // Acceptance starts the partner search; the snapshot carries the delivery state.
+          if (d.to === 'ACCEPTED') void qc.invalidateQueries({ queryKey: trackingKey });
           break;
         }
         case 'order.cancelled':
@@ -252,6 +256,12 @@ export function OrderPage() {
 
   const t = tracking.data;
   const ended = ENDED[t.status];
+  // Accepted orders are being matched with a partner even before dispatch's first round.
+  const deliveryStatus =
+    t.delivery?.status === 'PENDING' && !['PLACED', 'PAYMENT_PENDING'].includes(t.status)
+      ? 'SEARCHING'
+      : t.delivery?.status;
+  const deliveryLabel = deliveryStatus ? DELIVERY_LABEL[deliveryStatus] : undefined;
   return (
     <div className="space-y-4">
       {placed && t.status !== 'PAYMENT_PENDING' && !ended && (
@@ -300,8 +310,8 @@ export function OrderPage() {
       {!ended && t.status !== 'PAYMENT_PENDING' && (
         <Section title="Status">
           <Timeline status={t.status} times={details.data?.timeline ?? []} />
-          {t.delivery && DELIVERY_LABEL[t.delivery.status] && t.status !== 'DELIVERED' && (
-            <p className="mt-3 text-sm text-gray-700">{DELIVERY_LABEL[t.delivery.status]}</p>
+          {deliveryLabel && t.status !== 'DELIVERED' && (
+            <p className="mt-3 text-sm text-gray-700">{deliveryLabel}</p>
           )}
         </Section>
       )}
@@ -330,7 +340,8 @@ export function OrderPage() {
         </Section>
       )}
 
-      {CANCELLABLE.has(t.status) && <CancelOrder orderId={orderId} />}
+      <div aria-live="polite">{cancelNotice && <Alert tone="success">{cancelNotice}</Alert>}</div>
+      {CANCELLABLE.has(t.status) && <CancelOrder orderId={orderId} onCancelled={setCancelNotice} />}
 
       {details.data && (
         <Section title="Order summary">
@@ -435,13 +446,18 @@ function PartnerLocation({ tracking }: { tracking: OrderTracking }) {
   );
 }
 
-function CancelOrder({ orderId }: { orderId: string }) {
+function CancelOrder({
+  orderId,
+  onCancelled,
+}: {
+  orderId: string;
+  onCancelled: (notice: string) => void;
+}) {
   const qc = useQueryClient();
   const [preview, setPreview] = useState<CancellationPreview | null>(null);
   const [reason, setReason] = useState<CancelReasonCode>('CHANGED_MIND');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [done, setDone] = useState<string | null>(null);
   const key = useIdempotencyKey();
 
   async function open() {
@@ -467,7 +483,7 @@ function CancelOrder({ orderId }: { orderId: string }) {
         key(`${preview.quoteId}:${reason}`),
       );
       setPreview(null);
-      setDone(
+      onCancelled(
         result.cancellation.refund.amount > 0
           ? `Order cancelled. ${rupees(result.cancellation.refund.amount)} will be refunded.`
           : 'Order cancelled.',
@@ -483,10 +499,7 @@ function CancelOrder({ orderId }: { orderId: string }) {
 
   return (
     <div className="space-y-2">
-      <div aria-live="polite">
-        {done && <Alert tone="success">{done}</Alert>}
-        {!preview && <ServerError error={error} />}
-      </div>
+      <div aria-live="polite">{!preview && <ServerError error={error} />}</div>
       <Button
         variant="secondary"
         className="w-full"

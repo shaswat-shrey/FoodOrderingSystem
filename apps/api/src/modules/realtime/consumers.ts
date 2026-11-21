@@ -329,6 +329,11 @@ export function registerRealtimeConsumers(relay: OutboxRelay, deps: RealtimeCons
       await realtime.leave('DELIVERY', `partner:${previous}`, `delivery:${deliveryId}`);
       return;
     }
+    if (to === 'SEARCHING') {
+      // Dispatch started after acceptance: "Finding a delivery partner" at once.
+      await push(e, 'CUSTOMER', orderRoom, 'delivery.status_changed', { orderId, status: to, at });
+      return;
+    }
     if (
       ['AT_RESTAURANT', 'EN_ROUTE_TO_CUSTOMER', 'AT_CUSTOMER', 'DELIVERED', 'FAILED'].includes(to)
     ) {

@@ -178,6 +178,14 @@ suite('pushes from the outbox (SRS §13.5)', () => {
     await ctx.container.outboxRelay.runOnce();
     const offer = p.of('offer.created')[0]!;
     expect(offer).toMatchObject({ app: 'DELIVERY', rooms: [`partner:${partnerId}`] });
+    // The customer sees "Finding a delivery partner" as dispatch starts.
+    expect(p.of('delivery.status_changed')).toContainEqual(
+      expect.objectContaining({
+        app: 'CUSTOMER',
+        rooms: [`order:${o.orderId}`],
+        data: expect.objectContaining({ status: 'SEARCHING' }),
+      }),
+    );
     expect(offer.data).toMatchObject({ deliveryId: d.id, payment: { type: 'COD' } });
 
     await r.browser.post(`/partner/offers/${offer.data.offerId as string}/accept`, {}, key());
