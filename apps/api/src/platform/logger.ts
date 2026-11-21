@@ -30,6 +30,19 @@ export const REDACT_PATHS = [
   'res.headers["set-cookie"]',
   'accountNumber',
   '*.accountNumber',
+  // Contact details and one-time codes under the names the API uses for them.
+  'phone',
+  '*.phone',
+  'identifier',
+  '*.identifier',
+  'pickupCode',
+  '*.pickupCode',
+  'deliveryCode',
+  '*.deliveryCode',
+  'signature',
+  '*.signature',
+  'mfaToken',
+  '*.mfaToken',
 ];
 
 export interface CreateLoggerOptions {

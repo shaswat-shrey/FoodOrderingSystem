@@ -32,4 +32,20 @@ describe('logger redaction (NFR-SEC-014)', () => {
     expect(output).toContain('[REDACTED]');
     expect(JSON.parse(lines[0] ?? '{}')).toMatchObject({ service: 'api', level: 'info' });
   });
+
+  it('masks contact details, pickup and delivery codes and provider signatures', () => {
+    const { lines, stream } = capture();
+    const logger = createLogger({ level: 'info', service: 'api', destination: stream });
+    logger.info(
+      {
+        phone: '+919876543210',
+        body: { identifier: 'asha@example.com', pickupCode: '4821', signature: 'sig-xyz' },
+        delivery: { deliveryCode: '7314' },
+      },
+      'context',
+    );
+    const output = lines.join('');
+    for (const secret of ['9876543210', 'asha@example.com', '4821', 'sig-xyz', '7314'])
+      expect(output).not.toContain(secret);
+  });
 });
