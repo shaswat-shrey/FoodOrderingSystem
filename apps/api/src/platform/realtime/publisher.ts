@@ -1,4 +1,5 @@
 import type { Redis } from 'ioredis';
+import { redisReady } from '../redis';
 import { SOCKET_NAMESPACES, uuidv7, type ClientApp } from '@fos/shared';
 import type { Logger } from '../logger';
 import type { RealtimeMessage } from './socket-server';
@@ -55,6 +56,9 @@ export class RedisRealtime implements Realtime {
 
   async push(input: PushInput) {
     if (!input.rooms.length) return;
+    // Sockets resync from REST when they reconnect; never wait for Redis here.
+    if (!redisReady(this.redis))
+      return this.logger.warn({ event: input.event }, 'realtime push skipped; redis unavailable');
     const message: RealtimeMessage = {
       namespace: SOCKET_NAMESPACES[input.app],
       rooms: input.rooms,
@@ -75,6 +79,8 @@ export class RedisRealtime implements Realtime {
     target: string,
     room: string,
   ) {
+    if (!redisReady(this.redis))
+      return this.logger.warn({ room }, 'realtime room change skipped; redis unavailable');
     await this.redis
       .publish(
         this.controlChannel,

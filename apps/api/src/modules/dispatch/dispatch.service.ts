@@ -6,6 +6,7 @@ import { AppError } from '../../platform/http/errors';
 import type { JobQueue } from '../../platform/jobs';
 import type { Logger } from '../../platform/logger';
 import { raiseOpsAlert } from '../../platform/ops-alerts';
+import { redisReady } from '../../platform/redis';
 import { writeOutbox } from '../../platform/outbox';
 import type { SettingsService } from '../config';
 import { haversineM } from '../geo';
@@ -288,8 +289,37 @@ export class DispatchService {
     }
   }
 
+  /**
+   * NFR-AVAIL-004: partner presence, offer slots and the dispatch lock live in Redis.
+   * Without it dispatch pauses (searches stay SEARCHING) and ops are alerted; the
+   * once-a-minute sweep resumes every waiting search when Redis is back.
+   */
+  private async paused(): Promise<boolean> {
+    if (redisReady(this.redis)) return false;
+    await raiseOpsAlert(this.prisma, {
+      type: 'DISPATCH_PAUSED',
+      severity: 'CRITICAL',
+      message: 'Dispatch is paused: Redis is unavailable. Searches resume when it is back.',
+      dedupeKey: 'dispatch:redis-unavailable',
+    }).catch((error: unknown) =>
+      this.logger.error({ err: error }, 'could not raise dispatch alert'),
+    );
+    return true;
+  }
+
+  /** Takes the per-delivery lock, or answers "try again" while Redis is unavailable. */
+  private async deliveryLock(key: string, token: string): Promise<boolean> {
+    if (await this.paused())
+      throw new AppError('SERVICE_UNAVAILABLE', {
+        message: 'Assignments are paused for a moment. Please try again shortly.',
+        retryable: true,
+      });
+    return (await this.redis.set(key, token, 'PX', 5_000, 'NX')) === 'OK';
+  }
+
   /** Offer to the next best partner, move to the next round, or escalate. */
   async next(deliveryId: string): Promise<'OFFERED' | 'ESCALATED' | 'IDLE' | 'BUSY'> {
+    if (await this.paused()) return 'BUSY';
     const out = await this.withLock(deliveryId, async () => {
       for (;;) {
         const d = await this.prisma.delivery.findUnique({ where: { id: deliveryId } });
@@ -492,7 +522,7 @@ export class DispatchService {
       throw new AppError('NOT_FOUND', { message: "We couldn't find that offer." });
     const token = randomUUID();
     const lockKey = `lock:delivery:${a0.deliveryId}`;
-    if ((await this.redis.set(lockKey, token, 'PX', 5_000, 'NX')) !== 'OK')
+    if (!(await this.deliveryLock(lockKey, token)))
       throw new AppError('OFFER_NOT_AVAILABLE', { retryable: true });
     try {
       const delivery = await this.prisma.$transaction(async (tx) => {
@@ -784,7 +814,7 @@ export class DispatchService {
       });
     const token = randomUUID();
     const lockKey = `lock:delivery:${deliveryId}`;
-    if ((await this.redis.set(lockKey, token, 'PX', 5_000, 'NX')) !== 'OK')
+    if (!(await this.deliveryLock(lockKey, token)))
       throw new AppError('ORDER_STATE_CONFLICT', {
         message: 'This delivery is being assigned right now. Try again.',
       });

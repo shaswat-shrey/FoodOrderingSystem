@@ -66,3 +66,48 @@ export async function closeRedis(client: Redis): Promise<void> {
     client.disconnect();
   }
 }
+
+/**
+ * True when a command would run now. The clients queue commands while reconnecting
+ * (maxRetriesPerRequest: null, which BullMQ needs), so during an outage a plain
+ * `await redis.get(...)` waits for the outage to end. Request paths check this
+ * first and fall back instead (NFR-AVAIL-004).
+ */
+export function redisReady(client: Pick<Redis, 'status'>): boolean {
+  return client.status === 'ready';
+}
+
+/** Rejects when `promise` takes longer than `ms` (a connection that dies mid-command). */
+export function bounded<T>(promise: Promise<T>, ms = 500): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('redis command timed out')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+/**
+ * A best-effort Redis call for caches and similar: skipped while Redis is
+ * unavailable, bounded otherwise, and `fallback` on any failure.
+ */
+export async function softRedis<T>(
+  client: Redis,
+  op: (redis: Redis) => Promise<T>,
+  fallback: T,
+  ms = 500,
+): Promise<T> {
+  if (!redisReady(client)) return fallback;
+  try {
+    return await bounded(op(client), ms);
+  } catch {
+    return fallback;
+  }
+}
+
+/** Thrown by producers that must not wait for Redis (queues, locks) during an outage. */
+export class RedisUnavailableError extends Error {
+  constructor(what: string) {
+    super(`redis unavailable: ${what}`);
+    this.name = 'RedisUnavailableError';
+  }
+}

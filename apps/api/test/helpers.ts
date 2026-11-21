@@ -42,7 +42,11 @@ export interface TestContext {
 
 /** Real PostgreSQL + Redis, manual clock, recorded messages and captured logs. */
 export async function createTestContext(
-  options: { geocoder?: GeocodingProvider } = {},
+  options: {
+    geocoder?: GeocodingProvider;
+    /** Redis host:port to use instead of TEST_REDIS_URL's (e.g. a proxy that can be cut). */
+    redisHost?: string;
+  } = {},
 ): Promise<TestContext> {
   const url = apiTestDatabaseUrl()!;
   const env = loadEnv({
@@ -66,8 +70,11 @@ export async function createTestContext(
     }),
   });
   const prisma = new PrismaClient({ datasourceUrl: url });
-  const core = new Redis(process.env.TEST_REDIS_URL!, { maxRetriesPerRequest: null });
-  const cache = new Redis(process.env.TEST_REDIS_URL!.replace(/\/\d+$/, '/14'), {
+  const redisUrl = options.redisHost
+    ? process.env.TEST_REDIS_URL!.replace(/\/\/[^/]+/, `//${options.redisHost}`)
+    : process.env.TEST_REDIS_URL!;
+  const core = new Redis(redisUrl, { maxRetriesPerRequest: null });
+  const cache = new Redis(redisUrl.replace(/\/\d+$/, '/14'), {
     maxRetriesPerRequest: null,
   });
   await Promise.all([core.flushdb(), cache.flushdb()]);

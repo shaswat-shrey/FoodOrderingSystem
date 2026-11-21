@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@fos/db';
 import type { DiscoveryListQuery } from '@fos/validation';
 import type { Redis } from 'ioredis';
+import { softRedis } from '../../platform/redis';
 import type { Clock } from '../../platform/clock';
 import { AppError } from '../../platform/http/errors';
 import { queryFingerprint } from '../../platform/pagination';
@@ -415,19 +416,15 @@ export class DiscoveryService {
   async home(point: LatLng, vegOnly: boolean, userId: string | null) {
     const key = `home:v1:${geohash(point.lat, point.lng, 6)}:${vegOnly ? 1 : 0}`;
     let home: Awaited<ReturnType<DiscoveryService['buildHome']>> | null = null;
-    try {
-      const hit = await this.cache.get(key);
-      if (hit) home = JSON.parse(hit);
-    } catch (error) {
-      this.logger.warn({ err: error }, 'home cache read failed');
-    }
+    const hit = await softRedis(this.cache, (r) => r.get(key), null);
+    if (hit) home = JSON.parse(hit);
     if (!home) {
       home = await this.buildHome(point, vegOnly);
-      await this.cache
-        .set(key, JSON.stringify(home), 'EX', HOME_TTL_SECONDS)
-        .catch((error: unknown) => {
-          this.logger.warn({ err: error }, 'home cache write failed');
-        });
+      await softRedis(
+        this.cache,
+        (r) => r.set(key, JSON.stringify(home), 'EX', HOME_TTL_SECONDS),
+        null,
+      );
     }
     if (!userId) return { ...home, orderAgain: [] as Card[] };
     const favorites = await favoriteRestaurantIds(

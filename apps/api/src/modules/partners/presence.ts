@@ -1,4 +1,5 @@
 import type { Redis } from 'ioredis';
+import { redisReady, RedisUnavailableError } from '../../platform/redis';
 
 export type PresenceState = 'OFFLINE' | 'ONLINE_IDLE' | 'OFFERED' | 'ON_DELIVERY' | 'PAUSED';
 
@@ -31,8 +32,14 @@ const ONLINE_SET = 'partners:online';
 export class PresenceStore {
   constructor(private readonly redis: Redis) {}
 
+  /** Live state is Redis-only: fail at once during an outage instead of queueing (NFR-AVAIL-004). */
+  private ready(): Redis {
+    if (!redisReady(this.redis)) throw new RedisUnavailableError('partner presence');
+    return this.redis;
+  }
+
   async get(partnerId: string): Promise<Presence | null> {
-    const h = await this.redis.hgetall(key(partnerId));
+    const h = await this.ready().hgetall(key(partnerId));
     if (!h.state) return null;
     return {
       partnerId,
@@ -50,18 +57,20 @@ export class PresenceStore {
   }
 
   async put(p: Presence, previousZoneId?: string | null): Promise<void> {
-    const multi = this.redis.multi().hset(key(p.partnerId), {
-      state: p.state,
-      zoneId: p.zoneId ?? '',
-      lat: p.lat,
-      lng: p.lng,
-      acc: p.accuracyM,
-      at: p.at,
-      vehicle: p.vehicle,
-      offlineAfter: p.offlineAfterCurrent ? '1' : '0',
-      outsideSince: p.outsideSince,
-      pausedUntil: p.pausedUntil,
-    });
+    const multi = this.ready()
+      .multi()
+      .hset(key(p.partnerId), {
+        state: p.state,
+        zoneId: p.zoneId ?? '',
+        lat: p.lat,
+        lng: p.lng,
+        acc: p.accuracyM,
+        at: p.at,
+        vehicle: p.vehicle,
+        offlineAfter: p.offlineAfterCurrent ? '1' : '0',
+        outsideSince: p.outsideSince,
+        pausedUntil: p.pausedUntil,
+      });
     if (previousZoneId && previousZoneId !== p.zoneId) multi.zrem(geo(previousZoneId), p.partnerId);
     if (p.state === 'OFFLINE') {
       if (p.zoneId) multi.zrem(geo(p.zoneId), p.partnerId);
@@ -80,7 +89,7 @@ export class PresenceStore {
 
   /** Partners within `radiusM` of a point in a zone, nearest first, with distance in metres. */
   async near(zoneId: string, point: { lat: number; lng: number }, radiusM: number, count = 50) {
-    const rows = (await this.redis.geosearch(
+    const rows = (await this.ready().geosearch(
       geo(zoneId),
       'FROMLONLAT',
       point.lng,
@@ -97,18 +106,18 @@ export class PresenceStore {
   }
 
   async online(): Promise<string[]> {
-    return this.redis.smembers(ONLINE_SET);
+    return this.ready().smembers(ONLINE_SET);
   }
 
   /** At most one open offer per partner (DELIVERY-ASSIGNMENT-ALGORITHM §4). */
   async claimOfferSlot(partnerId: string, ttlSeconds: number): Promise<boolean> {
     return (
-      (await this.redis.set(`offer-lock:partner:${partnerId}`, '1', 'EX', ttlSeconds, 'NX')) ===
+      (await this.ready().set(`offer-lock:partner:${partnerId}`, '1', 'EX', ttlSeconds, 'NX')) ===
       'OK'
     );
   }
 
   async releaseOfferSlot(partnerId: string): Promise<void> {
-    await this.redis.del(`offer-lock:partner:${partnerId}`);
+    await this.ready().del(`offer-lock:partner:${partnerId}`);
   }
 }

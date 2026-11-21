@@ -79,7 +79,8 @@ export class AdminDashboardService {
       db.deliveryPartner.count({
         where: { onboardingStatus: { in: ['SUBMITTED', 'UNDER_REVIEW'] } },
       }),
-      this.presence.online(),
+      // Online partners are live state; during a Redis outage the tile shows none.
+      this.presence.online().catch(() => [] as string[]),
       db.delivery.count({ where: { status: { in: [...ON_DELIVERY] }, partnerId: { not: null } } }),
       db.order.groupBy({
         by: ['status'],

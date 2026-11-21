@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@fos/db';
 import type { Redis } from 'ioredis';
+import { softRedis } from '../../platform/redis';
 import type { PlatformPermission, RestaurantRoleName } from '@fos/shared';
 import type { Logger } from '../../platform/logger';
 import { grantsFor, type ResolvedPermissions } from './policies';
@@ -20,14 +21,14 @@ export class IamService {
 
   async resolve(userId: string, permissionVersion: number): Promise<ResolvedPermissions> {
     const key = `perm:${userId}:${permissionVersion}`;
-    try {
-      const cached = await this.cache.get(key);
-      if (cached) return JSON.parse(cached) as ResolvedPermissions;
-    } catch (error) {
-      this.logger.debug({ err: error }, 'permission cache unavailable');
-    }
+    const cached = await softRedis(this.cache, (r) => r.get(key), null);
+    if (cached) return JSON.parse(cached) as ResolvedPermissions;
     const resolved = await this.load(userId);
-    this.cache.set(key, JSON.stringify(resolved), 'EX', CACHE_TTL_SECONDS).catch(() => undefined);
+    void softRedis(
+      this.cache,
+      (r) => r.set(key, JSON.stringify(resolved), 'EX', CACHE_TTL_SECONDS),
+      null,
+    );
     return resolved;
   }
 

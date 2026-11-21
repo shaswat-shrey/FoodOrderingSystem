@@ -1,6 +1,8 @@
 import { Queue } from 'bullmq';
 import type { Redis } from 'ioredis';
 import { uuidv7 } from '@fos/shared';
+import { AppError } from '../../platform/http/errors';
+import { redisReady } from '../../platform/redis';
 import type { Message } from './templates';
 
 /** Sends account messages asynchronously; delivery happens in the worker (FR-NOTIF-001/007). */
@@ -17,11 +19,17 @@ export const SEND_MESSAGE_JOB = 'send-message';
 export class QueueMessageDispatcher implements MessageDispatcher {
   private readonly queue: Queue;
 
-  constructor(connection: Redis) {
+  constructor(private readonly connection: Redis) {
     this.queue = new Queue('notifications', { connection });
   }
 
   async send(message: Message): Promise<void> {
+    // NFR-AVAIL-004: say so at once rather than holding the request until Redis returns.
+    if (!redisReady(this.connection))
+      throw new AppError('SERVICE_UNAVAILABLE', {
+        message: 'We can’t send messages right now. Please try again in a few minutes.',
+        retryable: true,
+      });
     await this.queue.add(SEND_MESSAGE_JOB, message, {
       jobId: uuidv7(),
       attempts: 5,

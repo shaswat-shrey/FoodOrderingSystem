@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@fos/db';
 import type { Redis } from 'ioredis';
+import { softRedis } from '../../platform/redis';
 import type { Clock } from '../../platform/clock';
 import { raiseOpsAlert } from '../../platform/ops-alerts';
 import type { Realtime } from '../../platform/realtime/publisher';
@@ -27,10 +28,9 @@ export class LiveTracking {
   ) {}
 
   private once(key: string, ms: number) {
-    return this.redis
-      .set(key, '1', 'PX', ms, 'NX')
-      .then((r) => r === 'OK')
-      .catch(() => false);
+    return softRedis(this.redis, (r) => r.set(key, '1', 'PX', ms, 'NX'), null).then(
+      (r) => r === 'OK',
+    );
   }
 
   /** A fix from the partner app (socket or REST batch). */
@@ -47,7 +47,7 @@ export class LiveTracking {
     });
     if (!d || d.partnerId !== partnerId || !(SHARED as readonly string[]).includes(d.status))
       return;
-    await this.redis.del(`trk:stale:${deliveryId}`).catch(() => undefined);
+    await softRedis(this.redis, (r) => r.del(`trk:stale:${deliveryId}`), 0);
     if (await this.once(`trk:fanout:${d.orderId}`, FANOUT_MS))
       await this.realtime.push({
         app: 'CUSTOMER',

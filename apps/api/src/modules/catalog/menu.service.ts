@@ -1,5 +1,6 @@
 import type { DietaryMarker, PrismaClient } from '@fos/db';
 import type { Redis } from 'ioredis';
+import { softRedis } from '../../platform/redis';
 import type { Logger } from '../../platform/logger';
 import type { BranchRecord } from './branch-repository';
 
@@ -106,18 +107,14 @@ export class MenuService {
   /** FR-MENUC-008: served from cache keyed by branch + menu version; database on miss or cache outage. */
   async raw(branch: BranchRecord): Promise<RawMenu> {
     const key = `menu:v2:${branch.id}:${branch.menuVersion}`;
-    try {
-      const hit = await this.cache.get(key);
-      if (hit) return JSON.parse(hit) as RawMenu;
-    } catch (error) {
-      this.logger.warn({ err: error }, 'menu cache read failed; using database');
-    }
+    const hit = await softRedis(this.cache, (r) => r.get(key), null);
+    if (hit) return JSON.parse(hit) as RawMenu;
     const menu = await this.load(branch);
-    try {
-      await this.cache.set(key, JSON.stringify(menu), 'EX', CACHE_TTL_SECONDS);
-    } catch (error) {
-      this.logger.warn({ err: error }, 'menu cache write failed');
-    }
+    await softRedis(
+      this.cache,
+      (r) => r.set(key, JSON.stringify(menu), 'EX', CACHE_TTL_SECONDS),
+      null,
+    );
     return menu;
   }
 

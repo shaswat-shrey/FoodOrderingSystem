@@ -6,6 +6,7 @@ import type { Clock } from '../../platform/clock';
 import { openWith, randomToken, sealWith, sha256 } from '../../platform/crypto';
 import { AppError } from '../../platform/http/errors';
 import type { Logger } from '../../platform/logger';
+import { softRedis } from '../../platform/redis';
 import { AUTH_POLICY, SESSION_LIFETIME } from './policy';
 
 type Db = PrismaClient | Prisma.TransactionClient;
@@ -61,15 +62,6 @@ interface TokenRow {
   session_status: 'ACTIVE' | 'REVOKED' | 'EXPIRED';
   idle_expires_at: Date;
   absolute_expires_at: Date;
-}
-
-/** Redis calls on the sign-in path must not wait out an outage (NFR-AVAIL-004). */
-export function bounded<T>(promise: Promise<T>, ms = 500): Promise<T> {
-  let timer: NodeJS.Timeout | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error('redis timeout')), ms);
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 /** Human-readable device label from a user agent, without a parsing dependency. */
@@ -256,19 +248,20 @@ export class SessionService {
 
   /**
    * Keeps the successor for the grace window, sealed with a key derived from the
-   * token it replaces: only a holder of the old token can open it. Best effort —
-   * without Redis a concurrent presentation is answered as a plain race.
+   * token it replaces: only a holder of the old token can open it.
    */
   private async sealSuccessor(oldToken: string, successor: string): Promise<void> {
-    await bounded(
-      this.redis.set(
-        this.successorKey(oldToken),
-        sealWith(oldToken, SUCCESSOR_SEAL, successor),
-        'EX',
-        AUTH_POLICY.refreshGraceSeconds + 5,
-      ),
-    ).catch((error: unknown) =>
-      this.logger.debug({ err: error }, 'refresh successor not cached; races fall back to 409'),
+    // Without Redis a concurrent presentation is answered as a plain race (409).
+    await softRedis(
+      this.redis,
+      (r) =>
+        r.set(
+          this.successorKey(oldToken),
+          sealWith(oldToken, SUCCESSOR_SEAL, successor),
+          'EX',
+          AUTH_POLICY.refreshGraceSeconds + 5,
+        ),
+      null,
     );
   }
 
@@ -278,7 +271,7 @@ export class SessionService {
     oldToken: string,
     oldTokenId: string,
   ): Promise<string | null> {
-    const sealed = await bounded(this.redis.get(this.successorKey(oldToken))).catch(() => null);
+    const sealed = await softRedis(this.redis, (r) => r.get(this.successorKey(oldToken)), null);
     if (!sealed) return null;
     const successor = openWith(oldToken, SUCCESSOR_SEAL, sealed);
     if (!successor) return null;
@@ -291,15 +284,12 @@ export class SessionService {
 
   /** Session state for request authentication, from a short-lived cache (FR-AUTH-021). */
   async state(sessionId: string): Promise<SessionState | null> {
-    try {
-      const cached = await this.redis.get(this.cacheKey(sessionId));
-      if (cached)
-        return this.withExpiry(
-          JSON.parse(cached) as SessionState & { idle: string; absolute: string },
-        );
-    } catch (error) {
-      this.logger.debug({ err: error }, 'session cache unavailable; using database');
-    }
+    // NFR-AVAIL-004: without Redis every request reads the session from the database.
+    const cached = await softRedis(this.redis, (r) => r.get(this.cacheKey(sessionId)), null);
+    if (cached)
+      return this.withExpiry(
+        JSON.parse(cached) as SessionState & { idle: string; absolute: string },
+      );
     const session = await this.prisma.userSession.findUnique({
       where: { id: sessionId },
       select: {
@@ -334,9 +324,17 @@ export class SessionService {
       idle: session.idleExpiresAt.toISOString(),
       absolute: session.absoluteExpiresAt.toISOString(),
     };
-    this.redis
-      .set(this.cacheKey(sessionId), JSON.stringify(entry), 'EX', AUTH_POLICY.sessionCacheSeconds)
-      .catch(() => undefined);
+    void softRedis(
+      this.redis,
+      (r) =>
+        r.set(
+          this.cacheKey(sessionId),
+          JSON.stringify(entry),
+          'EX',
+          AUTH_POLICY.sessionCacheSeconds,
+        ),
+      null,
+    );
     return this.withExpiry(entry);
   }
 
@@ -357,7 +355,7 @@ export class SessionService {
       UPDATE user_sessions
       SET last_active_at = ${now}, idle_expires_at = LEAST(${new Date(now.getTime() + idle * 1000)}, absolute_expires_at)
       WHERE id = ${state.sessionId}::uuid AND status = 'ACTIVE'`;
-    await this.redis.del(this.cacheKey(state.sessionId)).catch(() => undefined);
+    await softRedis(this.redis, (r) => r.del(this.cacheKey(state.sessionId)), 0);
   }
 
   private async revokeIn(db: Db, sessionId: string, reason: SessionRevokeReason): Promise<void> {
@@ -405,7 +403,7 @@ export class SessionService {
 
   /** Drops the cached state of a session (e.g. after a user-level change). */
   async invalidate(sessionId: string): Promise<void> {
-    await this.redis.del(this.cacheKey(sessionId)).catch(() => undefined);
+    await softRedis(this.redis, (r) => r.del(this.cacheKey(sessionId)), 0);
   }
 
   /** Invalidates every cached session of a user (status or version changes). */
@@ -420,11 +418,17 @@ export class SessionService {
   private async afterRevocationOrChange(sessionId: string, revoked: boolean): Promise<void> {
     await this.invalidate(sessionId);
     if (revoked) {
-      await this.redis
-        .publish(REALTIME_CONTROL_CHANNEL, JSON.stringify({ type: 'session.revoked', sessionId }))
-        .catch((error: unknown) =>
-          this.logger.warn({ err: error }, 'could not publish session revocation'),
-        );
+      const sent = await softRedis(
+        this.redis,
+        (r) =>
+          r.publish(
+            REALTIME_CONTROL_CHANNEL,
+            JSON.stringify({ type: 'session.revoked', sessionId }),
+          ),
+        null,
+      );
+      // Sockets also re-check the session when their access token is refreshed (FR-RT-003).
+      if (sent === null) this.logger.warn({ sessionId }, 'could not publish session revocation');
     }
   }
 

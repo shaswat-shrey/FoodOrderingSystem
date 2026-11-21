@@ -46,7 +46,13 @@ import {
   SettingsService,
   WalletService,
 } from '@fos/api/jobs';
-import { closeRedis, connectRedis, createLogger, pingRedis } from '@fos/api/platform';
+import {
+  closeRedis,
+  connectRedis,
+  createLogger,
+  pingRedis,
+  RedisWatchdog,
+} from '@fos/api/platform';
 import { loadWorkerEnv } from './env';
 import { createHealthServer } from './health-server';
 import { buildRegistrations, createMessageSink, SCHEDULES, startWorkers } from './processors';
@@ -214,6 +220,9 @@ async function main(): Promise<void> {
   });
   const workers = startWorkers(registrations, core, logger);
   outbox.start();
+  // NFR-AVAIL-004: alert ops (through PostgreSQL) while Redis is down.
+  const watchdog = new RedisWatchdog(prisma, core, logger);
+  watchdog.start();
   logger.info(
     { processors: registrations.map((r) => r.queue) },
     `worker started with ${workers.length} processors`,
@@ -244,6 +253,7 @@ async function main(): Promise<void> {
     logger.info({ signal }, 'shutting down');
     const force = setTimeout(() => process.exit(1), 25_000);
     force.unref();
+    watchdog.stop();
     await outbox.stop();
     // Worker.close() waits for active jobs to finish (NFR-REL-007).
     await Promise.allSettled(workers.map((w) => w.close()));

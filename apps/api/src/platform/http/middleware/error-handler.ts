@@ -4,6 +4,7 @@ import { DEFAULT_ERROR_MESSAGES } from '@fos/shared';
 import type { Logger } from '../../logger';
 import { sendError } from '../envelope';
 import { AppError } from '../errors';
+import { RedisUnavailableError } from '../../redis';
 
 /** 404 for unmatched routes, in the standard envelope. */
 export function notFoundHandler(): RequestHandler {
@@ -17,6 +18,9 @@ interface BodyParserError extends Error {
 
 function toAppError(error: unknown): AppError | undefined {
   if (error instanceof AppError) return error;
+  // NFR-AVAIL-004: a Redis-only feature during an outage is "try again", not a crash.
+  if (error instanceof RedisUnavailableError)
+    return new AppError('SERVICE_UNAVAILABLE', { retryable: true });
   if (error instanceof ZodError) {
     return new AppError('VALIDATION_ERROR', {
       details: error.issues.map((issue) => ({

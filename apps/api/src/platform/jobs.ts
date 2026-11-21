@@ -1,4 +1,5 @@
 import { Queue } from 'bullmq';
+import { redisReady, RedisUnavailableError } from './redis';
 import type { Redis } from 'ioredis';
 import type { QueueName } from '@fos/shared';
 
@@ -48,6 +49,8 @@ export class BullJobQueue implements JobQueue {
     data: Record<string, unknown>,
     opts: { jobId?: string; delayMs?: number } = {},
   ): Promise<void> {
+    // Callers catch this and leave the job to a sweeper; waiting would hang the request.
+    if (!redisReady(this.connection)) throw new RedisUnavailableError(`queue ${queue}`);
     await this.queue(queue).add(name, data, {
       ...(opts.jobId ? { jobId: opts.jobId } : {}),
       ...(opts.delayMs ? { delay: opts.delayMs } : {}),

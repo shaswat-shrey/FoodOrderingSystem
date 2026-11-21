@@ -6,6 +6,8 @@ export {
   connectRedis,
   createRedisClients,
   pingRedis,
+  redisReady,
   type RedisClients,
 } from './redis';
+export { RedisWatchdog } from './redis-watchdog';
 export { evaluateReadiness, type ReadinessChecks } from './health/readiness';

@@ -4,6 +4,7 @@ import type { Redis } from 'ioredis';
 import type { Clock } from './clock';
 import type { Logger } from './logger';
 import { raiseOpsAlert } from './ops-alerts';
+import { redisReady } from './redis';
 
 export type OutboxHandler = (event: OutboxEvent) => Promise<void>;
 
@@ -126,6 +127,9 @@ export class OutboxRelay {
       if (this.running) return;
       this.running = true;
       try {
+        // NFR-AVAIL-004: no leader lock without Redis; events wait in the table and
+        // drain in order once it is back.
+        if (this.redis && !redisReady(this.redis)) return;
         if (await this.leader()) {
           // Drain quickly when there is a backlog.
           while ((await this.runOnce()) === 100) {

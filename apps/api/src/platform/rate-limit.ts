@@ -1,5 +1,6 @@
 import type { Redis } from 'ioredis';
 import type { Logger } from './logger';
+import { bounded, redisReady, RedisUnavailableError } from './redis';
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -71,12 +72,15 @@ export class RedisRateLimiter implements RateLimiter {
   async hit(key: string, limit: number, windowSeconds: number): Promise<RateLimitResult> {
     const redisKey = this.prefix + key;
     try {
-      const result = await this.redis
-        .multi()
-        .incr(redisKey)
-        .expire(redisKey, windowSeconds, 'NX')
-        .ttl(redisKey)
-        .exec();
+      if (!redisReady(this.redis)) throw new RedisUnavailableError('rate limiter');
+      const result = await bounded(
+        this.redis
+          .multi()
+          .incr(redisKey)
+          .expire(redisKey, windowSeconds, 'NX')
+          .ttl(redisKey)
+          .exec(),
+      );
       if (!result) throw new Error('rate limit transaction aborted');
       const count = Number(result[0]?.[1]);
       const ttl = Number(result[2]?.[1]);
@@ -97,13 +101,17 @@ export class RedisRateLimiter implements RateLimiter {
 
   async peek(key: string): Promise<number> {
     try {
-      return Number((await this.redis.get(this.prefix + key)) ?? 0);
+      if (!redisReady(this.redis)) throw new RedisUnavailableError('rate limiter');
+      return Number((await bounded(this.redis.get(this.prefix + key))) ?? 0);
     } catch {
       return this.fallback.peek(key);
     }
   }
 
   async reset(key: string): Promise<void> {
-    await Promise.allSettled([this.redis.del(this.prefix + key), this.fallback.reset(key)]);
+    await Promise.allSettled([
+      redisReady(this.redis) ? bounded(this.redis.del(this.prefix + key)) : undefined,
+      this.fallback.reset(key),
+    ]);
   }
 }
