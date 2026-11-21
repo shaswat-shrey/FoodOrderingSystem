@@ -29,7 +29,10 @@ const EVENTS: Record<string, string[][]> = {
   'order.ready': [['partner', 'delivery']],
   'order.cancelled': [['partner']],
   'order.prep_delayed': [['partner', 'delivery']],
-  'delivery.status_changed': [['partner', 'delivery'], ['partner', 'availability']],
+  'delivery.status_changed': [
+    ['partner', 'delivery'],
+    ['partner', 'availability'],
+  ],
 };
 
 /**
